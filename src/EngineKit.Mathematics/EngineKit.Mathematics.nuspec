@@ -1,0 +1,11 @@
+<package>
+    <metadata>
+        <id>EngineKit.Mathematics</id>
+        <version>$version$</version>
+        <authors>deccer</authors>
+        <owners>deccer</owners>
+        <description>Math library</description>
+        <copyright>2021</copyright>
+        <projectUrl>https://github.com/deccer/EngineKit</projectUrl>
+    </metadata>
+</package>
