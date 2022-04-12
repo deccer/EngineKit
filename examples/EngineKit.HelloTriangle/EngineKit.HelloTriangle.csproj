@@ -23,6 +23,7 @@
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\src\EngineKit.Native.Glfw\EngineKit.Native.Glfw.csproj" />
+      <ProjectReference Include="..\..\src\EngineKit.Native.OpenGL\EngineKit.Native.OpenGL.csproj" />
       <ProjectReference Include="..\..\src\EngineKit\EngineKit.csproj" />
     </ItemGroup>
     <ItemGroup>

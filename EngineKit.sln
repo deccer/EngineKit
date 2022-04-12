@@ -17,6 +17,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EngineKit.HelloWindow", "ex
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EngineKit.Mathematics", "src\EngineKit.Mathematics\EngineKit.Mathematics.csproj", "{23D4C3A7-7427-4ADF-8831-C5D739B6C0CC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EngineKit.Native.OpenGL", "src\EngineKit.Native.OpenGL\EngineKit.Native.OpenGL.csproj", "{220AEE15-1104-4C13-A570-4C4A63892188}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EngineKit.HelloTriangle", "examples\EngineKit.HelloTriangle\EngineKit.HelloTriangle.csproj", "{6793A49A-D195-4EA2-9836-378B5CC66A7E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{23D4C3A7-7427-4ADF-8831-C5D739B6C0CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23D4C3A7-7427-4ADF-8831-C5D739B6C0CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23D4C3A7-7427-4ADF-8831-C5D739B6C0CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{220AEE15-1104-4C13-A570-4C4A63892188}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{220AEE15-1104-4C13-A570-4C4A63892188}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{220AEE15-1104-4C13-A570-4C4A63892188}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{220AEE15-1104-4C13-A570-4C4A63892188}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6793A49A-D195-4EA2-9836-378B5CC66A7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6793A49A-D195-4EA2-9836-378B5CC66A7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6793A49A-D195-4EA2-9836-378B5CC66A7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6793A49A-D195-4EA2-9836-378B5CC66A7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -48,6 +60,8 @@ Global
 		{CF4650AC-D236-4E0F-AA26-59AC1262F95B} = {B87A458C-45D1-4AFD-B52C-A59FBC233457}
 		{1DAB84D2-63E4-4356-AF48-2B917005F869} = {08168B01-67D1-4F62-9CC8-6AC013619905}
 		{23D4C3A7-7427-4ADF-8831-C5D739B6C0CC} = {B87A458C-45D1-4AFD-B52C-A59FBC233457}
+		{220AEE15-1104-4C13-A570-4C4A63892188} = {B87A458C-45D1-4AFD-B52C-A59FBC233457}
+		{6793A49A-D195-4EA2-9836-378B5CC66A7E} = {08168B01-67D1-4F62-9CC8-6AC013619905}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AEC3B084-8E1B-47A3-B304-063682B6AF4E}
