@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <PackageVersion>2021.8.0</PackageVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="System.Runtime" Version="4.3.1"/>
+        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0"/>
+        <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0"/>
+    </ItemGroup>
+
+</Project>
