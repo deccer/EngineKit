@@ -10,6 +10,11 @@ public class Application : IApplication
     private readonly ILogger _logger;
     private IntPtr _windowHandle;
 
+    private Glfw.KeyCallback _keyCallback;
+    private Glfw.MouseButtonCallback _mouseButtonCallback;
+    private Glfw.CursorEnterCallback _cursorEnterCallback;
+    private Glfw.CursorPositionCallback _cursorPositionCallback;
+
     protected Application(ILogger logger)
     {
         _logger = logger.ForContext<Application>();
@@ -77,13 +82,9 @@ public class Application : IApplication
         }
 
         Glfw.SetWindowPos(_windowHandle, screenWidth / 2 - windowWidth / 2, screenHeight / 2 - windowHeight / 2);
-
-        Glfw.SetKeyCallback(_windowHandle, OnKey);
-        Glfw.SetCursorPositionCallback(_windowHandle, OnMousePosition);
-        Glfw.SetCursorEnterCallback(_windowHandle, OnMouseEnter);
-        Glfw.SetMouseButtonCallback(_windowHandle, OnMouseButton);
-
         Glfw.MakeContextCurrent(_windowHandle);
+
+        BindCallbacks();
 
         return true;
     }
@@ -95,10 +96,7 @@ public class Application : IApplication
 
     protected virtual void Cleanup()
     {
-        Glfw.SetKeyCallback(_windowHandle, null);
-        Glfw.SetCursorEnterCallback(_windowHandle, null);
-        Glfw.SetCursorPositionCallback(_windowHandle, null);
-        Glfw.SetMouseButtonCallback(_windowHandle, null);
+        UnbindCallbacks();
         Glfw.DestroyWindow(_windowHandle);
         Glfw.Terminate();
     }
@@ -110,7 +108,28 @@ public class Application : IApplication
     protected virtual void Render()
     {
     }
-    
+
+    private void BindCallbacks()
+    {
+        _keyCallback = OnKey;
+        _cursorPositionCallback = OnMousePosition;
+        _cursorEnterCallback = OnMouseEnter;
+        _mouseButtonCallback = OnMouseButton;
+
+        Glfw.SetKeyCallback(_windowHandle, _keyCallback);
+        Glfw.SetCursorPositionCallback(_windowHandle, _cursorPositionCallback);
+        Glfw.SetCursorEnterCallback(_windowHandle, _cursorEnterCallback);
+        Glfw.SetMouseButtonCallback(_windowHandle, _mouseButtonCallback);
+    }
+
+    private void UnbindCallbacks()
+    {
+        Glfw.SetKeyCallback(_windowHandle, null);
+        Glfw.SetCursorEnterCallback(_windowHandle, null);
+        Glfw.SetCursorPositionCallback(_windowHandle, null);
+        Glfw.SetMouseButtonCallback(_windowHandle, null);
+    }
+
     private void OnKey(
         IntPtr windowHandle,
         Glfw.Key key,
