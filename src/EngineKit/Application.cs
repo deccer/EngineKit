@@ -23,10 +23,13 @@ public class Application : IApplication
             return;
         }
 
+        _logger.Debug("Application Initialized.");
+
         if (!Load())
         {
-            
         }
+
+        _logger.Debug("Application Loaded");
 
         while (!Glfw.ShouldWindowClose(_windowHandle))
         {
