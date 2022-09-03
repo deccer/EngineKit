@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{08499CC9-E78A-4D33-AD83-EBF4825716DD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{1E1BD9CA-189A-45FD-8A36-A57C836C6BB6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_items", "_items", "{7641ACDB-B2EB-417D-BAD2-B2DD78BA9539}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+		LICENSE = LICENSE
+		.gitignore = .gitignore
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+		.github\workflows\cd.yml = .github\workflows\cd.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EngineKit", "src\EngineKit\EngineKit.csproj", "{8E305337-228C-4930-B355-91F1E82C64C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloWindow", "examples\HelloWindow\HelloWindow.csproj", "{A8E8F6A5-5178-426C-A257-715386F69F30}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8E305337-228C-4930-B355-91F1E82C64C8} = {08499CC9-E78A-4D33-AD83-EBF4825716DD}
+		{A8E8F6A5-5178-426C-A257-715386F69F30} = {1E1BD9CA-189A-45FD-8A36-A57C836C6BB6}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8E305337-228C-4930-B355-91F1E82C64C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E305337-228C-4930-B355-91F1E82C64C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E305337-228C-4930-B355-91F1E82C64C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E305337-228C-4930-B355-91F1E82C64C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8E8F6A5-5178-426C-A257-715386F69F30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8E8F6A5-5178-426C-A257-715386F69F30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8E8F6A5-5178-426C-A257-715386F69F30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8E8F6A5-5178-426C-A257-715386F69F30}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

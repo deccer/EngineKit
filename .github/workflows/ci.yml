@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Mesa
+      run: |
+        sudo add-apt-repository ppa:oibaf/graphics-drivers
+        sudo apt update
+        sudo apt upgrade
+      if: matrix.os == 'ubuntu-latest'
+
+    - name: Install Mesa
+      run: |
+        brew install mesa
+      if: matrix.os == 'macos-latest'
+
+    - name: Install GLFW
+      run: |
+        sudo apt install  libglfw3-dev
+      if: matrix.os == 'ubuntu-latest'
+
+    - name: Install GLFW
+      run: |
+        brew install mesa glfw
+      if: matrix.os == 'macos-latest'
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2.1.0
+      with:
+        dotnet-version: |
+          '6.0.x'
+          '5.0.x'
+
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.5
+
+    - name: Restore dependencies
+      run: dotnet restore EngineKit.sln
+
+    - name: Build
+      run: dotnet build EngineKit.sln --configuration Release --no-restore
+
+#    - name: Run tests
+#      run: dotnet test EngineKit.sln /p:Configuration=Release --no-restore --verbosity normal

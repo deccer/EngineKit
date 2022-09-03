@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>true</IsPackable>
+        <PackFrameworkReferences>false</PackFrameworkReferences>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>EngineKit</PackageId>
+        <Authors>deccer</Authors>
+        <Company>Graphics Programming</Company>
+        <PackageProjectUrl>https://github.com/deccer/EngineKit</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/deccer/EngineKit</RepositoryUrl>
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="EngineKit.Mathematics" Version="1.0.0" />
+      <PackageReference Include="EngineKit.Native.Glfw" Version="1.1.0" />
+      <PackageReference Include="EngineKit.Native.OpenGL" Version="1.0.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+      <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Serilog" Version="2.11.0" />
+    </ItemGroup>
+
+</Project>
