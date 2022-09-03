@@ -45,8 +45,8 @@ jobs:
       uses: actions/setup-dotnet@v2.1.0
       with:
         dotnet-version: |
-          '6.0.x'
-          '5.0.x'
+          6.0.x
+          5.0.x
 
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.0.5
@@ -57,5 +57,5 @@ jobs:
     - name: Build
       run: dotnet build EngineKit.sln --configuration Release --no-restore
 
-#    - name: Run tests
-#      run: dotnet test EngineKit.sln /p:Configuration=Release --no-restore --verbosity normal
+    - name: Run tests
+      run: dotnet test EngineKit.sln /p:Configuration=Release --no-restore --verbosity normal
