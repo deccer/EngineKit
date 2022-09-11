@@ -33,7 +33,7 @@ jobs:
 
     - name: Install GLFW
       run: |
-        sudo apt install  libglfw3-dev
+        sudo apt install libglfw3-dev
       if: matrix.os == 'ubuntu-latest'
 
     - name: Install GLFW

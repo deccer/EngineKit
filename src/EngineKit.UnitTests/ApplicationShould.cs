@@ -7,14 +7,16 @@ namespace EngineKit.UnitTests;
 
 public class ApplicationShould
 {
-    private readonly ILogger _logger;
-    private Application _sut;
+    private readonly Application _sut;
 
     public ApplicationShould()
     {
-        _logger = Substitute.For<ILogger>();
+        var logger = Substitute.For<ILogger>();
+        var applicationContext = Substitute.For<IApplicationContext>();
+        var metrics = Substitute.For<IMetrics>();
+        var inputProvider = Substitute.For<IInputProvider>();
 
-        _sut = new Application(_logger);
+        _sut = new Application(logger, applicationContext, metrics, inputProvider);
     }
 
     [Fact]
