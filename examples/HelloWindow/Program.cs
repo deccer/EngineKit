@@ -1,4 +1,5 @@
 ﻿using EngineKit;
+using EngineKit.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
@@ -23,6 +24,7 @@ internal class Program
 
         var services = new ServiceCollection();
         services.AddSingleton(Log.Logger);
+        services.AddEngine();
         services.AddSingleton<IApplication, HelloWindowApplication>();
         return services.BuildServiceProvider();
     }

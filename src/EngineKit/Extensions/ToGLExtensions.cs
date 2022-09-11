@@ -1,0 +1,295 @@
+﻿using System;
+using EngineKit.Graphics;
+using EngineKit.Native.OpenGL;
+
+namespace EngineKit.Extensions;
+
+public static class ToGLExtensions
+{
+    public static GL.DataType ToGL(this DataType dataType)
+    {
+        return dataType switch
+        {
+            DataType.Byte => GL.DataType.Byte,
+            DataType.UnsignedByte => GL.DataType.UnsignedByte,
+            DataType.Integer => GL.DataType.Int,
+            DataType.UnsignedInteger => GL.DataType.UnsignedInt,
+            DataType.Short => GL.DataType.Short,
+            DataType.UnsignedShort => GL.DataType.UnsignedShort,
+            DataType.Float => GL.DataType.Float,
+            _ => throw new ArgumentOutOfRangeException(nameof(dataType), dataType, null)
+        };
+    }
+
+    public static GL.TextureTarget ToGL(this ImageType imageType)
+    {
+        return imageType switch
+        {
+            ImageType.Texture1D => GL.TextureTarget.Texture1d,
+            ImageType.Texture1DArray => GL.TextureTarget.Texture1dArray,
+            ImageType.Texture2D => GL.TextureTarget.Texture2d,
+            ImageType.Texture2DArray => GL.TextureTarget.Texture2dArray,
+            ImageType.TextureCube => GL.TextureTarget.TextureCubeMap,
+            ImageType.Texture2DMultisample => GL.TextureTarget.Texture2dMultisample,
+            ImageType.Texture2DArrayMultisample => GL.TextureTarget.Texture2dMultisampleArray,
+            _ => throw new ArgumentOutOfRangeException(nameof(imageType), imageType, null)
+        };
+    }
+
+    public static GL.BufferTarget ToGL(this BufferTarget bufferTarget)
+    {
+        return bufferTarget switch
+        {
+            BufferTarget.VertexBuffer => GL.BufferTarget.ArrayBuffer,
+            BufferTarget.IndexBuffer => GL.BufferTarget.ElementArrayBuffer,
+            BufferTarget.ShaderStorageBuffer => GL.BufferTarget.ShaderStorageBuffer,
+            BufferTarget.UniformBuffer => GL.BufferTarget.UniformBuffer,
+            BufferTarget.IndirectDrawBuffer => GL.BufferTarget.DrawIndirectBuffer,
+            _ => throw new ArgumentOutOfRangeException(nameof(bufferTarget), bufferTarget, null)
+        };
+    }
+
+    public static GL.ShaderType ToGL(this ShaderType shaderType)
+    {
+        return shaderType switch
+        {
+            ShaderType.VertexShader => GL.ShaderType.VertexShader,
+            ShaderType.FragmentShader => GL.ShaderType.FragmentShader,
+            ShaderType.ComputeShader => GL.ShaderType.ComputeShader,
+            _ => throw new ArgumentOutOfRangeException(nameof(shaderType), shaderType, null)
+        };
+    }
+
+    public static GL.CullMode ToGL(this CullMode cullMode)
+    {
+        return cullMode switch
+        {
+            CullMode.Back => GL.CullMode.Back,
+            CullMode.Front => GL.CullMode.Front,
+            CullMode.FrontAndBack => GL.CullMode.FrontAndBack,
+            _ => throw new ArgumentOutOfRangeException(nameof(cullMode), cullMode, null)
+        };
+    }
+
+    public static GL.FillMode ToGL(this FillMode fillMode)
+    {
+        return fillMode switch
+        {
+            FillMode.Solid => GL.FillMode.Solid,
+            FillMode.Line => GL.FillMode.Line,
+            FillMode.Point => GL.FillMode.Point,
+            _ => throw new ArgumentOutOfRangeException(nameof(fillMode), fillMode, null)
+        };
+    }
+
+    public static GL.BlendFactor ToGL(this BlendFactor blendFactor)
+    {
+        return blendFactor switch
+        {
+            BlendFactor.Zero => GL.BlendFactor.Zero,
+            BlendFactor.One => GL.BlendFactor.One,
+            BlendFactor.SourceColor => GL.BlendFactor.SrcColor,
+            BlendFactor.OneMinusSourceColor => GL.BlendFactor.OneMinusSrcColor,
+            BlendFactor.DestinationColor => GL.BlendFactor.DstColor,
+            BlendFactor.OneMinusDestinationColor => GL.BlendFactor.OneMinusDstColor,
+            BlendFactor.SourceAlpha => GL.BlendFactor.SrcAlpha,
+            BlendFactor.OneMinusSourceAlpha => GL.BlendFactor.OneMinusSrcAlpha,
+            BlendFactor.DestinationAlpha => GL.BlendFactor.DstAlpha,
+            BlendFactor.OneMinusDestinationAlpha => GL.BlendFactor.OneMinusDstAlpha,
+            BlendFactor.ConstantColor => GL.BlendFactor.ConstantColor,
+            BlendFactor.OneMinusConstantColor => GL.BlendFactor.OneMinusConstantColor,
+            BlendFactor.ConstantAlpha => GL.BlendFactor.ConstantAlpha,
+            BlendFactor.OneMinusConstantAlpha => GL.BlendFactor.OneMinusConstantAlpha,
+            BlendFactor.SourceAlphaSaturate => GL.BlendFactor.SrcAlphaSaturate,
+            BlendFactor.Source1Color => GL.BlendFactor.Src1Color,
+            BlendFactor.OneMinusSource1Color => GL.BlendFactor.OneMinusSrc1Color,
+            BlendFactor.Source1Alpha => GL.BlendFactor.Src1Alpha,
+            BlendFactor.OneMinusSource1Alpha => GL.BlendFactor.OneMinusSrc1Alpha,
+            _ => throw new ArgumentOutOfRangeException(nameof(blendFactor), blendFactor, null)
+        };
+    }
+
+    public static GL.CompareOperation ToGL(this CompareOperation compareOperation)
+    {
+        return compareOperation switch
+        {
+            CompareOperation.Never => GL.CompareOperation.Never,
+            CompareOperation.Always => GL.CompareOperation.Always,
+            CompareOperation.Less => GL.CompareOperation.Less,
+            CompareOperation.LessOrEqual => GL.CompareOperation.LessOrEqual,
+            CompareOperation.Greater => GL.CompareOperation.Greater,
+            CompareOperation.GreaterOrEqual => GL.CompareOperation.GreaterOrEqual,
+            CompareOperation.Equal => GL.CompareOperation.Equal,
+            CompareOperation.NotEqual => GL.CompareOperation.NotEqual,
+            _ => throw new ArgumentOutOfRangeException(nameof(compareOperation), compareOperation, null)
+        };
+    }
+
+    public static GL.BlendOperation ToGL(this BlendOperation blendOperation)
+    {
+        return blendOperation switch
+        {
+            BlendOperation.Add => GL.BlendOperation.Add,
+            BlendOperation.Subtract => GL.BlendOperation.Subtract,
+            BlendOperation.ReverseSubtract => GL.BlendOperation.ReverseSubtract,
+            BlendOperation.Min => GL.BlendOperation.Min,
+            BlendOperation.Max => GL.BlendOperation.Max,
+            _ => throw new ArgumentOutOfRangeException(nameof(blendOperation), blendOperation, null)
+        };
+    }
+
+    public static GL.FaceWinding ToGL(this FaceWinding faceWinding)
+    {
+        return faceWinding switch
+        {
+            FaceWinding.Clockwise => GL.FaceWinding.Clockwise,
+            FaceWinding.CounterClockwise => GL.FaceWinding.CounterClockwise,
+            _ => throw new ArgumentOutOfRangeException(nameof(faceWinding), faceWinding, null)
+        };
+    }
+
+    public static GL.SizedInternalFormat ToGL(this Format format)
+    {
+        return format switch
+        {
+            Format.D16UNorm => GL.SizedInternalFormat.DepthComponent16,
+            Format.D24UNorm => GL.SizedInternalFormat.DepthComponent24,
+            Format.D32UNorm => GL.SizedInternalFormat.DepthComponent32,
+            Format.D32Float => GL.SizedInternalFormat.DepthComponent32f,
+            Format.D32FloatS8UInt => GL.SizedInternalFormat.Depth32fStencil8,
+            Format.D24UNormS8UInt => GL.SizedInternalFormat.Depth24Stencil8,
+            Format.R8UInt => GL.SizedInternalFormat.R8ui,
+            Format.R8UNorm => GL.SizedInternalFormat.R8,
+            Format.R8SInt => GL.SizedInternalFormat.R8i,
+            Format.R8SNorm => GL.SizedInternalFormat.R8Snorm,
+            Format.R8G8UInt => GL.SizedInternalFormat.Rg8ui,
+            Format.R8G8UNorm => GL.SizedInternalFormat.Rg8,
+            Format.R8G8SInt => GL.SizedInternalFormat.Rg8i,
+            Format.R8G8SNorm => GL.SizedInternalFormat.Rg8Snorm,
+            Format.R8G8B8UInt => GL.SizedInternalFormat.Rgb8ui,
+            Format.R8G8B8UNorm => GL.SizedInternalFormat.Rgb8,
+            Format.R8G8B8SInt => GL.SizedInternalFormat.Rgb8i,
+            Format.R8G8B8SNorm => GL.SizedInternalFormat.Rgb8Snorm,
+            Format.R8G8B8A8UInt => GL.SizedInternalFormat.Rgba8ui,
+            Format.R8G8B8A8UNorm => GL.SizedInternalFormat.Rgba8,
+            Format.R8G8B8A8SInt => GL.SizedInternalFormat.Rgba8i,
+            Format.R8G8B8A8SNorm => GL.SizedInternalFormat.Rgba8Snorm,
+            Format.R16UInt => GL.SizedInternalFormat.R16ui,
+            Format.R16UNorm => GL.SizedInternalFormat.R16,
+            Format.R16SInt => GL.SizedInternalFormat.R16i,
+            Format.R16SNorm => GL.SizedInternalFormat.R16Snorm,
+            Format.R16Float => GL.SizedInternalFormat.R16f,
+            Format.R16G16UInt => GL.SizedInternalFormat.Rg16ui,
+            Format.R16G16UNorm => GL.SizedInternalFormat.Rg16,
+            Format.R16G16SInt => GL.SizedInternalFormat.Rg16i,
+            Format.R16G16SNorm => GL.SizedInternalFormat.Rg16Snorm,
+            Format.R16G16Float => GL.SizedInternalFormat.Rg16f,
+            Format.R16G16B16UInt => GL.SizedInternalFormat.Rgb16ui,
+            Format.R16G16B16UNorm => GL.SizedInternalFormat.Rgb16,
+            Format.R16G16B16SInt => GL.SizedInternalFormat.Rgb16i,
+            Format.R16G16B16SNorm => GL.SizedInternalFormat.Rgb16Snorm,
+            Format.R16G16B16Float => GL.SizedInternalFormat.Rgb16f,
+            Format.R16G16B16A16UInt => GL.SizedInternalFormat.Rgba16ui,
+            Format.R16G16B16A16UNorm => GL.SizedInternalFormat.Rgba16,
+            Format.R16G16B16A16SInt => GL.SizedInternalFormat.Rgba16i,
+            Format.R16G16B16A16SNorm => GL.SizedInternalFormat.Rgba16Snorm,
+            Format.R16G16B16A16Float => GL.SizedInternalFormat.Rgba16f,
+            Format.R32UInt => GL.SizedInternalFormat.R32ui,
+            Format.R32SInt => GL.SizedInternalFormat.R32i,
+            Format.R32Float => GL.SizedInternalFormat.R32f,
+            Format.R32G32UInt => GL.SizedInternalFormat.Rg32ui,
+            Format.R32G32SInt => GL.SizedInternalFormat.Rg32i,
+            Format.R32G32Float => GL.SizedInternalFormat.Rg32f,
+            Format.R32G32B32UInt => GL.SizedInternalFormat.Rgb32ui,
+            Format.R32G32B32SInt => GL.SizedInternalFormat.Rgb32i,
+            Format.R32G32B32Float => GL.SizedInternalFormat.Rgb32f,
+            Format.R32G32B32A32UInt => GL.SizedInternalFormat.Rgba32ui,
+            Format.R32G32B32A32SInt => GL.SizedInternalFormat.Rgba32i,
+            Format.R32G32B32A32Float => GL.SizedInternalFormat.Rgba32f,
+            _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
+        };
+    }
+
+    public static GL.PixelFormat ToGL(this UploadFormat uploadFormat)
+    {
+        return uploadFormat switch
+        {
+            UploadFormat.Red => GL.PixelFormat.Red,
+            UploadFormat.RedGreen => GL.PixelFormat.Rg,
+            UploadFormat.RedGreenBlue => GL.PixelFormat.Rgb,
+            UploadFormat.RedGreenBlueAlpha => GL.PixelFormat.Rgba,
+            UploadFormat.BlueGreenRed => GL.PixelFormat.Bgr,
+            UploadFormat.BlueGreenRedAlpha => GL.PixelFormat.Bgra,
+            UploadFormat.DepthComponent => GL.PixelFormat.DepthComponent,
+            UploadFormat.StencilIndex => GL.PixelFormat.StencilIndex,
+            _ => throw new ArgumentOutOfRangeException(nameof(uploadFormat), uploadFormat, null)
+        };
+    }
+
+    public static GL.DataType ToGL(this UploadType uploadType)
+    {
+        return uploadType switch
+        {
+            UploadType.UnsignedByte => GL.DataType.UnsignedByte,
+            UploadType.UnsignedShort => GL.DataType.UnsignedShort,
+            UploadType.UnsignedShort4444 => GL.DataType.UnsignedShort4444,
+            UploadType.UnsignedShort5551 => GL.DataType.UnsignedShort5551,
+            UploadType.UnsignedInteger => GL.DataType.UnsignedInt,
+            UploadType.UnsignedInteger8888 => GL.DataType.UnsignedInt8888,
+            UploadType.UnsignedInteger1010102 => GL.DataType.UnsignedInt1010102,
+            UploadType.SignedByte => GL.DataType.Byte,
+            UploadType.SignedShort => GL.DataType.Short,
+            UploadType.SignedInteger => GL.DataType.Int,
+            UploadType.Float => GL.DataType.Float,
+            _ => throw new ArgumentOutOfRangeException(nameof(uploadType), uploadType, null)
+        };
+    }
+
+    public static GL.AddressMode ToGL(this AddressMode addressMode)
+    {
+        return addressMode switch
+        {
+            AddressMode.Repeat => GL.AddressMode.Repeat,
+            AddressMode.MirroredRepeat => GL.AddressMode.MirroredRepeat,
+            AddressMode.ClampToEdge => GL.AddressMode.ClampToEdge,
+            AddressMode.ClampToBorder => GL.AddressMode.ClampToBorder,
+            _ => throw new ArgumentOutOfRangeException(nameof(addressMode), addressMode, null)
+        };
+    }
+
+    public static GL.PrimitiveType ToGL(this PrimitiveTopology primitiveTopology)
+    {
+        return primitiveTopology switch
+        {
+            PrimitiveTopology.Points => GL.PrimitiveType.Points,
+            PrimitiveTopology.Lines => GL.PrimitiveType.Lines,
+            PrimitiveTopology.LineLoop => GL.PrimitiveType.LineLoop,
+            PrimitiveTopology.LineStrip => GL.PrimitiveType.LineStrip,
+            PrimitiveTopology.Triangles => GL.PrimitiveType.Triangles,
+            PrimitiveTopology.TriangleStrip => GL.PrimitiveType.TriangleStrip,
+            PrimitiveTopology.TriangleFan => GL.PrimitiveType.TriangleFan,
+            _ => throw new ArgumentOutOfRangeException(nameof(primitiveTopology), primitiveTopology, null)
+        };
+    }
+
+    public static GL.DataType ToGL(this FormatBaseType formatBaseType)
+    {
+        return formatBaseType switch
+        {
+            FormatBaseType.SignedInteger => GL.DataType.Int,
+            FormatBaseType.UnsignedInteger => GL.DataType.UnsignedInt,
+            FormatBaseType.Float => GL.DataType.Float,
+            _ => throw new ArgumentOutOfRangeException(nameof(formatBaseType), formatBaseType, null)
+        };
+    }
+
+    public static GL.Filter ToGL(this Filter filter)
+    {
+        return filter switch
+        {
+            Filter.Nearest => GL.Filter.Nearest,
+            Filter.Linear => GL.Filter.Linear,
+            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null)
+        };
+    }
+}

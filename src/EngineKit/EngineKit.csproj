@@ -4,29 +4,41 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <IsPackable>true</IsPackable>
-        <PackFrameworkReferences>false</PackFrameworkReferences>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <PropertyGroup>
         <PackageId>EngineKit</PackageId>
+        <IsPackable>true</IsPackable>
+        <PackFrameworkReferences>false</PackFrameworkReferences>
         <Authors>deccer</Authors>
         <Company>Graphics Programming</Company>
+        <PackageIconUrl>content\enginekit-icon.png</PackageIconUrl>
         <PackageProjectUrl>https://github.com/deccer/EngineKit</PackageProjectUrl>
         <RepositoryUrl>https://github.com/deccer/EngineKit</RepositoryUrl>
         <DebugType>embedded</DebugType>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="EngineKit.Mathematics" Version="1.0.0" />
-      <PackageReference Include="EngineKit.Native.Glfw" Version="1.1.0" />
-      <PackageReference Include="EngineKit.Native.OpenGL" Version="1.0.0" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-      <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="Serilog" Version="2.11.0" />
+        <None Include="..\..\enginekit-icon.png" Pack="true" PackagePath="content" Visible="false"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CSharpFunctionalExtensions" Version="2.34.0"/>
+        <PackageReference Include="EngineKit.Mathematics" Version="1.0.0"/>
+        <PackageReference Include="EngineKit.Native.Glfw" Version="1.2.0"/>
+        <PackageReference Include="EngineKit.Native.OpenGL" Version="1.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0"/>
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Serilog" Version="2.11.0"/>
+        <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Graphics"/>
     </ItemGroup>
 
 </Project>
