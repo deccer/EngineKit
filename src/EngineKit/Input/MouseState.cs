@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using EngineKit.Native.Glfw;
 
@@ -50,5 +49,4 @@ public class MouseState
     {
         return _buttons[(int)button];
     }
-
 }
