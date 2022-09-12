@@ -26,7 +26,7 @@ internal sealed class TextureLoader : ITextureLoader
     {
         if (!File.Exists(filePath))
         {
-            _logger.Error("{Category} - File {FilePath} does not exist", nameof(TextureLibrary), filePath);
+            _logger.Error("{Category}: File {FilePath} does not exist", nameof(TextureLibrary), filePath);
             return null;
         }
 

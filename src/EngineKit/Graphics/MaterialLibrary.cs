@@ -50,7 +50,7 @@ internal sealed class MaterialLibrary : IMaterialLibrary
         //TODO(deccer) error handling re data names can be null etc
         if (_materials.ContainsKey(name))
         {
-            _logger.Debug("{Category} - Material {MaterialName} exists already", nameof(MaterialLibrary), name);
+            _logger.Debug("{Category}: Material {MaterialName} exists already", nameof(MaterialLibrary), name);
             return;
         }
 
