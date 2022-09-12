@@ -25,7 +25,7 @@ internal sealed class ImageLibrary : IImageLibrary
     {
         if (_imageFilePathsToBeLoaded.ContainsKey(name))
         {
-            _logger.Information("{Category} - Image {ImageName} already registered to be loaded", nameof(ImageLibrary), name);
+            _logger.Information("{Category}: Image {ImageName} already registered to be loaded", nameof(ImageLibrary), name);
             return;
         }
 
@@ -36,7 +36,7 @@ internal sealed class ImageLibrary : IImageLibrary
     {
         if (_imagesToBeLoaded.ContainsKey(name))
         {
-            _logger.Information("{Category} - Image {ImageName} already registered to be loaded", nameof(ImageLibrary), name);
+            _logger.Information("{Category}: Image {ImageName} already registered to be loaded", nameof(ImageLibrary), name);
             return;
         }
 
@@ -58,7 +58,7 @@ internal sealed class ImageLibrary : IImageLibrary
                 else
                 {
                     //TODO use dummy texture
-                    _logger.Warning("{Category} - {FilePath} not found", nameof(ImageLibrary), baseColorTextureFilePath);
+                    _logger.Warning("{Category}: {FilePath} not found", nameof(ImageLibrary), baseColorTextureFilePath);
                 }
             }
 
@@ -76,7 +76,7 @@ internal sealed class ImageLibrary : IImageLibrary
                 else
                 {
                     //TODO use dummy texture
-                    _logger.Warning("{Category} - {FilePath} not found", nameof(ImageLibrary), normalTextureFilePath);
+                    _logger.Warning("{Category}: {FilePath} not found", nameof(ImageLibrary), normalTextureFilePath);
                 }
             }
 
