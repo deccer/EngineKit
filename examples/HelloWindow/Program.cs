@@ -1,5 +1,6 @@
 ﻿using EngineKit;
 using EngineKit.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
@@ -17,13 +18,19 @@ internal class Program
 
     private static ServiceProvider CreateServiceProvider()
     {
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", false)
+            .Build();
+
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.Console()
+            .ReadFrom.Configuration(configuration)
             .CreateLogger();
 
         var services = new ServiceCollection();
+        services.AddSingleton(configuration);
         services.AddSingleton(Log.Logger);
+        services.Configure<WindowSettings>(configuration.GetSection(nameof(WindowSettings)));
+        services.Configure<ContextSettings>(configuration.GetSection(nameof(ContextSettings)));
         services.AddEngine();
         services.AddSingleton<IApplication, HelloWindowApplication>();
         return services.BuildServiceProvider();

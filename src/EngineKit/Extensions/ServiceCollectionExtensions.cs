@@ -1,4 +1,5 @@
 using EngineKit.Graphics;
+using EngineKit.Input;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EngineKit.Extensions;
