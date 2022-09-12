@@ -1,4 +1,6 @@
+using EngineKit.Input;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using Serilog;
 using Xunit;
@@ -12,11 +14,19 @@ public class ApplicationShould
     public ApplicationShould()
     {
         var logger = Substitute.For<ILogger>();
+        var windowSettings = Substitute.For<IOptions<WindowSettings>>();
+        var contextSettings = Substitute.For<IOptions<ContextSettings>>();
         var applicationContext = Substitute.For<IApplicationContext>();
         var metrics = Substitute.For<IMetrics>();
         var inputProvider = Substitute.For<IInputProvider>();
 
-        _sut = new Application(logger, applicationContext, metrics, inputProvider);
+        _sut = new Application(
+            logger,
+            windowSettings,
+            contextSettings,
+            applicationContext,
+            metrics,
+            inputProvider);
     }
 
     [Fact]

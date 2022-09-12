@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using EngineKit.Input;
 using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace EngineKit;
 
 public class Application : IApplication
 {
+    private readonly IOptions<WindowSettings> _windowSettings;
+    private readonly IOptions<ContextSettings> _contextSettings;
     private readonly IApplicationContext _applicationContext;
     private readonly IMetrics _metrics;
     private readonly IInputProvider _inputProvider;
@@ -29,14 +33,19 @@ public class Application : IApplication
 
     public Application(
         ILogger logger,
+        IOptions<WindowSettings> windowSettings,
+        IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
         IMetrics metrics,
         IInputProvider inputProvider)
     {
         _logger = logger.ForContext<Application>();
+        _windowSettings = windowSettings;
+        _contextSettings = contextSettings;
         _applicationContext = applicationContext;
         _metrics = metrics;
         _inputProvider = inputProvider;
+        _windowHandle = IntPtr.Zero;
     }
 
     public void Dispose()
@@ -125,41 +134,148 @@ public class Application : IApplication
 
     protected virtual bool Initialize()
     {
+        PrintSystemInformation();
+
         if (!Glfw.Init())
         {
             _logger.Error("Glfw: Unable to initialize");
             return false;
         }
 
-        Glfw.SwapInterval(0);
+        var windowSettings = _windowSettings.Value;
+        var windowResizable = windowSettings.WindowMode == WindowMode.Windowed;
 
+        Glfw.WindowHint(Glfw.WindowInitHint.ScaleToMonitor, true);
         Glfw.WindowHint(Glfw.WindowInitHint.ClientApi, Glfw.ClientApi.OpenGL);
-        Glfw.WindowHint(Glfw.WindowInitHint.IsResizeable, true);
-        Glfw.WindowHint(Glfw.WindowInitHint.ScaleToMonitor, false);
-        Glfw.WindowHint(Glfw.WindowOpenGLContextHint.Profile, Glfw.OpenGLProfile.Core);
-        Glfw.WindowHint(Glfw.WindowOpenGLContextHint.DebugContext, true);
-        Glfw.WindowHint(Glfw.WindowOpenGLContextHint.VersionMajor, 4);
-        Glfw.WindowHint(Glfw.WindowOpenGLContextHint.VersionMinor, 6);
+        Glfw.WindowHint(Glfw.WindowInitHint.IsResizeable, windowResizable);
+        Glfw.WindowHint(Glfw.WindowInitHint.IsDecorated, windowResizable);
+        Glfw.WindowHint(Glfw.WindowInitHint.IsMaximized, !windowResizable);
+        Glfw.WindowHint(Glfw.WindowInitHint.IsFloating, !windowResizable);
+        Glfw.WindowHint(Glfw.WindowInitHint.IsFocused, true);
 
-        var primaryMonitorHandle = Glfw.GetPrimaryMonitor();
-        var videoMode = Glfw.GetVideoMode(primaryMonitorHandle);
+        var monitorHandle = Glfw.GetPrimaryMonitor();
+        var videoMode = Glfw.GetVideoMode(monitorHandle);
         var screenWidth = videoMode.Width;
         var screenHeight = videoMode.Height;
 
         _applicationContext.ScreenSize = new Point(screenWidth, screenHeight);
-        var windowWidth = (int)(0.8 * videoMode.Width);
-        var windowHeight = (int)(0.8 * videoMode.Height);
+        _applicationContext.WindowSize = windowResizable
+            ? new Point(_windowSettings.Value.ResolutionWidth,  _windowSettings.Value.ResolutionHeight)
+            : new Point((int)(screenWidth * 0.8f), (int)(screenHeight * 0.8f));
 
-        _windowHandle = Glfw.CreateWindow(windowWidth, windowHeight, "EngineKit", IntPtr.Zero, IntPtr.Zero);
+        if (!windowResizable)
+        {
+            _applicationContext.WindowSize = new Point(screenWidth, screenHeight);
+        }
+        monitorHandle = windowResizable || windowSettings.WindowMode == WindowMode.WindowedFullscreen
+            ? IntPtr.Zero
+            : monitorHandle;
+
+        var glVersion = new Version(4, 5);
+        if (!string.IsNullOrEmpty(_contextSettings.Value.TargetGLVersion))
+        {
+            if (!Version.TryParse(_contextSettings.Value.TargetGLVersion, out glVersion))
+            {
+                _logger.Error("{Category} - Unable to detect context version. Assuming 4.5", "Application");
+                glVersion = new Version(4, 5);
+            }
+        }
+
+        Glfw.WindowHint(Glfw.WindowOpenGLContextHint.VersionMajor, glVersion.Major);
+        Glfw.WindowHint(Glfw.WindowOpenGLContextHint.VersionMinor, glVersion.Minor);
+        Glfw.WindowHint(Glfw.WindowOpenGLContextHint.DebugContext, _contextSettings.Value.IsDebugContext);
+        Glfw.WindowHint(Glfw.WindowOpenGLContextHint.Profile, Glfw.OpenGLProfile.Core);
+
+        // MESA overrides - useful for windows on intel igpu
+        var environmentVariables = Environment.GetEnvironmentVariables();
+        if (environmentVariables.Contains("LIBGL_DEBUG"))
+        {
+            var libGlDebug = environmentVariables["LIBGL_DEBUG"];
+            _logger.Information("{Category}: LIBGL_DEBUG={LibGlDebug}", "ENV", libGlDebug);
+        }
+
+        if (environmentVariables.Contains("MESA_GL_VERSION_OVERRIDE"))
+        {
+            var mesaGlVersionOverride = environmentVariables["MESA_GL_VERSION_OVERRIDE"];
+            _logger.Information("{Category}: MESA_GL_VERSION_OVERRIDE={MesaGlVersionOverride}", "ENV", mesaGlVersionOverride);
+        }
+
+        if (environmentVariables.Contains("MESA_GLSL_VERSION_OVERRIDE"))
+        {
+            var mesaGlslVersionOverride = environmentVariables["MESA_GLSL_VERSION_OVERRIDE"];
+            _logger.Information("{Category}: MESA_GLSL_VERSION_OVERRIDE={MesaGlVersionOverride}", "ENV", mesaGlslVersionOverride);
+        }
+        _windowHandle = Glfw.CreateWindow(
+            _applicationContext.WindowSize.X,
+            _applicationContext.WindowSize.Y,
+            "ConflictSpace",
+            monitorHandle,
+            IntPtr.Zero);
         if (_windowHandle == IntPtr.Zero)
         {
             _logger.Error("Glfw: Unable to create window");
             return false;
         }
 
-        Glfw.SetWindowPos(_windowHandle,  screenWidth / 2 - windowWidth / 2, screenHeight / 2 - windowHeight / 2);
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            /* From GLFW: Due to the asynchronous nature of X11, it may take
+             *  a moment for a window to reach its requested state.  This means you may not
+             *  be able to query the final size, position or other attributes directly after
+             *  window creation.
+             */
+            Glfw.PollEvents();
+            Glfw.WaitEventsTimeout(0.5);
+            Glfw.PollEvents();
+            Glfw.SwapBuffers(_windowHandle);
+            Glfw.WaitEventsTimeout(0.5);
+        }
+
+        if (windowResizable)
+        {
+            Glfw.SetWindowPos(
+                _windowHandle,
+                screenWidth / 2 - _applicationContext.WindowSize.X / 2,
+                screenHeight / 2 - _applicationContext.WindowSize.Y / 2);
+        }
+        else
+        {
+            Glfw.SetWindowPos(_windowHandle, 0,0);
+        }
+
+        Glfw.GetFramebufferSize(
+            _windowHandle,
+            out var framebufferWidth,
+            out var framebufferHeight);
+        _applicationContext.FramebufferSize = new Point(
+            framebufferWidth,
+            framebufferHeight);
+        _applicationContext.ScaledFramebufferSize = new Point(
+            (int)(framebufferWidth * _windowSettings.Value.ResolutionScale),
+            (int)(framebufferHeight * _windowSettings.Value.ResolutionScale));
+
+        Glfw.MakeContextCurrent(_windowHandle);
+
+        _logger.Information("{Category}: Vendor - {Vendor}", "GL", GL.GetString(GL.StringName.Vendor));
+        _logger.Information("{Category}: Renderer - {Renderer}", "GL", GL.GetString(GL.StringName.Renderer));
+        _logger.Information("{Category}: Version - {Version}", "GL", GL.GetString(GL.StringName.Version));
+        _logger.Information("{Category}: Shading Language Version - {ShadingLanguageVersion}", "GL", GL.GetString(GL.StringName.ShadingLanguageVersion));
+
+        Glfw.SwapInterval(_windowSettings.Value.IsVsyncEnabled ? 1 : 0);
 
         BindCallbacks();
+
+        if (_contextSettings.Value.IsDebugContext && _debugProcCallback != null)
+        {
+            _logger.Debug("{Category}: Debug callback enabled", "GL");
+            GL.DebugMessageCallback(_debugProcCallback, IntPtr.Zero);
+            GL.Enable(GL.EnableType.DebugOutput);
+            GL.Enable(GL.EnableType.DebugOutputSynchronous);
+        }
+        else
+        {
+            _logger.Debug("{Category}: Debug callback disabled", "GL");
+        }
 
         return true;
     }
@@ -187,11 +303,11 @@ public class Application : IApplication
         breakOnError = false;
     }
 
-    protected virtual void WindowResized(int width, int height)
+    protected virtual void WindowResized()
     {
     }
 
-    protected virtual void FramebufferResized(int width, int height)
+    protected virtual void FramebufferResized()
     {
     }
 
@@ -247,6 +363,11 @@ public class Application : IApplication
         Glfw.KeyAction action,
         Glfw.KeyModifiers modifiers)
     {
+        if (key != Glfw.Key.Unknown)
+        {
+            _inputProvider.KeyboardState.SetKeyState(key, action is Glfw.KeyAction.Pressed or Glfw.KeyAction.Repeat);
+        }
+
         _logger.Debug("key: {Key} scancode: {ScanCode} action: {Action} modifiers: {Modifiers}", key, scancode, action,
             modifiers);
     }
@@ -297,12 +418,25 @@ public class Application : IApplication
         int width,
         int height)
     {
-        WindowResized(width, height);
+        _applicationContext.WindowSize = new Point(width, height);
+        WindowResized();
     }
 
     private void OnFramebufferSize(IntPtr windowHandle, int width, int height)
     {
-        FramebufferResized(width, height);
+        _applicationContext.FramebufferSize = new Point(width, height);
+        FramebufferResized();
+    }
+
+    private void PrintSystemInformation()
+    {
+
+        _logger.Debug("OS: Architecture - {@OSArchitecture}", RuntimeInformation.OSArchitecture);
+        _logger.Debug("OS: Description - {@OSDescription}", RuntimeInformation.OSDescription);
+
+        _logger.Debug("RT: Framework - {@FrameworkDescription}", RuntimeInformation.FrameworkDescription);
+        _logger.Debug("RT: Runtime Identifier - {@RuntimeIdentifier}", RuntimeInformation.RuntimeIdentifier);
+        _logger.Debug("RT: Process Architecture - {@ProcessArchitecture}", RuntimeInformation.ProcessArchitecture);
     }
 
     private void DebugCallback(
