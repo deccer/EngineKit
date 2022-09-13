@@ -108,6 +108,28 @@ internal sealed class GraphicsContext : IGraphicsContext
         return new UniformBuffer<TUniformData>(label, uniformData);
     }
 
+    public IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(
+        Label label,
+        TShaderStorageData[] shaderStorageData)
+        where TShaderStorageData : unmanaged
+    {
+        return new ShaderStorageBuffer<TShaderStorageData>(label, shaderStorageData);
+    }
+
+    public IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(
+        Label label,
+        uint size)
+        where TShaderStorageData : unmanaged
+    {
+        return new ShaderStorageBuffer<TShaderStorageData>(label, size);
+    }
+
+    public IIndirectBuffer CreateIndirectBuffer(Label label,
+        GpuIndirectElementData[] indirectElementData)
+    {
+        return new IndirectBuffer(label, indirectElementData);
+    }
+
     public ITexture CreateTexture(TextureCreateDescriptor textureCreateDescriptor)
     {
         return new Texture(textureCreateDescriptor);
