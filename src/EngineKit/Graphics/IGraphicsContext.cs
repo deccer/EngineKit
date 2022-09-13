@@ -15,6 +15,17 @@ public interface IGraphicsContext : IDisposable
 
     void BlitFramebufferToSwapchain(int sourceWidth, int sourceHeight, int targetWidth, int targetHeight);
 
+    IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(
+        Label label,
+        TShaderStorageData[] shaderStorageData) where TShaderStorageData : unmanaged;
+
+    IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(
+        Label label,
+        uint size) where TShaderStorageData : unmanaged;
+
+    IIndirectBuffer CreateIndirectBuffer(Label label,
+        GpuIndirectElementData[] indirectElementData);
+
     IVertexBuffer CreateVertexBuffer<TVertex>(
         Label label,
         uint size) where TVertex : unmanaged;
