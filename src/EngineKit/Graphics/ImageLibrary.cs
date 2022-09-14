@@ -5,6 +5,7 @@ using System.IO;
 using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace EngineKit.Graphics;
 
@@ -128,8 +129,7 @@ internal sealed class ImageLibrary : IImageLibrary
         Image<Rgba32> image,
         IDictionary<string, IList<ImageLibraryItem>> imagesPerMaterial)
     {
-        //image.Mutate(i => i.Flip(FlipMode.Vertical));
-        //image.Mutate(i => i.Flip(FlipMode.Horizontal));
+        image.Mutate(i => i.Flip(FlipMode.Vertical));
         var textureArrayIndex = (int)Math.Log2(image.Width);
         var imageLibraryItem = new ImageLibraryItem
         {
