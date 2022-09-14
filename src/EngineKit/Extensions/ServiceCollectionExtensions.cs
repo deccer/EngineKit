@@ -1,6 +1,7 @@
 using EngineKit.Graphics;
 using EngineKit.Input;
 using Microsoft.Extensions.DependencyInjection;
+using SixLabors.ImageSharp;
 
 namespace EngineKit.Extensions;
 
@@ -8,6 +9,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddEngine(this IServiceCollection services)
     {
+        Configuration.Default.StreamProcessingBufferSize = 16384;
+        Configuration.Default.PreferContiguousImageBuffers = true;
         services.AddSingleton<IApplicationContext, ApplicationContext>();
         services.AddSingleton<IMetrics, Metrics>();
         services.AddSingleton<IInputProvider, InputProvider>();
