@@ -3,7 +3,6 @@ using System.Linq;
 using EngineKit.Mathematics;
 using Serilog;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace EngineKit.Graphics;
 
@@ -145,7 +144,7 @@ internal sealed class TextureLibrary : ITextureLibrary
                     UploadType = UploadType.UnsignedByte
                 };
 
-                var image32 = layer.Image.CloneAs<Rgba32>();
+                var image32 = layer.Image;
                 if (image32.DangerousTryGetSinglePixelMemory(out var pixelSpan))
                 {
                     texture.Upload(textureUploadDescriptor, pixelSpan.Pin());

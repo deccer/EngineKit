@@ -125,7 +125,7 @@ internal sealed class ImageLibrary : IImageLibrary
         string materialName,
         string imageName,
         string? imageFilePath,
-        Image image,
+        Image<Rgba32> image,
         IDictionary<string, IList<ImageLibraryItem>> imagesPerMaterial)
     {
         //image.Mutate(i => i.Flip(FlipMode.Vertical));
