@@ -13,7 +13,7 @@
         <PackFrameworkReferences>false</PackFrameworkReferences>
         <Authors>deccer</Authors>
         <Company>Graphics Programming</Company>
-        <PackageIconUrl>content\enginekit-icon.png</PackageIconUrl>
+        <PackageIconUrl>https://raw.githubusercontent.com/deccer/EngineKit/main/enginekit-icon.png</PackageIconUrl>
         <PackageProjectUrl>https://github.com/deccer/EngineKit</PackageProjectUrl>
         <RepositoryUrl>https://github.com/deccer/EngineKit</RepositoryUrl>
         <DebugType>embedded</DebugType>
