@@ -15,11 +15,16 @@ internal sealed class ImageLibrary : IImageLibrary
     private readonly IDictionary<string, string> _imageFilePathsToBeLoaded;
     private readonly IDictionary<string, byte[]> _imagesToBeLoaded;
 
+    public bool FlipHorizontal { get; set; }
+
+    public bool FlipVertical { get; set; }
+
     public ImageLibrary(ILogger logger)
     {
         _logger = logger;
         _imageFilePathsToBeLoaded = new Dictionary<string, string>();
         _imagesToBeLoaded = new Dictionary<string, byte[]>();
+        FlipVertical = true;
     }
 
     public void AddImage(string name, string filePath)
@@ -90,7 +95,7 @@ internal sealed class ImageLibrary : IImageLibrary
         return imagesPerMaterial;
     }
 
-    private static void LoadImageFromSpan(
+    private void LoadImageFromSpan(
         string materialName,
         string imageName,
         ReadOnlySpan<byte> imageSpan,
@@ -106,7 +111,7 @@ internal sealed class ImageLibrary : IImageLibrary
             imagesPerMaterial);
     }
 
-    private static void LoadImageFromFile(
+    private void LoadImageFromFile(
         string materialName,
         string imageName,
         string imageFilePath,
@@ -122,14 +127,22 @@ internal sealed class ImageLibrary : IImageLibrary
             imagesPerMaterial);
     }
 
-    private static void LoadImage(
+    private void LoadImage(
         string materialName,
         string imageName,
         string? imageFilePath,
         Image<Rgba32> image,
         IDictionary<string, IList<ImageLibraryItem>> imagesPerMaterial)
     {
-        image.Mutate(i => i.Flip(FlipMode.Vertical));
+        if (FlipVertical)
+        {
+            image.Mutate(i => i.Flip(FlipMode.Vertical));
+        }
+
+        if (FlipHorizontal)
+        {
+            image.Mutate(i => i.Flip(FlipMode.Horizontal));
+        }
         var textureArrayIndex = (int)Math.Log2(image.Width);
         var imageLibraryItem = new ImageLibraryItem
         {
