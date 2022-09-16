@@ -18,36 +18,19 @@ public readonly record struct VertexInputDescriptor
                     new VertexBindingDescriptor(1, 0, 2, DataType.Float, 8),
                     new VertexBindingDescriptor(3, 0, 4, DataType.UnsignedByte, 16, true));
             case VertexType.Position:
-                return new VertexInputDescriptor(
-                    new VertexBindingDescriptor(0, 0, 3, DataType.Float, 0));
+                return VertexInputDescriptorFactory.CreateFromStruct<VertexPosition>();
             case VertexType.PositionColor:
-                return new VertexInputDescriptor(
-                    new VertexBindingDescriptor(0, 0, 3, DataType.Float, 0),
-                    new VertexBindingDescriptor(1, 0, 3, DataType.Float, 12));
+                return VertexInputDescriptorFactory.CreateFromStruct<VertexPositionColor>();
             case VertexType.PositionColorUv:
-                return new VertexInputDescriptor(
-                    new VertexBindingDescriptor(0, 0, 3, DataType.Float, 0),
-                    new VertexBindingDescriptor(1, 0, 3, DataType.Float, 12),
-                    new VertexBindingDescriptor(3, 0, 2, DataType.Float, 24));
+                return VertexInputDescriptorFactory.CreateFromStruct<VertexPositionColorUv>();
             case VertexType.PositionNormal:
-                return new VertexInputDescriptor(
-                    new VertexBindingDescriptor(0, 0, 3, DataType.Float, 0),
-                    new VertexBindingDescriptor(2, 0, 3, DataType.Float, 12));
+                return VertexInputDescriptorFactory.CreateFromStruct<VertexPositionNormal>();
             case VertexType.PositionNormalUv:
-                return new VertexInputDescriptor(
-                    new VertexBindingDescriptor(0, 0, 3, DataType.Float, 0),
-                    new VertexBindingDescriptor(2, 0, 3, DataType.Float, 12),
-                    new VertexBindingDescriptor(3, 0, 2, DataType.Float, 24));
+                return VertexInputDescriptorFactory.CreateFromStruct<VertexPositionNormalUv>();
             case VertexType.PositionNormalUvTangent:
-                return new VertexInputDescriptor(
-                    new VertexBindingDescriptor(0, 0, 3, DataType.Float, 0),
-                    new VertexBindingDescriptor(2, 0, 3, DataType.Float, 12),
-                    new VertexBindingDescriptor(3, 0, 2, DataType.Float, 24),
-                    new VertexBindingDescriptor(4, 0, 4, DataType.Float, 32));
+                return VertexInputDescriptorFactory.CreateFromStruct<VertexPositionNormalUvTangent>();
             case VertexType.PositionUv:
-                return new VertexInputDescriptor(
-                    new VertexBindingDescriptor(0, 0, 3, DataType.Float, 0),
-                    new VertexBindingDescriptor(3, 0, 2, DataType.Float, 12));
+                return VertexInputDescriptorFactory.CreateFromStruct<VertexPositionUv>();
             default:
                 throw new ArgumentOutOfRangeException(nameof(vertexType));
         }
