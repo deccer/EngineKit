@@ -42,7 +42,7 @@ public readonly record struct VertexInputDescriptor
                 return new VertexInputDescriptor(
                     new VertexBindingDescriptor(0, 0, 3, DataType.Float, 0),
                     new VertexBindingDescriptor(2, 0, 3, DataType.Float, 12),
-                    new VertexBindingDescriptor(3, 0, 2, DataType.Float, 20),
+                    new VertexBindingDescriptor(3, 0, 2, DataType.Float, 24),
                     new VertexBindingDescriptor(4, 0, 4, DataType.Float, 32));
             case VertexType.PositionUv:
                 return new VertexInputDescriptor(
