@@ -1,6 +1,6 @@
 namespace EngineKit;
 
-public struct Label
+public readonly struct Label
 {
     public static readonly Label Empty = new Label(string.Empty);
 
@@ -9,6 +9,11 @@ public struct Label
     public Label(string value)
     {
         _value = value;
+    }
+
+    public override string ToString()
+    {
+        return _value;
     }
 
     public static implicit operator Label(string label)
