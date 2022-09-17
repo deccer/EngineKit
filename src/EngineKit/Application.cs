@@ -78,8 +78,8 @@ public class Application : IApplication
 
         while (!Glfw.ShouldWindowClose(_windowHandle))
         {
-            Glfw.PollEvents();
             _inputProvider.MouseState.Center();
+            Glfw.PollEvents();
 
             currentTime = stopwatch.ElapsedMilliseconds;
             var deltaTime = currentTime - lastTime;
@@ -430,7 +430,6 @@ public class Application : IApplication
 
     private void PrintSystemInformation()
     {
-
         _logger.Debug("OS: Architecture - {@OSArchitecture}", RuntimeInformation.OSArchitecture);
         _logger.Debug("OS: Description - {@OSDescription}", RuntimeInformation.OSDescription);
 
@@ -445,34 +444,35 @@ public class Application : IApplication
         uint id,
         GL.DebugSeverity severity,
         int length,
-        IntPtr message,
+        IntPtr messagePtr,
         IntPtr userParam)
     {
-        if (type == GL.DebugType.Portability)
+        if (type is GL.DebugType.Portability or GL.DebugType.PushGroup or GL.DebugType.PopGroup)
         {
             return;
         }
-        var messageString = Marshal.PtrToStringAnsi(message, length);
+
+        var message = Marshal.PtrToStringAnsi(messagePtr, length);
 
         switch (severity)
         {
             case GL.DebugSeverity.Notification or GL.DebugSeverity.DontCare:
-                _logger.Debug("GL: {@Type} | {@MessageString}", type, messageString);
+                _logger.Debug("GL: {@Type} | {@MessageString}", type, message);
                 break;
             case GL.DebugSeverity.High:
-                _logger.Error("GL: {@Type} | {@MessageString}", type, messageString);
+                _logger.Error("GL: {@Type} | {@MessageString}", type, message);
                 break;
             case GL.DebugSeverity.Medium:
-                _logger.Warning("GL: {@Type} | {@MessageString}", type, messageString);
+                _logger.Warning("GL: {@Type} | {@MessageString}", type, message);
                 break;
             case GL.DebugSeverity.Low:
-                _logger.Information("GL: {@Type} | {@MessageString}", type, messageString);
+                _logger.Information("GL: {@Type} | {@MessageString}", type, message);
                 break;
         }
 
         if (type == GL.DebugType.Error)
         {
-            _logger.Error("{@MessageString}", messageString);
+            _logger.Error("{@MessageString}", message);
 
             HandleDebugger(out var breakOnError);
             if (breakOnError)
