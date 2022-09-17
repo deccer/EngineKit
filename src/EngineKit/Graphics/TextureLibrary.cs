@@ -2,69 +2,16 @@ using System.Collections.Generic;
 using System.Linq;
 using EngineKit.Mathematics;
 using Serilog;
-using SixLabors.ImageSharp;
 
 namespace EngineKit.Graphics;
 
 internal sealed class TextureLibrary : ITextureLibrary
 {
     private readonly ILogger _logger;
-    private readonly ITextureLoader _textureLoader;
-    private readonly IDictionary<string, ITexture> _textures;
-    private readonly IDictionary<string, string> _texturesToBeLoaded;
-    private readonly IDictionary<string, ulong> _textureResidentHandles;
 
-    public TextureLibrary(
-        ILogger logger,
-        ITextureLoader textureLoader)
+    public TextureLibrary(ILogger logger)
     {
         _logger = logger.ForContext<TextureLibrary>();
-        _textureLoader = textureLoader;
-        _textures = new Dictionary<string, ITexture>(256);
-        _texturesToBeLoaded = new Dictionary<string, string>(256);
-        _textureResidentHandles = new Dictionary<string, ulong>(256);
-    }
-
-    public void AddTexture(string name, string fileName)
-    {
-        if (_texturesToBeLoaded.ContainsKey(name))
-        {
-            _logger.Debug("{Category}: Texture {TextureName} already known", nameof(TextureLibrary), name);
-            return;
-        }
-
-        _texturesToBeLoaded.Add(name, fileName);
-    }
-
-    public void AddTexture(string name, Image image)
-    {
-    }
-
-    public ulong GetTextureHandle(string textureName)
-    {
-        return _textureResidentHandles.TryGetValue(textureName, out var textureHandle)
-            ? textureHandle
-            : 0;
-    }
-
-    public void LoadTextures()
-    {
-        foreach (var (textureName, textureFilePath) in _texturesToBeLoaded)
-        {
-            if (_textures.ContainsKey(textureName))
-            {
-                _logger.Debug("{Category}: Texture {TextureName} already loaded", nameof(TextureLibrary), textureName);
-                continue;
-            }
-
-            var texture = _textureLoader.LoadTextureFromFile(textureFilePath);
-            //var textureResidentHandle = texture.MakeResident();
-            //_textureResidentHandle.Add(textureName, textureResidentHandle);
-            if (texture != null)
-            {
-                _textures.Add(textureName, texture);
-            }
-        }
     }
 
     public IReadOnlyCollection<ITexture> PrepareTextureArrays(
@@ -103,6 +50,8 @@ internal sealed class TextureLibrary : ITextureLibrary
         foreach (var textureIndex in textureIndices)
         {
             var firstImageLibraryItem = textureIndex.Value.FirstOrDefault();
+            var imageWidth = firstImageLibraryItem.Image.Width;
+            var imageHeight = firstImageLibraryItem.Image.Height;
 
             var textureArraySlice = 0;
             Texture? texture = null;
@@ -114,9 +63,8 @@ internal sealed class TextureLibrary : ITextureLibrary
                     {
                         ImageType = ImageType.Texture2DArray,
                         Format = Format.R8G8B8A8UNorm,
-                        Label = $"TA_{textureIndex.Key}",
-                        Size = new Int3(firstImageLibraryItem.Image.Width,
-                            firstImageLibraryItem.Image.Height, 1),
+                        Label = $"TA_{textureIndex.Key}_{imageWidth}x{imageHeight}x{textureIndex.Value.Count}",
+                        Size = new Int3(imageWidth, imageHeight, 1),
                         ArrayLayers = (uint)textureIndex.Value.Count,
                         MipLevels = 1,
                         SampleCount = SampleCount.OneSample
@@ -129,15 +77,14 @@ internal sealed class TextureLibrary : ITextureLibrary
                 {
                     Level = 0,
                     Offset = new Int3(0, 0, textureArraySlice),
-                    Size = new Int3(firstImageLibraryItem.Image.Width,
-                        firstImageLibraryItem.Image.Height, 1),
+                    Size = new Int3(imageWidth, imageHeight, 1),
                     UploadDimension = UploadDimension.Three,
                     UploadFormat = UploadFormat.RedGreenBlueAlpha,
                     UploadType = UploadType.UnsignedByte
                 };
 
-                var image32 = layer.Image;
-                if (image32.DangerousTryGetSinglePixelMemory(out var pixelSpan))
+                var image = layer.Image;
+                if (image.DangerousTryGetSinglePixelMemory(out var pixelSpan))
                 {
                     texture.Upload(textureUploadDescriptor, pixelSpan.Pin());
                 }
