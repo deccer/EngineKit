@@ -99,22 +99,14 @@ internal sealed class TextureLibrary : ITextureLibrary
             }
         }
 
-        var minTextureArrayIndex = textureIndices.Keys.Min();
-
-        for (var textureArrayIndex = minTextureArrayIndex; textureArrayIndex < minTextureArrayIndex + textureIndices.Count; textureArrayIndex++)
+        var textureArrayIndex = 0;
+        foreach (var textureIndex in textureIndices)
         {
-            if (!textureIndices.ContainsKey(textureArrayIndex))
-            {
-                continue;
-            }
-
-            var imageLibraryItems = textureIndices[textureArrayIndex];
-
-            var firstImageLibraryItem = imageLibraryItems.FirstOrDefault();
+            var firstImageLibraryItem = textureIndex.Value.FirstOrDefault();
 
             var textureArraySlice = 0;
             Texture? texture = null;
-            foreach (var layer in imageLibraryItems)
+            foreach (var layer in textureIndex.Value)
             {
                 if (textureArraySlice == 0)
                 {
@@ -122,10 +114,10 @@ internal sealed class TextureLibrary : ITextureLibrary
                     {
                         ImageType = ImageType.Texture2DArray,
                         Format = Format.R8G8B8A8UNorm,
-                        Label = $"TA_{textureArrayIndex}",
+                        Label = $"TA_{textureIndex.Key}",
                         Size = new Int3(firstImageLibraryItem.Image.Width,
                             firstImageLibraryItem.Image.Height, 1),
-                        ArrayLayers = (uint)imageLibraryItems.Count,
+                        ArrayLayers = (uint)textureIndex.Value.Count,
                         MipLevels = 1,
                         SampleCount = SampleCount.OneSample
                     };
@@ -152,11 +144,11 @@ internal sealed class TextureLibrary : ITextureLibrary
 
                 if (!textureArrayIndices.TryGetValue(layer.ImageName, out var textureId))
                 {
-                    textureArrayIndices.Add(layer.ImageName, new TextureId(textureArrayIndex - minTextureArrayIndex, textureArraySlice));
+                    textureArrayIndices.Add(layer.ImageName, new TextureId(textureArrayIndex, textureArraySlice));
                 }
                 else
                 {
-                    if (textureId.ArrayIndex != (textureArrayIndex - minTextureArrayIndex) || textureId.ArraySlice != textureArraySlice)
+                    if (textureId.ArrayIndex != textureArrayIndex || textureId.ArraySlice != textureArraySlice)
                     {
                         _logger.Error("Noooooo");
                     }
@@ -169,6 +161,8 @@ internal sealed class TextureLibrary : ITextureLibrary
             {
                 textureArrays.Add(texture);
             }
+
+            textureArrayIndex++;
         }
 
         return textureArrays;
