@@ -60,14 +60,14 @@ public class Application : IApplication
             return;
         }
 
-        _logger.Debug("App: Initialized");
+        _logger.Debug("{Category}: Initialized", "App");
 
         if (!Load())
         {
             return;
         }
 
-        _logger.Debug("App: Loaded");
+        _logger.Debug("{Category}: Loaded", "App");
 
         var stopwatch = Stopwatch.StartNew();
         var accumulator = 0f;
@@ -110,7 +110,8 @@ public class Application : IApplication
 
             if (_showUpdatesPerSecond && stopwatch.ElapsedMilliseconds >= nextUpdate)
             {
-                _logger.Debug("FPS: {@FramesPerSecond} UPS: {@UpdatesPerSecond} UR: {@UpdateRate} SD: {SwapBufferDuration:F3}ms",
+                _logger.Debug("{Category}: FPS: {@FramesPerSecond} UPS: {@UpdatesPerSecond} UR: {@UpdateRate} SD: {SwapBufferDuration:F3}ms",
+                    "App",
                     _metrics.FramesPerSecond,
                     _metrics.UpdatesPerSecond,
                     _metrics.UpdateRate,
@@ -121,11 +122,11 @@ public class Application : IApplication
             }
         }
 
-        _logger.Debug("App: Unloading");
+        _logger.Debug("{Category}: Unloading", "App");
 
         Unload();
 
-        _logger.Debug("App: Unloaded");
+        _logger.Debug("{Category}: Unloaded", "App");
     }
 
     protected virtual void FixedUpdate()
@@ -138,7 +139,7 @@ public class Application : IApplication
 
         if (!Glfw.Init())
         {
-            _logger.Error("Glfw: Unable to initialize");
+            _logger.Error("{Category}: Unable to initialize", "Glfw");
             return false;
         }
 
@@ -176,7 +177,7 @@ public class Application : IApplication
         {
             if (!Version.TryParse(_contextSettings.Value.TargetGLVersion, out glVersion))
             {
-                _logger.Error("{Category} - Unable to detect context version. Assuming 4.5", "Application");
+                _logger.Error("{Category} - Unable to detect context version. Assuming 4.5", "App");
                 glVersion = new Version(4, 5);
             }
         }
@@ -191,29 +192,29 @@ public class Application : IApplication
         if (environmentVariables.Contains("LIBGL_DEBUG"))
         {
             var libGlDebug = environmentVariables["LIBGL_DEBUG"];
-            _logger.Information("{Category}: LIBGL_DEBUG={LibGlDebug}", "ENV", libGlDebug);
+            _logger.Information("{Category}: LIBGL_DEBUG={LibGlDebug}", "Environment", libGlDebug);
         }
 
         if (environmentVariables.Contains("MESA_GL_VERSION_OVERRIDE"))
         {
             var mesaGlVersionOverride = environmentVariables["MESA_GL_VERSION_OVERRIDE"];
-            _logger.Information("{Category}: MESA_GL_VERSION_OVERRIDE={MesaGlVersionOverride}", "ENV", mesaGlVersionOverride);
+            _logger.Information("{Category}: MESA_GL_VERSION_OVERRIDE={MesaGlVersionOverride}", "Environment", mesaGlVersionOverride);
         }
 
         if (environmentVariables.Contains("MESA_GLSL_VERSION_OVERRIDE"))
         {
             var mesaGlslVersionOverride = environmentVariables["MESA_GLSL_VERSION_OVERRIDE"];
-            _logger.Information("{Category}: MESA_GLSL_VERSION_OVERRIDE={MesaGlVersionOverride}", "ENV", mesaGlslVersionOverride);
+            _logger.Information("{Category}: MESA_GLSL_VERSION_OVERRIDE={MesaGlVersionOverride}", "Environment", mesaGlslVersionOverride);
         }
         _windowHandle = Glfw.CreateWindow(
             _applicationContext.WindowSize.X,
             _applicationContext.WindowSize.Y,
-            "ConflictSpace",
+            "EngineKit",
             monitorHandle,
             IntPtr.Zero);
         if (_windowHandle == IntPtr.Zero)
         {
-            _logger.Error("Glfw: Unable to create window");
+            _logger.Error("{Category}: Unable to create window", "Glfw");
             return false;
         }
 
@@ -368,7 +369,11 @@ public class Application : IApplication
             _inputProvider.KeyboardState.SetKeyState(key, action is Glfw.KeyAction.Pressed or Glfw.KeyAction.Repeat);
         }
 
-        _logger.Debug("key: {Key} scancode: {ScanCode} action: {Action} modifiers: {Modifiers}", key, scancode, action,
+        _logger.Debug("{Category} Key: {Key} Scancode: {ScanCode} Action: {Action} Modifiers: {Modifiers}",
+            "Glfw",
+            key,
+            scancode,
+            action,
             modifiers);
     }
 
@@ -393,14 +398,14 @@ public class Application : IApplication
         _inputProvider.MouseState.PreviousX = (float)currentCursorX;
         _inputProvider.MouseState.PreviousY = (float)currentCursorY;
 
-        _logger.Debug("App: MouseMove: {MouseState}", _inputProvider.MouseState);
+        _logger.Debug("{Category}: MouseMove: {MouseState}", "Glfw", _inputProvider.MouseState);
     }
 
     private void OnMouseEnterLeave(
         IntPtr windowHandle,
         Glfw.CursorEnterMode cursorEnterMode)
     {
-        _logger.Debug("mode: {CursorEnterMode}", cursorEnterMode);
+        _logger.Debug("{Category}: Mode: {CursorEnterMode}", "Glfw", cursorEnterMode);
     }
 
     private void OnMouseButton(
@@ -410,7 +415,11 @@ public class Application : IApplication
         Glfw.KeyModifiers modifiers)
     {
         _inputProvider.MouseState[mouseButton] = action is Glfw.KeyAction.Pressed or Glfw.KeyAction.Repeat;
-        _logger.Debug("button: {MouseButton} action: {Action} modifiers: {Modifiers}", mouseButton, action, modifiers);
+        _logger.Debug("{Category}: Button: {MouseButton} Action: {Action} Modifiers: {Modifiers}",
+            "Glfw",
+            mouseButton,
+            action,
+            modifiers);
     }
 
     private void OnWindowSize(
@@ -430,12 +439,12 @@ public class Application : IApplication
 
     private void PrintSystemInformation()
     {
-        _logger.Debug("OS: Architecture - {@OSArchitecture}", RuntimeInformation.OSArchitecture);
-        _logger.Debug("OS: Description - {@OSDescription}", RuntimeInformation.OSDescription);
+        _logger.Debug("{Category}: Architecture - {@OSArchitecture}", "OS", RuntimeInformation.OSArchitecture);
+        _logger.Debug("{Category}: Description - {@OSDescription}", "OS", RuntimeInformation.OSDescription);
 
-        _logger.Debug("RT: Framework - {@FrameworkDescription}", RuntimeInformation.FrameworkDescription);
-        _logger.Debug("RT: Runtime Identifier - {@RuntimeIdentifier}", RuntimeInformation.RuntimeIdentifier);
-        _logger.Debug("RT: Process Architecture - {@ProcessArchitecture}", RuntimeInformation.ProcessArchitecture);
+        _logger.Debug("{Category}: Framework - {@FrameworkDescription}", "RT", RuntimeInformation.FrameworkDescription);
+        _logger.Debug("{Category}: Runtime Identifier - {@RuntimeIdentifier}", "RT", RuntimeInformation.RuntimeIdentifier);
+        _logger.Debug("{Category}: Process Architecture - {@ProcessArchitecture}", "RT", RuntimeInformation.ProcessArchitecture);
     }
 
     private void DebugCallback(
@@ -457,16 +466,16 @@ public class Application : IApplication
         switch (severity)
         {
             case GL.DebugSeverity.Notification or GL.DebugSeverity.DontCare:
-                _logger.Debug("GL: {@Type} | {@MessageString}", type, message);
+                _logger.Debug("{Category}: {@Type} | {@MessageString}", "GL", type, message);
                 break;
             case GL.DebugSeverity.High:
-                _logger.Error("GL: {@Type} | {@MessageString}", type, message);
+                _logger.Error("{Category}: {@Type} | {@MessageString}", "GL", type, message);
                 break;
             case GL.DebugSeverity.Medium:
-                _logger.Warning("GL: {@Type} | {@MessageString}", type, message);
+                _logger.Warning("{Category}: {@Type} | {@MessageString}", "GL", type, message);
                 break;
             case GL.DebugSeverity.Low:
-                _logger.Information("GL: {@Type} | {@MessageString}", type, message);
+                _logger.Information("{Category}: {@Type} | {@MessageString}", "GL", type, message);
                 break;
         }
 
