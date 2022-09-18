@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using Serilog;
 using SixLabors.ImageSharp;
@@ -101,6 +102,7 @@ internal sealed class ImageLibrary : IImageLibrary
         ReadOnlySpan<byte> imageSpan,
         IDictionary<string, IList<ImageLibraryItem>> imagesPerMaterial)
     {
+        var stopwatch = Stopwatch.StartNew();
         var image = Image.Load<Rgba32>(imageSpan);
 
         LoadImage(
@@ -109,6 +111,8 @@ internal sealed class ImageLibrary : IImageLibrary
             null,
             image,
             imagesPerMaterial);
+        stopwatch.Stop();
+        _logger.Debug("{Category}: Loading image from memory. Took {LoadingTime} ms", "ImageLibrary", stopwatch.ElapsedMilliseconds);
     }
 
     private void LoadImageFromFile(
@@ -117,6 +121,7 @@ internal sealed class ImageLibrary : IImageLibrary
         string imageFilePath,
         IDictionary<string, IList<ImageLibraryItem>> imagesPerMaterial)
     {
+        var stopwatch = Stopwatch.StartNew();
         var image = Image.Load<Rgba32>(imageFilePath);
 
         LoadImage(
@@ -125,6 +130,9 @@ internal sealed class ImageLibrary : IImageLibrary
             imageFilePath,
             image,
             imagesPerMaterial);
+        stopwatch.Stop();
+
+        _logger.Debug("{Category}: Loading image from {FilePath}. Took {LoadingTime} ms", "ImageLibrary", imageFilePath, stopwatch.ElapsedMilliseconds);
     }
 
     private void LoadImage(
