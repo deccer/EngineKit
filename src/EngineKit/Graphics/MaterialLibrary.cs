@@ -120,18 +120,6 @@ internal sealed class MaterialLibrary : IMaterialLibrary
 
     private GpuMaterial ToGpuMaterial(Material material, IDictionary<string, TextureId> textureArrayIndices)
     {
-        /*
-        if (File.Exists(material.BaseColorTextureFilePath))
-        {
-            _textureLibrary.AddTexture(Path.GetFileName(material.BaseColorTextureFilePath), material.BaseColorTextureFilePath);
-        }
-
-        if (File.Exists(material.NormalTextureFilePath))
-        {
-            _textureLibrary.AddTexture(Path.GetFileName(material.NormalTextureFilePath), material.NormalTextureFilePath);
-        }
-        */
-
         //TODO(deccer) get rid of that guid.newguid bs
         var baseColorTextureIdExists =
             textureArrayIndices.TryGetValue(material.BaseColorTextureDataName ?? Guid.NewGuid().ToString(), out var baseColorTextureId);
