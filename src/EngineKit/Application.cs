@@ -369,12 +369,14 @@ public class Application : IApplication
             _inputProvider.KeyboardState.SetKeyState(key, action is Glfw.KeyAction.Pressed or Glfw.KeyAction.Repeat);
         }
 
+        /*
         _logger.Debug("{Category} Key: {Key} Scancode: {ScanCode} Action: {Action} Modifiers: {Modifiers}",
             "Glfw",
             key,
             scancode,
             action,
             modifiers);
+            */
     }
 
     private static bool _isFirstFrame = true;
@@ -398,7 +400,7 @@ public class Application : IApplication
         _inputProvider.MouseState.PreviousX = (float)currentCursorX;
         _inputProvider.MouseState.PreviousY = (float)currentCursorY;
 
-        _logger.Debug("{Category}: MouseMove: {MouseState}", "Glfw", _inputProvider.MouseState);
+        //_logger.Debug("{Category}: MouseMove: {MouseState}", "Glfw", _inputProvider.MouseState);
     }
 
     private void OnMouseEnterLeave(
