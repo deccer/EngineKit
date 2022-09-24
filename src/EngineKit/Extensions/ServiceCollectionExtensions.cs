@@ -1,5 +1,6 @@
 using EngineKit.Graphics;
 using EngineKit.Input;
+using EngineKit.UI;
 using Microsoft.Extensions.DependencyInjection;
 using SixLabors.ImageSharp;
 
@@ -25,6 +26,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IImageLibrary, ImageLibrary>();
         services.AddSingleton<IApplicationContext, ApplicationContext>();
         services.AddSingleton<IInputProvider, InputProvider>();
+
+        services.AddSingleton<IUIRenderer, UIRenderer>();
 
         return services;
     }
