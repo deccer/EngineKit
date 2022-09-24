@@ -34,6 +34,8 @@ public interface IGraphicsContext : IDisposable
         Label label,
         TVertex[] vertices) where TVertex : unmanaged;
 
+    IVertexBuffer CreateVertexBuffer(MeshData[] meshDates, VertexType targetVertexType);
+
     IIndexBuffer CreateIndexBuffer<TIndex>(
         Label label,
         uint size) where TIndex : unmanaged;
@@ -41,6 +43,8 @@ public interface IGraphicsContext : IDisposable
     IIndexBuffer CreateIndexBuffer<TIndex>(
         Label label,
         TIndex[] indices) where TIndex : unmanaged;
+
+    IIndexBuffer CreateIndexBuffer(MeshData[] meshDates);
 
     IUniformBuffer CreateUniformBuffer<TUniformData>(
         Label label,
