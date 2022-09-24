@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CSharpFunctionalExtensions;
 using EngineKit.Extensions;
 using EngineKit.Mathematics;
@@ -84,6 +85,37 @@ internal sealed class GraphicsContext : IGraphicsContext
         TVertex[] vertices) where TVertex : unmanaged
     {
         return new VertexBuffer<TVertex>(label, vertices);
+    }
+
+    public IVertexBuffer CreateVertexBuffer(MeshData[] meshDates, VertexType targetVertexType)
+    {
+        var bufferData = new List<VertexPositionNormalUvTangent>(1_024_000);
+        foreach (var meshData in meshDates)
+        {
+            if (!meshData.RealTangents.Any())
+            {
+                meshData.CalculateTangents();
+            }
+
+            for (var i = 0; i < meshData.Positions.Count; ++i)
+            {
+                bufferData.Add(new VertexPositionNormalUvTangent(
+                    meshData.Positions[i],
+                    meshData.Normals[i],
+                    meshData.Uvs[i],
+                    meshData.RealTangents[i]));
+            }
+        }
+
+        return new VertexBuffer<VertexPositionNormalUvTangent>("Vertices", bufferData.ToArray());
+    }
+
+    public IIndexBuffer CreateIndexBuffer(MeshData[] meshDates)
+    {
+        var indices = meshDates
+            .SelectMany(meshData => meshData.Indices)
+            .ToArray();
+        return new IndexBuffer<uint>("Indices", indices);
     }
 
     public IIndexBuffer CreateIndexBuffer<TIndex>(
