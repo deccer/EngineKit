@@ -1,4 +1,5 @@
 using EngineKit.Graphics;
+using EngineKit.Graphics.MeshLoaders;
 using EngineKit.Input;
 using EngineKit.UI;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +26,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IImageLibrary, ImageLibrary>();
         services.AddSingleton<IApplicationContext, ApplicationContext>();
         services.AddSingleton<IInputProvider, InputProvider>();
-
+        services.AddSingleton<IMeshLoader, SharpGltfMeshLoader>();
         services.AddSingleton<IUIRenderer, UIRenderer>();
 
         return services;
