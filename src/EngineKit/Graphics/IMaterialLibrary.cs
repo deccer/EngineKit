@@ -13,5 +13,7 @@ public interface IMaterialLibrary
 
     Material GetMaterialByName(string materialName);
 
+    Material GetRandomMaterial();
+
     bool Exists(string materialName);
 }

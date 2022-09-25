@@ -13,6 +13,7 @@ internal sealed class MaterialLibrary : IMaterialLibrary
     private readonly ITextureLoader _textureLoader;
     private readonly IImageLibrary _imageLibrary;
     private readonly IDictionary<string, Material> _materials;
+    private readonly Random _random;
 
     public MaterialLibrary(
         ILogger logger,
@@ -25,14 +26,31 @@ internal sealed class MaterialLibrary : IMaterialLibrary
         _textureLoader = textureLoader;
         _imageLibrary = imageLibrary;
         _materials = new Dictionary<string, Material>(256);
-        _materials.Add("M_Default_White", new Material
+        _random = new Random();
+        CreateDefaultMaterials();
+    }
+
+    private void CreateDefaultMaterials()
+    {
+        var colors = typeof(Color)
+            .GetFields()
+            .Where(field => field.IsStatic && field.IsPublic);
+
+        foreach (var color in colors)
         {
-            BaseColor = Color.White.ToColor4()
-        });
-        _materials.Add("M_Default_Red", new Material
-        {
-            BaseColor = Color.Red.ToColor4()
-        });
+            var materialName = $"M_Default_{color.Name}";
+            var colorValue = (Color)color.GetValue(color);
+            _materials.Add(materialName, new Material
+            {
+                Name = materialName,
+                BaseColor = colorValue
+            });
+        }
+    }
+
+    public Material GetRandomMaterial()
+    {
+        return _materials.Values.ElementAt(_random.Next(0, _materials.Values.Count));
     }
 
     public bool Exists(string materialName)
