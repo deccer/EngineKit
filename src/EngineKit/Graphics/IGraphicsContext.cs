@@ -53,7 +53,7 @@ public interface IGraphicsContext : IDisposable
 
     Result<ComputePipeline> CreateComputePipeline(ComputePipelineDescriptor computePipelineDescriptor);
 
-    Result<IGraphicsPipeline> CreateGraphicsPipeline(GraphicsPipelineDescriptor graphicsPipelineDescriptor);
+    IGraphicsPipelineDescriptorBuilder CreateGraphicsPipelineDescriptorBuilder();
 
     ITexture CreateTexture(TextureCreateDescriptor textureCreateDescriptor);
 

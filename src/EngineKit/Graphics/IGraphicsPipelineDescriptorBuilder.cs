@@ -1,3 +1,5 @@
+using CSharpFunctionalExtensions;
+
 namespace EngineKit.Graphics;
 
 public interface IGraphicsPipelineDescriptorBuilder
@@ -14,7 +16,7 @@ public interface IGraphicsPipelineDescriptorBuilder
         PrimitiveTopology primitiveTopology,
         bool isPrimitiveRestartEnabled = false);
 
-    GraphicsPipelineDescriptor Build(string label);
+    Result<IGraphicsPipeline> Build(string label);
 
     IGraphicsPipelineDescriptorBuilder DisableCulling();
 

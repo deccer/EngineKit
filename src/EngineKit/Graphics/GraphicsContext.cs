@@ -8,7 +8,7 @@ using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
 
-internal sealed class GraphicsContext : IGraphicsContext
+internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsContext
 {
     private readonly IFramebufferFactory _framebufferFactory;
     private readonly IDictionary<IPipeline, GraphicsPipelineDescriptor> _graphicsPipelineCache;
@@ -43,6 +43,11 @@ internal sealed class GraphicsContext : IGraphicsContext
         _computePipelineCache[computePipeline] = computePipelineDescriptor;
 
         return Result.Success(computePipeline);
+    }
+
+    public IGraphicsPipelineDescriptorBuilder CreateGraphicsPipelineDescriptorBuilder()
+    {
+        return new GraphicsPipelineDescriptorBuilder(this);
     }
 
     public Result<IGraphicsPipeline> CreateGraphicsPipeline(GraphicsPipelineDescriptor graphicsPipelineDescriptor)

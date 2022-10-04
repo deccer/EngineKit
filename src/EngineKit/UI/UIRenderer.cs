@@ -59,15 +59,13 @@ internal sealed class UIRenderer : IUIRenderer
         _framebufferWidth = width;
         _framebufferHeight = height;
 
-        var imGuiGraphicsPipelineDescriptor = _graphicsPipelineDescriptorBuilder
+        var imGuiGraphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineDescriptorBuilder()
             .WithTopology(PrimitiveTopology.Triangles)
             .WithVertexBindingsForVertexType(VertexType.ImGui)
             .DisableDepthTest()
             .DisableDepthWrite()
             .WithShaders("Shaders/ImGui.vs.glsl", "Shaders/ImGui.fs.glsl")
             .Build("ImGuiPipeline");
-
-        var imGuiGraphicsPipelineResult = _graphicsContext.CreateGraphicsPipeline(imGuiGraphicsPipelineDescriptor);
         if (imGuiGraphicsPipelineResult.IsFailure)
         {
             _logger.Error(

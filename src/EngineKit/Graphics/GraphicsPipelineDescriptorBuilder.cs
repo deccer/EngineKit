@@ -1,13 +1,15 @@
-using System.Reflection.Emit;
+using CSharpFunctionalExtensions;
 
 namespace EngineKit.Graphics;
 
 internal sealed class GraphicsPipelineDescriptorBuilder : IGraphicsPipelineDescriptorBuilder
 {
+    private readonly IInternalGraphicsContext _internalGraphicsContext;
     private GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
 
-    public GraphicsPipelineDescriptorBuilder()
+    public GraphicsPipelineDescriptorBuilder(IInternalGraphicsContext internalGraphicsContext)
     {
+        _internalGraphicsContext = internalGraphicsContext;
         _graphicsPipelineDescriptor = new GraphicsPipelineDescriptor
         {
             InputAssembly = new InputAssemblyDescriptor
@@ -125,9 +127,9 @@ internal sealed class GraphicsPipelineDescriptorBuilder : IGraphicsPipelineDescr
         return this;
     }
 
-    public GraphicsPipelineDescriptor Build(string label)
+    public Result<IGraphicsPipeline> Build(string label)
     {
         _graphicsPipelineDescriptor.PipelineProgramLabel = new Label(label);
-        return _graphicsPipelineDescriptor;
+        return _internalGraphicsContext.CreateGraphicsPipeline(_graphicsPipelineDescriptor);
     }
 }

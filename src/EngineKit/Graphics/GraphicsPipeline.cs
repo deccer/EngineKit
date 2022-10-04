@@ -10,7 +10,7 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
 
     internal IInputLayout? CurrentInputLayout;
 
-    public GraphicsPipeline(GraphicsPipelineDescriptor graphicsPipelineDescriptor)
+    internal GraphicsPipeline(GraphicsPipelineDescriptor graphicsPipelineDescriptor)
     {
         _graphicsPipelineDescriptor = graphicsPipelineDescriptor;
         ShaderProgram = new ShaderProgram(
