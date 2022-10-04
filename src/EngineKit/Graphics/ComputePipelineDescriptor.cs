@@ -1,6 +1,6 @@
 namespace EngineKit.Graphics;
 
-public record struct ComputePipelineDescriptor
+internal record struct ComputePipelineDescriptor
 {
     public Label PipelineProgramLabel;
 
