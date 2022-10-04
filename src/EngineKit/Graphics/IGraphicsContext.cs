@@ -1,11 +1,10 @@
 ﻿using System;
-using CSharpFunctionalExtensions;
 
 namespace EngineKit.Graphics;
 
 public interface IGraphicsContext : IDisposable
 {
-    bool BindComputePipeline(ComputePipeline computePipeline);
+    bool BindComputePipeline(IComputePipeline computePipeline);
 
     bool BindGraphicsPipeline(IGraphicsPipeline graphicsPipeline);
 
@@ -50,8 +49,6 @@ public interface IGraphicsContext : IDisposable
         Label label,
         TUniformData uniformData)
         where TUniformData : unmanaged;
-
-    Result<ComputePipeline> CreateComputePipeline(ComputePipelineDescriptor computePipelineDescriptor);
 
     IGraphicsPipelineBuilder CreateGraphicsPipelineBuilder();
 

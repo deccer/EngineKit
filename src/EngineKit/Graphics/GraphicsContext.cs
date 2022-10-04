@@ -31,23 +31,28 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         _framebufferFactory.Dispose();
     }
 
-    public Result<ComputePipeline> CreateComputePipeline(ComputePipelineDescriptor computePipelineDescriptor)
+    public Result<IComputePipeline> CreateComputePipeline(ComputePipelineDescriptor computePipelineDescriptor)
     {
         var computePipeline = new ComputePipeline(computePipelineDescriptor);
         var compileShaderResult = computePipeline.LinkPrograms();
         if (compileShaderResult.IsFailure)
         {
-            return Result.Failure<ComputePipeline>(compileShaderResult.Error);
+            return Result.Failure<IComputePipeline>(compileShaderResult.Error);
         }
 
         _computePipelineCache[computePipeline] = computePipelineDescriptor;
 
-        return Result.Success(computePipeline);
+        return Result.Success<IComputePipeline>(computePipeline);
     }
 
     public IGraphicsPipelineBuilder CreateGraphicsPipelineBuilder()
     {
         return new GraphicsPipelineBuilder(this);
+    }
+
+    public IComputePipelineBuilder CreateComputePipelineBuilder()
+    {
+        return new ComputePipelineBuilder(this);
     }
 
     public Result<IGraphicsPipeline> CreateGraphicsPipeline(GraphicsPipelineDescriptor graphicsPipelineDescriptor)
@@ -187,7 +192,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         return CreateTexture(textureCreateDescriptor);
     }
 
-    public bool BindComputePipeline(ComputePipeline computePipeline)
+    public bool BindComputePipeline(IComputePipeline computePipeline)
     {
         if (_computePipelineCache.TryGetValue(computePipeline, out var computePipelineDescriptor))
         {
