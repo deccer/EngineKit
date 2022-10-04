@@ -177,7 +177,7 @@ public class Application : IApplication
         {
             if (!Version.TryParse(_contextSettings.Value.TargetGLVersion, out glVersion))
             {
-                _logger.Error("{Category} - Unable to detect context version. Assuming 4.5", "App");
+                _logger.Error("{Category}: Unable to detect context version. Assuming 4.5", "App");
                 glVersion = new Version(4, 5);
             }
         }
