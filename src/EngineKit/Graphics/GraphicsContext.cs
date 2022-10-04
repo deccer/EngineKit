@@ -45,9 +45,9 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         return Result.Success(computePipeline);
     }
 
-    public IGraphicsPipelineDescriptorBuilder CreateGraphicsPipelineDescriptorBuilder()
+    public IGraphicsPipelineBuilder CreateGraphicsPipelineBuilder()
     {
-        return new GraphicsPipelineDescriptorBuilder(this);
+        return new GraphicsPipelineBuilder(this);
     }
 
     public Result<IGraphicsPipeline> CreateGraphicsPipeline(GraphicsPipelineDescriptor graphicsPipelineDescriptor)

@@ -32,7 +32,7 @@ internal sealed class UIRenderer : IUIRenderer
 
     private readonly ILogger _logger;
     private readonly IGraphicsContext _graphicsContext;
-    private readonly IGraphicsPipelineDescriptorBuilder _graphicsPipelineDescriptorBuilder;
+    private readonly IGraphicsPipelineBuilder _graphicsPipelineBuilder;
     private readonly IInputProvider _inputProvider;
 
     private int _framebufferWidth;
@@ -45,12 +45,12 @@ internal sealed class UIRenderer : IUIRenderer
     public UIRenderer(
         ILogger logger,
         IGraphicsContext graphicsContext,
-        IGraphicsPipelineDescriptorBuilder graphicsPipelineDescriptorBuilder,
+        IGraphicsPipelineBuilder graphicsPipelineBuilder,
         IInputProvider inputProvider)
     {
         _logger = logger.ForContext<UIRenderer>();
         _graphicsContext = graphicsContext;
-        _graphicsPipelineDescriptorBuilder = graphicsPipelineDescriptorBuilder;
+        _graphicsPipelineBuilder = graphicsPipelineBuilder;
         _inputProvider = inputProvider;
     }
 
@@ -59,7 +59,7 @@ internal sealed class UIRenderer : IUIRenderer
         _framebufferWidth = width;
         _framebufferHeight = height;
 
-        var imGuiGraphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineDescriptorBuilder()
+        var imGuiGraphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
             .WithTopology(PrimitiveTopology.Triangles)
             .WithVertexBindingsForVertexType(VertexType.ImGui)
             .DisableDepthTest()
