@@ -1,8 +1,6 @@
-using System.Reflection.Emit;
-
 namespace EngineKit.Graphics;
 
-public record struct GraphicsPipelineDescriptor
+internal record struct GraphicsPipelineDescriptor
 {
     public Label PipelineProgramLabel;
 
