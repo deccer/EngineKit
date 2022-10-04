@@ -32,7 +32,6 @@ internal sealed class UIRenderer : IUIRenderer
 
     private readonly ILogger _logger;
     private readonly IGraphicsContext _graphicsContext;
-    private readonly IGraphicsPipelineBuilder _graphicsPipelineBuilder;
     private readonly IInputProvider _inputProvider;
 
     private int _framebufferWidth;
@@ -45,12 +44,10 @@ internal sealed class UIRenderer : IUIRenderer
     public UIRenderer(
         ILogger logger,
         IGraphicsContext graphicsContext,
-        IGraphicsPipelineBuilder graphicsPipelineBuilder,
         IInputProvider inputProvider)
     {
         _logger = logger.ForContext<UIRenderer>();
         _graphicsContext = graphicsContext;
-        _graphicsPipelineBuilder = graphicsPipelineBuilder;
         _inputProvider = inputProvider;
     }
 
