@@ -1,8 +1,8 @@
 namespace EngineKit.Graphics;
 
-public sealed class ComputePipeline : Pipeline
+internal sealed class ComputePipeline : Pipeline, IComputePipeline
 {
-    public ComputePipeline(ComputePipelineDescriptor computePipelineDescriptor)
+    internal ComputePipeline(ComputePipelineDescriptor computePipelineDescriptor)
     {
         ShaderProgram = new ShaderProgram(
             computePipelineDescriptor.ComputeShaderFilePath,
