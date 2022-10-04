@@ -1,5 +1,6 @@
 using EngineKit.Extensions;
 using EngineKit.Graphics;
+using EngineKit.UI;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,9 +29,13 @@ public class DependenciesShould
 
         // Act
         var graphicsDevice = serviceProvider.GetRequiredService<IGraphicsContext>();
+        var uiRenderer = serviceProvider.GetRequiredService<IUIRenderer>();
 
         // Assert
         graphicsDevice.Should().NotBeNull();
         graphicsDevice.Should().BeAssignableTo<GraphicsContext>();
+
+        uiRenderer.Should().NotBeNull();
+        uiRenderer.Should().BeAssignableTo<UIRenderer>();
     }
 }
