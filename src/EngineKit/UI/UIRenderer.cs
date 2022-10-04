@@ -71,7 +71,7 @@ internal sealed class UIRenderer : IUIRenderer
         if (imGuiGraphicsPipelineResult.IsFailure)
         {
             _logger.Error(
-                "{Category} - Failed to create graphics pipeline - {Details}",
+                "{Category}: Failed to create graphics pipeline - {Details}",
                 nameof(UIRenderer),
                 imGuiGraphicsPipelineResult.Error);
             return false;
@@ -122,8 +122,6 @@ internal sealed class UIRenderer : IUIRenderer
             0.0f,
             _framebufferWidth,
             _framebufferHeight,
-            //_imGuiIo.DisplaySize.X,
-            //_imGuiIo.DisplaySize.Y,
             0.0f,
             -1.0f,
             1.0f);
@@ -150,7 +148,7 @@ internal sealed class UIRenderer : IUIRenderer
     {
         _frameBegun = true;
         ImGui.NewFrame();
-        //ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode);
+        ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode);
     }
 
     public void EndLayout()

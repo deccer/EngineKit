@@ -11,6 +11,8 @@ internal sealed class InputLayout : IInputLayout
     public InputLayout(VertexInputDescriptor vertexInputDescriptor)
     {
         _id = GL.CreateVertexArray();
+
+        var label = string.Empty;
         foreach (var vertexBinding in vertexInputDescriptor.VertexBindingDescriptors)
         {
             GL.EnableVertexArrayAttrib(_id, vertexBinding.Location);
@@ -18,6 +20,8 @@ internal sealed class InputLayout : IInputLayout
 
             var componentDataType = vertexBinding.DataType;
             var componentCount = vertexBinding.ComponentCount;
+
+            label += $"{componentDataType}{componentCount}";
 
             switch (componentDataType)
             {
@@ -51,6 +55,7 @@ internal sealed class InputLayout : IInputLayout
                     break;
             }
         }
+        GL.ObjectLabel(GL.ObjectIdentifier.VertexArray, _id, label);
     }
 
     public uint Id => _id;

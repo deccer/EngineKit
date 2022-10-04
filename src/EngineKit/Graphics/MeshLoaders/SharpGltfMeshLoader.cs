@@ -61,7 +61,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 realTangents.Clear();
                 var meshData = new MeshData(mesh.Name + primitive.LogicalIndex);
                 meshData.Transform = node.WorldMatrix.ToMatrix();
-                meshData.MaterialName = primitive?.Material?.Name ?? "Unnamed Material";
+                meshData.MaterialName = primitive.Material?.Name ?? "Unnamed Material";
 
                 var vertexType = GetVertexTypeFromVertexAccessorNames(primitive.VertexAccessors.Keys.ToList());
 
@@ -156,7 +156,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             }
         }
 
-        _logger.Debug("{Category} - Loaded {PrimitiveCount} primitives from {FilePath}", nameof(SharpGltfMeshLoader)[1..],
+        _logger.Debug("{Category}: Loaded {PrimitiveCount} primitives from {FilePath}", nameof(SharpGltfMeshLoader),
             meshDates.Count, filePath);
 
         return meshDates;
@@ -172,7 +172,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
         if (_materialLibrary.Exists(gltfMaterial.Name))
         {
-            _logger.Debug("{Category} - Material {MaterialName} imported already", "GLTF", gltfMaterial.Name);
+            _logger.Debug("{Category}: Material {MaterialName} imported already", nameof(SharpGltfMeshLoader), gltfMaterial.Name);
             return;
         }
 
@@ -251,7 +251,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
     {
         if (node.Mesh == null)
         {
-            _logger.Debug("{Category} - No Mesh found in node {NodeName}", nameof(SharpGltfMeshLoader)[1..], node.Name);
+            _logger.Debug("{Category}: No mesh found in node {NodeName}", nameof(SharpGltfMeshLoader), node.Name);
             return;
         }
 
@@ -268,7 +268,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             meshData.MaterialName = primitive?.Material?.Name ?? "Unnamed Material";
             if (primitive!.DrawPrimitiveType != PrimitiveType.TRIANGLES)
             {
-                _logger.Error("{Category} - Only Triangle PrimitiveTypes are allowed", nameof(SharpGltfMeshLoader)[1..]);
+                _logger.Error("{Category}: Only triangle primitives are allowed", nameof(SharpGltfMeshLoader));
                 continue;
             }
 
@@ -330,7 +330,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
             /*
             _logger.Debug(
-                "{Category} - Processing Primitive {VertexType} - {IndexType} I:{IndexCount} P:{PositionCount} N:{NormalCount} U:{UvCount} T:{TangentCount}",
+                "{Category}: Processing Primitive {VertexType} - {IndexType} I:{IndexCount} P:{PositionCount} N:{NormalCount} U:{UvCount} T:{TangentCount}",
                 nameof(MeshFactory),
                 vertexType,
                 primitive.IndexAccessor?.Encoding ?? EncodingType.FLOAT,
