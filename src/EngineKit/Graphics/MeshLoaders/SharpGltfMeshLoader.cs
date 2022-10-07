@@ -41,7 +41,10 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
         foreach (var material in model.LogicalMaterials)
         {
-            ProcessMaterial(material);
+            if (material != null)
+            {
+                ProcessMaterial(material);
+            }
         }
 
         var positions = new List<Vector3>(16384);
@@ -169,6 +172,12 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
         // Normal
         // Occlusion
         // Emissive
+
+        if (string.IsNullOrEmpty(gltfMaterial.Name))
+        {
+            _logger.Error("{Category}: Material has no name, skipping import", nameof(SharpGltfMeshLoader));
+            return;
+        }
 
         if (_materialLibrary.Exists(gltfMaterial.Name))
         {
