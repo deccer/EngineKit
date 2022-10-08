@@ -35,4 +35,8 @@
         <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
         <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0026" />
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\EngineKit.Assets\EngineKit.Assets.csproj" />
+    </ItemGroup>
 </Project>
