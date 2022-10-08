@@ -12,7 +12,7 @@ internal sealed class InputLayout : IInputLayout
     {
         _id = GL.CreateVertexArray();
 
-        var label = string.Empty;
+        var label = "VAO_";
         foreach (var vertexBinding in vertexInputDescriptor.VertexBindingDescriptors)
         {
             GL.EnableVertexArrayAttrib(_id, vertexBinding.Location);
