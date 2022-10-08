@@ -3,6 +3,7 @@ using EngineKit.Graphics;
 using EngineKit.Input;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
+using ImGuiNET;
 using Microsoft.Extensions.Options;
 using Serilog;
 
@@ -11,7 +12,9 @@ namespace HelloWindow;
 internal sealed class HelloWindowApplication : Application
 {
     private readonly ILogger _logger;
+    private readonly IApplicationContext _applicationContext;
     private readonly IGraphicsContext _graphicsContext;
+    private readonly IUIRenderer _uiRenderer;
 
     public HelloWindowApplication(
         ILogger logger,
@@ -20,11 +23,14 @@ internal sealed class HelloWindowApplication : Application
         IApplicationContext applicationContext,
         IMetrics metrics,
         IInputProvider inputProvider,
-        IGraphicsContext graphicsContext)
+        IGraphicsContext graphicsContext,
+        IUIRenderer uiRenderer)
         : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider)
     {
         _logger = logger;
+        _applicationContext = applicationContext;
         _graphicsContext = graphicsContext;
+        _uiRenderer = uiRenderer;
     }
 
     protected override bool Load()
@@ -35,13 +41,47 @@ internal sealed class HelloWindowApplication : Application
             return false;
         }
 
-        GL.ClearColor(0.4f, 0.2f, 0.1f, 1.0f);
+        if (!_uiRenderer.Load(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y))
+        {
+            return false;
+        }
+
+        GL.ClearColor(0.95f, 0.5f, 0.4f, 1.0f);
         return true;
     }
 
     protected override void Render()
     {
         GL.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit);
+
+        _uiRenderer.BeginLayout();
+        ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode);
+        if (ImGui.BeginMainMenuBar())
+        {
+            if (ImGui.BeginMenuBar())
+            {
+                if (ImGui.BeginMenu("File"))
+                {
+                    if (ImGui.MenuItem("Quit"))
+                    {
+                        Close();
+                    }
+                    ImGui.EndMenu();
+                }
+
+                ImGui.EndMenuBar();
+            }
+
+            ImGui.EndMainMenuBar();
+        }
+        _uiRenderer.ShowDemoWindow();
+        _uiRenderer.EndLayout();
+    }
+
+    protected override void FramebufferResized()
+    {
+        base.FramebufferResized();
+        _uiRenderer.WindowResized(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y);
     }
 
     protected override void Unload()
@@ -52,6 +92,7 @@ internal sealed class HelloWindowApplication : Application
 
     protected override void Update()
     {
+        _uiRenderer?.Update(1.0f / 60.0f);
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();
