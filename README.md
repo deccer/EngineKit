@@ -6,7 +6,9 @@ Abstraction over modern OpenGL
 
 TODO Description
 
-TODO Installation
+## Installation
+
+`dotnet add YourProject package EngineKit`
 
 TODO Basic Example
 
