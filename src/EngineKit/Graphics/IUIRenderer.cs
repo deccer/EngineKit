@@ -10,5 +10,7 @@ public interface IUIRenderer : IUIRendererLoader, IDisposable
 
     void EndLayout();
 
+    void ShowDemoWindow();
+
     void Update(float deltaSeconds);
 }
