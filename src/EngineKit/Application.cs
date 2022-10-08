@@ -144,12 +144,12 @@ public class Application : IApplication
         }
 
         var windowSettings = _windowSettings.Value;
-        var windowResizable = windowSettings.WindowMode == WindowMode.Windowed;
+        var windowResizable = windowSettings.WindowMode is WindowMode.Windowed or WindowMode.WindowedBorderless;
 
         Glfw.WindowHint(Glfw.WindowInitHint.ScaleToMonitor, true);
         Glfw.WindowHint(Glfw.WindowInitHint.ClientApi, Glfw.ClientApi.OpenGL);
         Glfw.WindowHint(Glfw.WindowInitHint.IsResizeable, windowResizable);
-        Glfw.WindowHint(Glfw.WindowInitHint.IsDecorated, windowResizable);
+        Glfw.WindowHint(Glfw.WindowInitHint.IsDecorated, windowSettings.WindowMode != WindowMode.WindowedBorderless);
         Glfw.WindowHint(Glfw.WindowInitHint.IsMaximized, !windowResizable);
         Glfw.WindowHint(Glfw.WindowInitHint.IsFloating, !windowResizable);
         Glfw.WindowHint(Glfw.WindowInitHint.IsFocused, true);
