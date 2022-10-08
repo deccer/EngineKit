@@ -38,6 +38,7 @@ internal sealed class UIRenderer : IUIRenderer
     private int _framebufferHeight;
 
     private int _scrollWheelValue;
+    private readonly List<char> _pressedChars = new List<char>();
 
     private Num.Vector2 _scaleFactor = Num.Vector2.One;
 
@@ -51,7 +52,7 @@ internal sealed class UIRenderer : IUIRenderer
         _inputProvider = inputProvider;
     }
 
-    public bool Load(int width, int height)
+    public bool Load(int width, int height, Action<ImGuiIOPtr>? configureIo = null)
     {
         _framebufferWidth = width;
         _framebufferHeight = height;
@@ -79,13 +80,18 @@ internal sealed class UIRenderer : IUIRenderer
 
         _imGuiIo = ImGui.GetIO();
         _imGuiIo.DisplaySize = new Num.Vector2(_framebufferWidth, _framebufferHeight);
+        _imGuiIo.DisplayFramebufferScale = new Num.Vector2(1.0f, 1.0f);
         _imGuiIo.ConfigFlags = ImGuiConfigFlags.DockingEnable;
         _imGuiIo.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.HasSetMousePos |
                                  ImGuiBackendFlags.HasMouseCursors;
-        //_imGuiIo.Fonts.AddFontFromFileTTF("Fonts/Kufam-Regular.ttf", 28);
-        //_imGuiIo.Fonts.AddFontFromFileTTF("Fonts/Mali-Regular.ttf", 28);
-        _imGuiIo.Fonts.AddFontFromFileTTF("Fonts/RobotoCondensed-Regular.ttf", 28);
-        _imGuiIo.DisplayFramebufferScale = new Num.Vector2(1.0f, 1.0f);
+        if (configureIo == null)
+        {
+            _imGuiIo.Fonts.AddFontFromFileTTF("Fonts/RobotoCondensed-Regular.ttf", 18);
+        }
+        else
+        {
+            configureIo(_imGuiIo);
+        }
 
         var mvp = Matrix.OrthoOffCenterRH(
             0.0f,
@@ -156,11 +162,15 @@ internal sealed class UIRenderer : IUIRenderer
         }
     }
 
-    public void Update(
-        float deltaSeconds)
+    public void Update(float deltaSeconds)
     {
         SetPerFrameImGuiData(deltaSeconds);
         UpdateImGuiInput();
+    }
+
+    public void ShowDemoWindow()
+    {
+        ImGui.ShowDemoWindow();
     }
 
     private void RecreateFontDeviceTexture()
@@ -218,8 +228,6 @@ internal sealed class UIRenderer : IUIRenderer
         _imGuiIo.DisplayFramebufferScale = new System.Numerics.Vector2(_scaleFactor.X, _scaleFactor.Y);
         _imGuiIo.DeltaTime = deltaSeconds;
     }
-
-    private readonly List<char> _pressedChars = new List<char>();
 
     private void UpdateImGuiInput()
     {
@@ -297,7 +305,6 @@ internal sealed class UIRenderer : IUIRenderer
 
     private void RenderDrawData(ImDrawDataPtr drawDataPtr)
     {
-        //GL.PushDebugGroup("ImGui::RenderDrawData");
         if (drawDataPtr.CmdListsCount == 0)
         {
             return;
