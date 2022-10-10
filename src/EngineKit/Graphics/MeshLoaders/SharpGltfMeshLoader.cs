@@ -190,7 +190,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
         foreach (var materialChannel in gltfMaterial.Channels)
         {
-            if (materialChannel.Key == "BaseColor" || materialChannel.Key == "Diffuse")
+            if (materialChannel.Key is "BaseColor" or "Diffuse")
             {
                 material.BaseColor = new Color4(
                     materialChannel.Color.X,
@@ -201,14 +201,14 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
                     material.BaseColorTextureDataName = Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Name) ?? Guid.NewGuid().ToString();
-                    //if (!materialChannel.Texture.PrimaryImage.Content.IsEmpty)
-                    //{
-                    //    material.BaseColorEmbeddedImageData = materialChannel.Texture.PrimaryImage.Content.Content;
-                    //}
-                    //else
-                    //{
+                    if (materialChannel.Texture.PrimaryImage.Content.IsEmpty)
+                    {
                         material.BaseColorTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
-                    //}
+                    }
+                    else
+                    {
+                        material.BaseColorEmbeddedImageData = materialChannel.Texture.PrimaryImage.Content.Content;
+                    }
                 }
             }
             else if (materialChannel.Key == "Normal")
@@ -216,14 +216,14 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
                     material.NormalTextureDataName = Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Name) ?? Guid.NewGuid().ToString();
-                    //if (!materialChannel.Texture.PrimaryImage.Content.IsEmpty)
-                    //{
-                    //    material.NormalEmbeddedImageData = materialChannel.Texture.PrimaryImage.Content.Content;
-                    //}
-                    //else
-                    //{
+                    if (materialChannel.Texture.PrimaryImage.Content.IsEmpty)
+                    {
                         material.NormalTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
-                    //}
+                    }
+                    else
+                    {
+                        material.NormalEmbeddedImageData = materialChannel.Texture.PrimaryImage.Content.Content;
+                    }
                 }
 
                 // NormalScale
