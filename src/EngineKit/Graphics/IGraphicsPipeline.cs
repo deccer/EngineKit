@@ -41,5 +41,10 @@ public interface IGraphicsPipeline : IPipeline
         int indexCount,
         int offset);
 
+    void DrawElementsInstanced(
+        int indexCount,
+        int offset,
+        int instanceCount);
+
     void MultiDrawElementsIndirect(IIndirectBuffer indirectBuffer);
 }
