@@ -55,17 +55,6 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
         GL.BindSampler(bindingIndex, sampler.Id);
     }
 
-    public void DrawElementsIndirect(
-        IIndirectBuffer indirectBuffer,
-        int indirectElementIndex)
-    {
-        indirectBuffer.Bind();
-        GL.DrawElementsIndirect(
-            _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
-            GL.IndexElementType.UnsignedInt,
-            new IntPtr(indirectElementIndex * indirectBuffer.Stride));
-    }
-
     public void DrawArraysInstanced(
         int firstVertex,
         int vertexCount,
@@ -97,6 +86,27 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
             indexCount,
             GL.IndexElementType.UnsignedInt,
             offset);
+    }
+
+    public void DrawElementsInstanced(int indexCount, int offset, int instanceCount)
+    {
+        GL.DrawElementsInstanced(
+            _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
+            indexCount,
+            GL.IndexElementType.UnsignedInt,
+            offset,
+            instanceCount);
+    }
+
+    public void DrawElementsIndirect(
+        IIndirectBuffer indirectBuffer,
+        int indirectElementIndex)
+    {
+        indirectBuffer.Bind();
+        GL.DrawElementsIndirect(
+            _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
+            GL.IndexElementType.UnsignedInt,
+            new IntPtr(indirectElementIndex * indirectBuffer.Stride));
     }
 
     public void MultiDrawElementsIndirect(IIndirectBuffer indirectBuffer)
