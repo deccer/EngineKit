@@ -1,9 +1,8 @@
 name: Deploy to nuget.org
 
 on:
-  create:
-    branches:
-      - release/**
+  release:
+    types: [published]
 
 jobs:
   build:
