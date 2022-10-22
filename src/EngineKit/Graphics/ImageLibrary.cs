@@ -15,6 +15,7 @@ internal sealed class ImageLibrary : IImageLibrary
     private readonly ILogger _logger;
     private readonly IDictionary<string, string> _imageFilePathsToBeLoaded;
     private readonly IDictionary<string, byte[]> _imagesToBeLoaded;
+    private readonly IList<string> _loadedImages;
 
     public bool FlipHorizontal { get; set; }
 
@@ -25,6 +26,7 @@ internal sealed class ImageLibrary : IImageLibrary
         _logger = logger;
         _imageFilePathsToBeLoaded = new Dictionary<string, string>();
         _imagesToBeLoaded = new Dictionary<string, byte[]>();
+        _loadedImages = new List<string>();
         FlipVertical = true;
     }
 
@@ -102,17 +104,23 @@ internal sealed class ImageLibrary : IImageLibrary
         ReadOnlySpan<byte> imageSpan,
         IDictionary<string, IList<ImageLibraryItem>> imagesPerMaterial)
     {
-        var stopwatch = Stopwatch.StartNew();
-        var image = Image.Load<Rgba32>(imageSpan);
+        if (!_loadedImages.Contains(imageName))
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var image = Image.Load<Rgba32>(imageSpan);
 
-        LoadImage(
-            materialName,
-            imageName,
-            null,
-            image,
-            imagesPerMaterial);
-        stopwatch.Stop();
-        _logger.Debug("{Category}: Loading image {ImageName} for material {MaterialName} from memory. Took {LoadingTime} ms", "ImageLibrary", imageName, materialName, stopwatch.ElapsedMilliseconds);
+            LoadImage(
+                materialName,
+                imageName,
+                null,
+                image,
+                imagesPerMaterial);
+            stopwatch.Stop();
+            _logger.Debug(
+                "{Category}: Loading image {ImageName} for material {MaterialName} from memory. Took {LoadingTime} ms",
+                "ImageLibrary", imageName, materialName, stopwatch.ElapsedMilliseconds);
+            _loadedImages.Add(imageName);
+        }
     }
 
     private void LoadImageFromFile(
@@ -121,18 +129,23 @@ internal sealed class ImageLibrary : IImageLibrary
         string imageFilePath,
         IDictionary<string, IList<ImageLibraryItem>> imagesPerMaterial)
     {
-        var stopwatch = Stopwatch.StartNew();
-        var image = Image.Load<Rgba32>(imageFilePath);
+        if (!_loadedImages.Contains(imageName))
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var image = Image.Load<Rgba32>(imageFilePath);
 
-        LoadImage(
-            materialName,
-            imageName,
-            imageFilePath,
-            image,
-            imagesPerMaterial);
-        stopwatch.Stop();
+            LoadImage(
+                materialName,
+                imageName,
+                imageFilePath,
+                image,
+                imagesPerMaterial);
+            stopwatch.Stop();
 
-        _logger.Debug("{Category}: Loading image from {FilePath}. Took {LoadingTime} ms", "ImageLibrary", imageFilePath, stopwatch.ElapsedMilliseconds);
+            _logger.Debug("{Category}: Loading image from {FilePath}. Took {LoadingTime} ms", "ImageLibrary",
+                imageFilePath, stopwatch.ElapsedMilliseconds);
+            _loadedImages.Add(imageName);
+        }
     }
 
     private void LoadImage(
