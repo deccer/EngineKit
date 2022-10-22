@@ -121,6 +121,29 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
+    public IGraphicsPipelineBuilder DisableBlending()
+    {
+        var blendAttachmentCount = _graphicsPipelineDescriptor.ColorBlendDescriptor.ColorBlendAttachmentDescriptors.Length;
+        var opaque = ColorBlendAttachmentDescriptor.Opaque;
+        opaque.IsBlendEnabled = false;
+        for (var i = 0; i < blendAttachmentCount; i++)
+        {
+            _graphicsPipelineDescriptor.ColorBlendDescriptor.ColorBlendAttachmentDescriptors[i] = opaque;
+        }
+
+        return this;
+    }
+
+    public IGraphicsPipelineBuilder EnableBlending(ColorBlendAttachmentDescriptor colorBlendAttachmentDescriptor)
+    {
+        _graphicsPipelineDescriptor.ColorBlendDescriptor.ColorBlendAttachmentDescriptors = new[]
+        {
+            colorBlendAttachmentDescriptor
+        };
+
+        return this;
+    }
+
     public IGraphicsPipelineBuilder UseDepthComparison(CompareOperation compareOperation)
     {
         _graphicsPipelineDescriptor.DepthStencilDescriptor.DepthCompareOperation = compareOperation;
