@@ -112,7 +112,7 @@ internal sealed class ImageLibrary : IImageLibrary
             image,
             imagesPerMaterial);
         stopwatch.Stop();
-        _logger.Debug("{Category}: Loading image from memory. Took {LoadingTime} ms", "ImageLibrary", stopwatch.ElapsedMilliseconds);
+        _logger.Debug("{Category}: Loading image {ImageName} for material {MaterialName} from memory. Took {LoadingTime} ms", "ImageLibrary", imageName, materialName, stopwatch.ElapsedMilliseconds);
     }
 
     private void LoadImageFromFile(
