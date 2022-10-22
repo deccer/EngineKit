@@ -36,5 +36,5 @@ jobs:
       run: dotnet pack src/EngineKit/EngineKit.csproj --configuration Release -p:Version=$BUILD_VERSION --no-restore
 
     - name: Publish
-      if: startsWith(github.ref, 'refs/heads/release')
+      if: startsWith(github.ref, 'refs/tags')
       run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET}}
