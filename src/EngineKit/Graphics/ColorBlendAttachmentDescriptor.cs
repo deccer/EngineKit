@@ -26,11 +26,11 @@ public record struct ColorBlendAttachmentDescriptor(
     public static readonly ColorBlendAttachmentDescriptor PreMultiplied = new ColorBlendAttachmentDescriptor
     {
         IsBlendEnabled = true,
-        SourceColorBlendFactor = BlendFactor.One,
-        DestinationColorBlendFactor = BlendFactor.Zero,
+        SourceColorBlendFactor = BlendFactor.SourceAlpha,
+        DestinationColorBlendFactor = BlendFactor.OneMinusSourceAlpha,
         ColorBlendOperation = BlendOperation.Add,
         SourceAlphaBlendFactor = BlendFactor.One,
-        DestinationAlphaBlendFactor = BlendFactor.Zero,
+        DestinationAlphaBlendFactor = BlendFactor.OneMinusSourceAlpha,
         AlphaBlendOperation = BlendOperation.Add,
         ColorWriteMask = ColorMask.All
     };
