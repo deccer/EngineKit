@@ -11,6 +11,8 @@ public interface IImageLibrary
     void AddImage(string name, ReadOnlySpan<byte> imageSpan);
 
     IDictionary<string, IList<ImageLibraryItem>> GetImageDataPerMaterial(IImmutableList<Material> materials);
+
     bool FlipHorizontal { get; set; }
+
     bool FlipVertical { get; set; }
 }
