@@ -97,7 +97,7 @@ public class Texture : ITexture
         GL.GenerateTextureMipmap(_id);
     }
 
-    public void Upload(
+    public void Update(
         TextureUpdateDescriptor textureUpdateDescriptor,
         IntPtr pixelPtr)
     {
@@ -142,7 +142,7 @@ public class Texture : ITexture
         }
     }
 
-    public unsafe void Upload(
+    public unsafe void Update(
         TextureUpdateDescriptor textureUpdateDescriptor,
         MemoryHandle memoryHandle)
     {
@@ -187,7 +187,7 @@ public class Texture : ITexture
         }
     }
 
-    public void Upload<TPixel>(
+    public void Update<TPixel>(
         TextureUpdateDescriptor textureUpdateDescriptor,
         in TPixel pixelData) where TPixel : unmanaged
     {

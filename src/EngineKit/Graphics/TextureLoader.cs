@@ -73,6 +73,6 @@ internal sealed class TextureLoader : ITextureLoader
             return;
         }
 
-        texture.Upload(textureUpdateDescriptor, pixelMemory.Pin());
+        texture.Update(textureUpdateDescriptor, pixelMemory.Pin());
     }
 }
