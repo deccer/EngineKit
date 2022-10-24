@@ -38,14 +38,14 @@ public class Texture : ITexture
                 GL.TextureStorage1D(
                     _id,
                     textureCreateDescriptor.MipLevels,
-                    textureCreateDescriptor.Format.ToSizedInternalFormat(),
+                    textureCreateDescriptor.Format.ToGL(),
                     textureCreateDescriptor.Size.X);
                 break;
             case ImageType.Texture2D:
                 GL.TextureStorage2D(
                     _id,
                     textureCreateDescriptor.MipLevels,
-                    textureCreateDescriptor.Format.ToSizedInternalFormat(),
+                    textureCreateDescriptor.Format.ToGL(),
                     textureCreateDescriptor.Size.X,
                     textureCreateDescriptor.Size.Y);
                 break;
@@ -53,7 +53,7 @@ public class Texture : ITexture
                 GL.TextureStorage3D(
                     _id,
                     textureCreateDescriptor.MipLevels,
-                    textureCreateDescriptor.Format.ToSizedInternalFormat(),
+                    textureCreateDescriptor.Format.ToGL(),
                     textureCreateDescriptor.Size.X,
                     textureCreateDescriptor.Size.Y,
                     textureCreateDescriptor.Size.Z);
@@ -62,7 +62,7 @@ public class Texture : ITexture
                 GL.TextureStorage3D(
                     _id,
                     textureCreateDescriptor.MipLevels,
-                    textureCreateDescriptor.Format.ToSizedInternalFormat(),
+                    textureCreateDescriptor.Format.ToGL(),
                     textureCreateDescriptor.Size.X,
                     textureCreateDescriptor.Size.Y,
                     (int)textureCreateDescriptor.ArrayLayers);
