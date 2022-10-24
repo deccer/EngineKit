@@ -28,6 +28,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IMeshLoader, SharpGltfMeshLoader>();
         services.AddSingleton<IUIRenderer, UIRenderer>();
 
+        services.AddSingleton<IImageLoader, SixLaborsImageLoader>();
+
         return services;
     }
 }
