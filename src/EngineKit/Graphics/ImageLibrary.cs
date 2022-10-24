@@ -13,6 +13,7 @@ namespace EngineKit.Graphics;
 internal sealed class ImageLibrary : IImageLibrary
 {
     private readonly ILogger _logger;
+    private readonly IImageLoader _imageLoader;
     private readonly IDictionary<string, string> _imageFilePathsToBeLoaded;
     private readonly IDictionary<string, byte[]> _imagesToBeLoaded;
     private readonly IList<string> _loadedImages;
@@ -21,9 +22,12 @@ internal sealed class ImageLibrary : IImageLibrary
 
     public bool FlipVertical { get; set; }
 
-    public ImageLibrary(ILogger logger)
+    public ImageLibrary(
+        ILogger logger,
+        IImageLoader imageLoader)
     {
         _logger = logger;
+        _imageLoader = imageLoader;
         _imageFilePathsToBeLoaded = new Dictionary<string, string>();
         _imagesToBeLoaded = new Dictionary<string, byte[]>();
         _loadedImages = new List<string>();
@@ -132,7 +136,7 @@ internal sealed class ImageLibrary : IImageLibrary
         if (!_loadedImages.Contains(imageName))
         {
             var stopwatch = Stopwatch.StartNew();
-            var image = Image.Load<Rgba32>(imageFilePath);
+            var image = _imageLoader.LoadImage<Rgba32>(imageFilePath);
 
             LoadImage(
                 materialName,
@@ -152,7 +156,7 @@ internal sealed class ImageLibrary : IImageLibrary
         string materialName,
         string imageName,
         string? imageFilePath,
-        Image<Rgba32> image,
+        Image image,
         IDictionary<string, IList<ImageLibraryItem>> imagesPerMaterial)
     {
         if (FlipVertical)
