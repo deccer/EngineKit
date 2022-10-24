@@ -174,6 +174,7 @@ public static class ToGLExtensions
             Format.R8G8B8A8UNorm => GL.SizedInternalFormat.Rgba8,
             Format.R8G8B8A8SInt => GL.SizedInternalFormat.Rgba8i,
             Format.R8G8B8A8SNorm => GL.SizedInternalFormat.Rgba8Snorm,
+            Format.R11G11B10Float => GL.SizedInternalFormat.R11fG11fB10f,
             Format.R16UInt => GL.SizedInternalFormat.R16ui,
             Format.R16UNorm => GL.SizedInternalFormat.R16,
             Format.R16SInt => GL.SizedInternalFormat.R16i,

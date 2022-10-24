@@ -18,6 +18,7 @@ public enum Format
     R8G8SInt,
     R8G8B8SInt,
     R8G8B8A8SInt,
+    R11G11B10Float,
     R16UNorm,
     R16G16UNorm,
     R16G16B16UNorm,

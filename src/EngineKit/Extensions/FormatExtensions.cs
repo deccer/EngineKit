@@ -10,6 +10,7 @@ public static class FormatExtensions
     {
         return format switch
         {
+            Format.R11G11B10Float => VertexAttributeType.Float,
             Format.R16Float => VertexAttributeType.Float,
             Format.R16G16Float => VertexAttributeType.Float,
             Format.R16G16B16Float => VertexAttributeType.Float,
@@ -98,6 +99,7 @@ public static class FormatExtensions
             case Format.D32Float:
             case Format.R8G8UInt:
             case Format.R8G8SInt:
+            case Format.R11G11B10Float:
             case Format.R16G16UInt:
             case Format.R16G16SInt:
             case Format.R16G16Float:
@@ -170,6 +172,7 @@ public static class FormatExtensions
             case Format.R8G8B8UInt:
             case Format.R8G8B8SNorm:
             case Format.R8G8B8SInt:
+            case Format.R11G11B10Float:
             case Format.R16G16B16UNorm:
             case Format.R16G16B16UInt:
             case Format.R16G16B16SNorm:
@@ -218,6 +221,7 @@ public static class FormatExtensions
             Format.R8G8SInt => FormatBaseType.SignedInteger,
             Format.R8G8B8SInt => FormatBaseType.SignedInteger,
             Format.R8G8B8A8SInt => FormatBaseType.SignedInteger,
+            Format.R11G11B10Float => FormatBaseType.Float,
             Format.R16UNorm => FormatBaseType.Float,
             Format.R16G16UNorm => FormatBaseType.Float,
             Format.R16G16B16UNorm => FormatBaseType.Float,
