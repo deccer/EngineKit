@@ -30,9 +30,13 @@ public interface IGraphicsPipelineBuilder
 
     IGraphicsPipelineBuilder EnableDepthWrite();
 
+    IGraphicsPipelineBuilder EnableDepthBias(float constantFactor, float slopeFactor);
+
     IGraphicsPipelineBuilder DisableDepthTest();
 
     IGraphicsPipelineBuilder DisableDepthWrite();
+
+    IGraphicsPipelineBuilder DisableDepthBias();
 
     IGraphicsPipelineBuilder UseDepthComparison(CompareOperation compareOperation);
 }
