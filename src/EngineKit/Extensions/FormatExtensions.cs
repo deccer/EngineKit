@@ -62,68 +62,6 @@ public static class FormatExtensions
         };
     }
 
-    public static GL.SizedInternalFormat ToSizedInternalFormat(this Format format)
-    {
-        return format switch
-        {
-            Format.D16UNorm => GL.SizedInternalFormat.DepthComponent16,
-            Format.D24UNorm => GL.SizedInternalFormat.DepthComponent24,
-            Format.D32UNorm => GL.SizedInternalFormat.DepthComponent32,
-            Format.D32Float => GL.SizedInternalFormat.DepthComponent32f,
-            Format.D32FloatS8UInt => GL.SizedInternalFormat.Depth32fStencil8,
-            Format.D24UNormS8UInt => GL.SizedInternalFormat.Depth24Stencil8,
-            Format.R8UInt => GL.SizedInternalFormat.R8ui,
-            Format.R8UNorm => GL.SizedInternalFormat.R8,
-            Format.R8SInt => GL.SizedInternalFormat.R8i,
-            Format.R8SNorm => GL.SizedInternalFormat.R8Snorm,
-            Format.R8G8UInt => GL.SizedInternalFormat.Rg8ui,
-            Format.R8G8UNorm => GL.SizedInternalFormat.Rg8,
-            Format.R8G8SInt => GL.SizedInternalFormat.Rg8i,
-            Format.R8G8SNorm => GL.SizedInternalFormat.Rg8Snorm,
-            Format.R8G8B8UInt => GL.SizedInternalFormat.Rgb8ui,
-            Format.R8G8B8UNorm => GL.SizedInternalFormat.Rgb8,
-            Format.R8G8B8SInt => GL.SizedInternalFormat.Rgb8i,
-            Format.R8G8B8SNorm => GL.SizedInternalFormat.Rgb8Snorm,
-            Format.R8G8B8A8UInt => GL.SizedInternalFormat.Rgba8ui,
-            Format.R8G8B8A8UNorm => GL.SizedInternalFormat.Rgba8,
-            Format.R8G8B8A8SInt => GL.SizedInternalFormat.Rgba8i,
-            Format.R8G8B8A8SNorm => GL.SizedInternalFormat.Rgba8Snorm,
-            Format.R16UInt => GL.SizedInternalFormat.R16ui,
-            Format.R16UNorm => GL.SizedInternalFormat.R16,
-            Format.R16SInt => GL.SizedInternalFormat.R16i,
-            Format.R16SNorm => GL.SizedInternalFormat.R16Snorm,
-            Format.R16Float => GL.SizedInternalFormat.R16f,
-            Format.R16G16UInt => GL.SizedInternalFormat.Rg16ui,
-            Format.R16G16UNorm => GL.SizedInternalFormat.Rg16,
-            Format.R16G16SInt => GL.SizedInternalFormat.Rg16i,
-            Format.R16G16SNorm => GL.SizedInternalFormat.Rg16Snorm,
-            Format.R16G16Float => GL.SizedInternalFormat.Rg16f,
-            Format.R16G16B16UInt => GL.SizedInternalFormat.Rgb16ui,
-            Format.R16G16B16UNorm => GL.SizedInternalFormat.Rgb16,
-            Format.R16G16B16SInt => GL.SizedInternalFormat.Rgb16i,
-            Format.R16G16B16SNorm => GL.SizedInternalFormat.Rgb16Snorm,
-            Format.R16G16B16Float => GL.SizedInternalFormat.Rgb16f,
-            Format.R16G16B16A16UInt => GL.SizedInternalFormat.Rgba16ui,
-            Format.R16G16B16A16UNorm => GL.SizedInternalFormat.Rgba16,
-            Format.R16G16B16A16SInt => GL.SizedInternalFormat.Rgba16i,
-            Format.R16G16B16A16SNorm => GL.SizedInternalFormat.Rgba16Snorm,
-            Format.R16G16B16A16Float => GL.SizedInternalFormat.Rgba16f,
-            Format.R32UInt => GL.SizedInternalFormat.R32ui,
-            Format.R32SInt => GL.SizedInternalFormat.R32i,
-            Format.R32Float => GL.SizedInternalFormat.R32f,
-            Format.R32G32UInt => GL.SizedInternalFormat.Rg32ui,
-            Format.R32G32SInt => GL.SizedInternalFormat.Rg32i,
-            Format.R32G32Float => GL.SizedInternalFormat.Rg32f,
-            Format.R32G32B32UInt => GL.SizedInternalFormat.Rgb32ui,
-            Format.R32G32B32SInt => GL.SizedInternalFormat.Rgb32i,
-            Format.R32G32B32Float => GL.SizedInternalFormat.Rgb32f,
-            Format.R32G32B32A32UInt => GL.SizedInternalFormat.Rgba32ui,
-            Format.R32G32B32A32SInt => GL.SizedInternalFormat.Rgba32i,
-            Format.R32G32B32A32Float => GL.SizedInternalFormat.Rgba32f,
-            _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
-        };
-    }
-
     public static bool IsNormalized(this Format format)
     {
         switch (format)
