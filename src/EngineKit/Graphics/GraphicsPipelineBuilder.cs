@@ -109,9 +109,25 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
+    public IGraphicsPipelineBuilder EnableDepthBias(float constantFactor, float slopeFactor)
+    {
+        _graphicsPipelineDescriptor.RasterizationDescriptor.IsDepthBiasEnabled = true;
+        _graphicsPipelineDescriptor.RasterizationDescriptor.DepthBiasConstantFactor = constantFactor;
+        _graphicsPipelineDescriptor.RasterizationDescriptor.DepthBiasSlopeFactor = slopeFactor;
+        return this;
+    }
+
     public IGraphicsPipelineBuilder DisableDepthTest()
     {
         _graphicsPipelineDescriptor.DepthStencilDescriptor.IsDepthTestEnabled = false;
+        return this;
+    }
+
+    public IGraphicsPipelineBuilder DisableDepthBias()
+    {
+        _graphicsPipelineDescriptor.RasterizationDescriptor.IsDepthBiasEnabled = false;
+        _graphicsPipelineDescriptor.RasterizationDescriptor.DepthBiasConstantFactor = 0.0f;
+        _graphicsPipelineDescriptor.RasterizationDescriptor.DepthBiasSlopeFactor = 0.0f;
         return this;
     }
 
