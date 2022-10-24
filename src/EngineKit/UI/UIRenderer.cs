@@ -199,7 +199,7 @@ internal sealed class UIRenderer : IUIRenderer
             UploadType = UploadType.UnsignedByte
         };
 
-        _fontTexture.Upload(updateTextureDescriptor, pixels);
+        _fontTexture.Update(updateTextureDescriptor, pixels);
 
         var samplerDescriptor = new SamplerDescriptor
         {

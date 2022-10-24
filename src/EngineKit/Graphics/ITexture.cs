@@ -13,15 +13,15 @@ public interface ITexture : IDisposable
 
     TextureView CreateTextureView();
 
-    void Upload(
+    void Update(
         TextureUpdateDescriptor textureUpdateDescriptor,
         IntPtr pixelPtr);
 
-    void Upload(
+    void Update(
         TextureUpdateDescriptor textureUpdateDescriptor,
         MemoryHandle memoryHandle);
 
-    void Upload<TPixel>(
+    void Update<TPixel>(
         TextureUpdateDescriptor textureUpdateDescriptor,
         in TPixel pixelData) where TPixel : unmanaged;
 }

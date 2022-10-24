@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using EngineKit.Mathematics;
 using Serilog;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace EngineKit.Graphics;
 
@@ -84,9 +86,16 @@ internal sealed class TextureLibrary : ITextureLibrary
                 };
 
                 var image = layer.Image;
-                if (image.DangerousTryGetSinglePixelMemory(out var pixelSpan))
+                switch (image)
                 {
-                    texture.Upload(textureUploadDescriptor, pixelSpan.Pin());
+                    case Image<Rgb24> imageRgb24 when
+                        imageRgb24.DangerousTryGetSinglePixelMemory(out var pixelSpan24):
+                        texture.Update(textureUploadDescriptor, pixelSpan24.Pin());
+                        break;
+                    case Image<Rgba32> imageRgba32 when
+                        imageRgba32.DangerousTryGetSinglePixelMemory(out var pixelSpan32):
+                        texture.Update(textureUploadDescriptor, pixelSpan32.Pin());
+                        break;
                 }
 
                 if (!textureArrayIndices.TryGetValue(layer.ImageName, out var textureId))
