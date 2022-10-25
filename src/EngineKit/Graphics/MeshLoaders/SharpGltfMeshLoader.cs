@@ -185,8 +185,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             return;
         }
 
-        var material = new Material();
-        material.Name = gltfMaterial.Name ?? Guid.NewGuid().ToString();
+        var material = new Material(gltfMaterial.Name ?? Guid.NewGuid().ToString());
 
         foreach (var materialChannel in gltfMaterial.Channels)
         {
