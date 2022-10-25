@@ -1,6 +1,8 @@
+using System;
+
 namespace EngineKit.Graphics;
 
-public interface IPipeline
+public interface IPipeline : IDisposable
 {
     void Bind();
 

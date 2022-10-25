@@ -11,6 +11,11 @@ public abstract class Pipeline : IPipeline
         ShaderProgram?.Use();
     }
 
+    public virtual void Dispose()
+    {
+        ShaderProgram?.Dispose();
+    }
+
     internal Result LinkPrograms()
     {
         if (ShaderProgram is null)

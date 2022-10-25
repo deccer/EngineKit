@@ -19,6 +19,12 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
             graphicsPipelineDescriptor.PipelineProgramLabel);
     }
 
+    public override void Dispose()
+    {
+        base.Dispose();
+        CurrentInputLayout?.Dispose();
+    }
+
     public override void Bind()
     {
         base.Bind();
