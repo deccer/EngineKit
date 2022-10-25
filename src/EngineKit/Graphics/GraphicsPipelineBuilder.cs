@@ -42,15 +42,9 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         };
     }
 
-    public IGraphicsPipelineBuilder WithVertexBindings(params VertexInputBindingDescriptor[] vertexBindings)
+    public IGraphicsPipelineBuilder WithVertexInput(VertexInputDescriptor vertexInputDescriptor)
     {
-        _graphicsPipelineDescriptor.VertexInput = new VertexInputDescriptor(vertexBindings);
-        return this;
-    }
-
-    public IGraphicsPipelineBuilder WithVertexBindingsForVertexType(VertexType vertexType)
-    {
-        _graphicsPipelineDescriptor.VertexInput = VertexInputDescriptor.CreateFromVertexType(vertexType);
+        _graphicsPipelineDescriptor.VertexInput = vertexInputDescriptor;
         return this;
     }
 

@@ -58,11 +58,15 @@ internal sealed class UIRenderer : IUIRenderer
         _framebufferHeight = height;
 
         var imGuiGraphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
+            .WithShaders("Shaders/ImGui.vs.glsl", "Shaders/ImGui.fs.glsl")
             .WithTopology(PrimitiveTopology.Triangles)
-            .WithVertexBindingsForVertexType(VertexType.ImGui)
+            .WithVertexInput(new VertexInputDescriptorBuilder()
+                .AddAttribute(0, DataType.Float, 2, 0)
+                .AddAttribute(0, DataType.Float, 2, 8)
+                .AddAttribute(0, DataType.UnsignedByte, 4, 16, true)
+                .Build("UI"))
             .DisableDepthTest()
             .DisableDepthWrite()
-            .WithShaders("Shaders/ImGui.vs.glsl", "Shaders/ImGui.fs.glsl")
             .Build("ImGuiPipeline");
         if (imGuiGraphicsPipelineResult.IsFailure)
         {

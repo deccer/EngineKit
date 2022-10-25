@@ -1,9 +1,9 @@
 namespace EngineKit.Graphics;
 
-public record struct VertexInputBindingDescriptor(
+public readonly record struct VertexInputBindingDescriptor(
     uint Location,
     uint Binding,
-    int ComponentCount,
     DataType DataType,
+    int ComponentCount,
     uint Offset,
     bool IsNormalized = false);
