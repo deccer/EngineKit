@@ -3,9 +3,9 @@ using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
-public record Material
+public record Material(string Name)
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = Name;
 
     public Color4 BaseColor { get; set; }
 

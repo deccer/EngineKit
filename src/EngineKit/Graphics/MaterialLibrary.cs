@@ -40,9 +40,8 @@ internal sealed class MaterialLibrary : IMaterialLibrary
         {
             var materialName = $"M_Default_{color.Name}";
             var colorValue = (Color)color.GetValue(color);
-            _materials.Add(materialName, new Material
+            _materials.Add(materialName, new Material(materialName)
             {
-                Name = materialName,
                 BaseColor = colorValue
             });
         }
