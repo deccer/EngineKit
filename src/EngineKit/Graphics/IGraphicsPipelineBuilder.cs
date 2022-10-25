@@ -8,7 +8,7 @@ public interface IGraphicsPipelineBuilder
         string vertexShaderFilePath,
         string fragmentShaderFilePath);
 
-    IGraphicsPipelineBuilder WithVertexBindings(params VertexBindingDescriptor[] vertexBindings);
+    IGraphicsPipelineBuilder WithVertexBindings(params VertexInputBindingDescriptor[] vertexBindings);
 
     IGraphicsPipelineBuilder WithVertexBindingsForVertexType(VertexType vertexType);
 

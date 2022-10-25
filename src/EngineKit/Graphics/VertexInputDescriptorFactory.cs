@@ -29,7 +29,7 @@ public static class VertexInputDescriptorFactory
         return new VertexInputDescriptor(vertexBindingDescriptors);
     }
 
-    private static VertexBindingDescriptor[] ExtractVertexBindingDescriptors<T>()
+    private static VertexInputBindingDescriptor[] ExtractVertexBindingDescriptors<T>()
     {
         var type = typeof(T);
         var typeFields = type.GetFields();
@@ -42,7 +42,7 @@ public static class VertexInputDescriptorFactory
             var fieldDataType = ToDataType(fieldType);
             var fieldOffset = (uint)Marshal.OffsetOf<T>(fieldName);
 
-            return new VertexBindingDescriptor(
+            return new VertexInputBindingDescriptor(
                 fieldLocation,
                 0,
                 fieldComponentCount,
