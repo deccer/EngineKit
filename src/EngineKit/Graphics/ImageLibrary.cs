@@ -156,7 +156,7 @@ internal sealed class ImageLibrary : IImageLibrary
         string materialName,
         string imageName,
         string? imageFilePath,
-        Image image,
+        Image? image,
         IDictionary<string, IList<ImageLibraryItem>> imagesPerMaterial)
     {
         if (FlipVertical)
