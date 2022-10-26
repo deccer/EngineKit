@@ -50,6 +50,8 @@ public interface IGraphicsContext : IDisposable
         TUniformData uniformData)
         where TUniformData : unmanaged;
 
+    IComputePipelineBuilder CreateComputePipelineBuilder();
+
     IGraphicsPipelineBuilder CreateGraphicsPipelineBuilder();
 
     ITexture CreateTexture(TextureCreateDescriptor textureCreateDescriptor);

@@ -13,7 +13,7 @@ internal sealed class ComputePipelineBuilder : IComputePipelineBuilder
         _computePipelineDescriptor = new ComputePipelineDescriptor();
     }
 
-    public IComputePipelineBuilder WithShaders(string computeShaderFilePath)
+    public IComputePipelineBuilder WithShader(string computeShaderFilePath)
     {
         _computePipelineDescriptor.ComputeShaderFilePath = computeShaderFilePath;
         return this;

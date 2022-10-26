@@ -30,11 +30,15 @@ public interface IGraphicsPipelineBuilder
 
     IGraphicsPipelineBuilder EnableDepthBias(float constantFactor, float slopeFactor);
 
+    IGraphicsPipelineBuilder EnableBlending(ColorBlendAttachmentDescriptor colorBlendAttachmentDescriptor);
+
     IGraphicsPipelineBuilder DisableDepthTest();
 
     IGraphicsPipelineBuilder DisableDepthWrite();
 
     IGraphicsPipelineBuilder DisableDepthBias();
+
+    IGraphicsPipelineBuilder DisableBlending();
 
     IGraphicsPipelineBuilder UseDepthComparison(CompareOperation compareOperation);
 }
