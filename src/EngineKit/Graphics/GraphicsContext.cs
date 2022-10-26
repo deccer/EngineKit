@@ -256,7 +256,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         GL.DepthFunc(depthStencilDescriptor.DepthCompareOperation.ToGL());
 
         var colorBlendDescriptor = graphicsPipelineDescriptor.ColorBlendDescriptor;
-
+        GL.EnableWhen(GL.EnableType.Blend, colorBlendDescriptor.ColorBlendAttachmentDescriptors.Any(blendAttachmentDescriptor => blendAttachmentDescriptor.IsBlendEnabled));
         GL.BlendColor(
             colorBlendDescriptor.BlendConstants[0],
             colorBlendDescriptor.BlendConstants[1],
