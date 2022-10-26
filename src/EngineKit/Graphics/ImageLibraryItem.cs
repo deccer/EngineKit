@@ -9,7 +9,7 @@ public struct ImageLibraryItem
 
     public string? ImageFilePath { get; set; }
 
-    public Image Image { get; set; }
+    public Image? Image { get; set; }
 
     public int TextureArrayIndex { get; set; }
 }
