@@ -1,4 +1,4 @@
-name: Deploy to nuget.org
+name: Deploy to Nuget.org
 
 on:
   release:
