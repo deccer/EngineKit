@@ -128,7 +128,7 @@ public class ShaderProgram : IDisposable
             }
 
             var computeShaderSource = File.ReadAllText(_computeShaderFilePath);
-            ComputeShader = new Shader(ShaderType.ComputeShader, computeShaderSource);
+            ComputeShader = new Shader(ShaderType.ComputeShader, computeShaderSource, "CS" + _label);
 
             return Result.Success();
         }
@@ -139,7 +139,7 @@ public class ShaderProgram : IDisposable
         }
 
         var vertexShaderSource = File.ReadAllText(_vertexShaderFilePath);
-        VertexShader = new Shader(ShaderType.VertexShader, vertexShaderSource);
+        VertexShader = new Shader(ShaderType.VertexShader, vertexShaderSource, "VS" + _label);
 
         if (!File.Exists(_fragmentShaderFilePath))
         {
@@ -148,7 +148,7 @@ public class ShaderProgram : IDisposable
 
         var fragmentShaderSource = File.ReadAllText(_fragmentShaderFilePath);
 
-        FragmentShader = new Shader(ShaderType.FragmentShader, fragmentShaderSource);
+        FragmentShader = new Shader(ShaderType.FragmentShader, fragmentShaderSource, "FS" + _label);
 
         return Result.Success();
     }
