@@ -65,6 +65,7 @@ internal sealed class UIRenderer : IUIRenderer
                 .AddAttribute(0, DataType.Float, 2, 8)
                 .AddAttribute(0, DataType.UnsignedByte, 4, 16, true)
                 .Build("UI"))
+            .EnableBlending(ColorBlendAttachmentDescriptor.PreMultiplied)
             .DisableDepthTest()
             .DisableDepthWrite()
             .Build("ImGuiPipeline");
@@ -107,8 +108,8 @@ internal sealed class UIRenderer : IUIRenderer
         _uniformBuffer = _graphicsContext.CreateUniformBuffer("ImGuiProjectionMatrix", mvp);
 
         var style = ImGui.GetStyle();
-        //SetStyleDarker(style);
-        SetStylePurple(style);
+        SetStyleDarker(style);
+        //SetStylePurple(style);
         style.Colors[(int)ImGuiCol.DockingEmptyBg] = Num.Vector4.Zero;
 
         CreateDeviceResources();
@@ -343,10 +344,10 @@ internal sealed class UIRenderer : IUIRenderer
 
         drawDataPtr.ScaleClipRects(_imGuiIo.DisplayFramebufferScale);
 
-        GL.Enable(GL.EnableType.Blend);
+        //GL.Enable(GL.EnableType.Blend);
         GL.Enable(GL.EnableType.ScissorTest);
-        GL.BlendEquation(GL.BlendEquationMode.FuncAdd);
-        GL.BlendFunc(GL.BlendFactor.SrcAlpha, GL.BlendFactor.OneMinusSrcAlpha);
+        //GL.BlendEquation(GL.BlendEquationMode.FuncAdd);
+        //GL.BlendFunc(GL.BlendFactor.SrcAlpha, GL.BlendFactor.OneMinusSrcAlpha);
         GL.Disable(GL.EnableType.CullFace);
         GL.Disable(GL.EnableType.DepthTest);
 
