@@ -4,9 +4,13 @@ namespace EngineKit.Graphics;
 
 public interface IGraphicsPipelineBuilder
 {
-    IGraphicsPipelineBuilder WithShaders(
+    IGraphicsPipelineBuilder WithShadersFromFiles(
         string vertexShaderFilePath,
         string fragmentShaderFilePath);
+
+    IGraphicsPipelineBuilder WithShadersFromStrings(
+        string vertexShaderSource,
+        string fragmentShaderSource);
 
     IGraphicsPipelineBuilder WithVertexInput(VertexInputDescriptor vertexInputDescriptor);
 

@@ -1,3 +1,5 @@
+using System.IO;
+using System.Net;
 using CSharpFunctionalExtensions;
 
 namespace EngineKit.Graphics;
@@ -6,6 +8,11 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
 {
     private readonly IInternalGraphicsContext _internalGraphicsContext;
     private GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
+    private string? _vertexShaderFilePath;
+    private string? _fragmentShaderFilePath;
+    private string? _vertexShaderSource;
+    private string? _fragmentShaderSource;
+    private bool _shadersFromFiles = false;
 
     public GraphicsPipelineBuilder(IInternalGraphicsContext internalGraphicsContext)
     {
@@ -48,12 +55,23 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
-    public IGraphicsPipelineBuilder WithShaders(
+    public IGraphicsPipelineBuilder WithShadersFromFiles(
         string vertexShaderFilePath,
         string fragmentShaderFilePath)
     {
-        _graphicsPipelineDescriptor.VertexShaderFilePath = vertexShaderFilePath;
-        _graphicsPipelineDescriptor.FragmentShaderFilePath = fragmentShaderFilePath;
+        _vertexShaderFilePath = vertexShaderFilePath;
+        _fragmentShaderFilePath = fragmentShaderFilePath;
+        _shadersFromFiles = true;
+        return this;
+    }
+
+    public IGraphicsPipelineBuilder WithShadersFromStrings(
+        string vertexShaderSource,
+        string fragmentShaderSource)
+    {
+        _vertexShaderSource = vertexShaderSource;
+        _fragmentShaderSource = fragmentShaderSource;
+        _shadersFromFiles = false;
         return this;
     }
 
@@ -162,6 +180,37 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
 
     public Result<IGraphicsPipeline> Build(string label)
     {
+        if (_shadersFromFiles)
+        {
+            if (!File.Exists(_vertexShaderFilePath))
+            {
+                return Result.Failure<IGraphicsPipeline>($"File {_vertexShaderFilePath} not found");
+            }
+
+            _vertexShaderSource = File.ReadAllText(_vertexShaderFilePath);
+
+            if (!File.Exists(_fragmentShaderFilePath))
+            {
+                return Result.Failure<IGraphicsPipeline>($"File {_fragmentShaderFilePath} not found");
+            }
+
+            _fragmentShaderSource = File.ReadAllText(_fragmentShaderFilePath);
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(_vertexShaderSource))
+            {
+                return Result.Failure<IGraphicsPipeline>($"Vertex shader source not provided");
+            }
+
+            if (string.IsNullOrEmpty(_fragmentShaderSource))
+            {
+                return Result.Failure<IGraphicsPipeline>($"Fragment shader source not provided");
+            }
+        }
+
+        _graphicsPipelineDescriptor.VertexShaderSource = _vertexShaderSource;
+        _graphicsPipelineDescriptor.FragmentShaderSource = _fragmentShaderSource;
         _graphicsPipelineDescriptor.PipelineProgramLabel = new Label(label);
         return _internalGraphicsContext.CreateGraphicsPipeline(_graphicsPipelineDescriptor);
     }

@@ -14,8 +14,8 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
     {
         _graphicsPipelineDescriptor = graphicsPipelineDescriptor;
         ShaderProgram = new ShaderProgram(
-            graphicsPipelineDescriptor.VertexShaderFilePath,
-            graphicsPipelineDescriptor.FragmentShaderFilePath,
+            graphicsPipelineDescriptor.VertexShaderSource,
+            graphicsPipelineDescriptor.FragmentShaderSource,
             graphicsPipelineDescriptor.PipelineProgramLabel);
     }
 

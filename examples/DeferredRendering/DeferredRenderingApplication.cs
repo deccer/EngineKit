@@ -298,7 +298,7 @@ internal sealed class DeferredRenderingApplication : Application
     private IGraphicsPipeline CreateSceneGraphicsPipeline()
     {
         var graphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
-            .WithShaders("Shaders/SceneDeferredPbr.vs.glsl", "Shaders/SceneDeferredPbr.fs.glsl")
+            .WithShadersFromFiles("Shaders/SceneDeferredPbr.vs.glsl", "Shaders/SceneDeferredPbr.fs.glsl")
             .WithVertexInput(CreateSceneVertexInputBindingDescriptor())
             .EnableDepthTest()
             .EnableDepthWrite()
@@ -316,7 +316,7 @@ internal sealed class DeferredRenderingApplication : Application
     private IGraphicsPipeline CreateSceneShadowGraphicsPipeline()
     {
         var graphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
-            .WithShaders("Shaders/SceneDeferredPbr.vs.glsl", "Shaders/RsmScenePbr.fs.glsl")
+            .WithShadersFromFiles("Shaders/SceneDeferredPbr.vs.glsl", "Shaders/RsmScenePbr.fs.glsl")
             .WithVertexInput(CreateSceneVertexInputBindingDescriptor())
             .EnableDepthBias(3.0f, 5.0f)
             .EnableDepthTest()
@@ -335,7 +335,7 @@ internal sealed class DeferredRenderingApplication : Application
     private IGraphicsPipeline CreateShadingGraphicsPipeline()
     {
         var graphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
-            .WithShaders("Shaders/FST.vs.glsl", "Shaders/ShadeDeferredPbr.fs.glsl")
+            .WithShadersFromFiles("Shaders/FST.vs.glsl", "Shaders/ShadeDeferredPbr.fs.glsl")
             .DisableCulling()
             .WithVertexInput(new VertexInputDescriptorBuilder()
                 .AddAttribute(0, DataType.Float, 3, 0)
@@ -354,7 +354,7 @@ internal sealed class DeferredRenderingApplication : Application
     private IGraphicsPipeline CreateDebugTextureGraphicsPipeline()
     {
         var graphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
-            .WithShaders("Shaders/FST.vs.glsl", "Shaders/Texture.fs.glsl")
+            .WithShadersFromFiles("Shaders/FST.vs.glsl", "Shaders/Texture.fs.glsl")
             .DisableCulling()
             .WithVertexInput(new VertexInputDescriptorBuilder()
                 .AddAttribute(0, DataType.Float, 3, 0)
