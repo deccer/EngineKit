@@ -4,9 +4,9 @@ internal record struct GraphicsPipelineDescriptor
 {
     public Label PipelineProgramLabel;
 
-    public string VertexShaderFilePath;
+    public string VertexShaderSource;
 
-    public string FragmentShaderFilePath;
+    public string FragmentShaderSource;
 
     public InputAssemblyDescriptor InputAssembly;
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Reflection.Emit;
 using CSharpFunctionalExtensions;
 using EngineKit.Native.OpenGL;
 
@@ -9,8 +8,8 @@ namespace EngineKit.Graphics;
 public class ShaderProgram : IDisposable
 {
     private readonly string? _computeShaderFilePath;
-    private readonly string? _vertexShaderFilePath;
-    private readonly string? _fragmentShaderFilePath;
+    private readonly string? _vertexShaderSource;
+    private readonly string? _fragmentShaderSource;
     private readonly Label _label;
 
     public uint ProgramPipelineId;
@@ -25,18 +24,18 @@ public class ShaderProgram : IDisposable
     {
         _computeShaderFilePath = computeShaderFilePath;
         _label = label;
-        _vertexShaderFilePath = null!;
-        _fragmentShaderFilePath = null!;
+        _vertexShaderSource = null!;
+        _fragmentShaderSource = null!;
     }
 
     public ShaderProgram(
-        string vertexShaderFilePath,
-        string fragmentShaderFilePath,
+        string? vertexShaderSource,
+        string? fragmentShaderSource,
         Label label)
     {
         _computeShaderFilePath = null!;
-        _vertexShaderFilePath = vertexShaderFilePath;
-        _fragmentShaderFilePath = fragmentShaderFilePath;
+        _vertexShaderSource = vertexShaderSource;
+        _fragmentShaderSource = fragmentShaderSource;
         _label = label;
     }
 
@@ -45,7 +44,7 @@ public class ShaderProgram : IDisposable
         ProgramPipelineId = GL.CreateProgramPipeline();
         GL.ObjectLabel(GL.ObjectIdentifier.ProgramPipeline, ProgramPipelineId, _label);
 
-        var compilationResult = Compile();
+        var compilationResult = CreateShaders();
         if (compilationResult.IsFailure)
         {
             return compilationResult;
@@ -118,37 +117,29 @@ public class ShaderProgram : IDisposable
         GL.DeleteProgramPipeline(ProgramPipelineId);
     }
 
-    private Result Compile()
+    private Result CreateShaders()
     {
         if (_computeShaderFilePath != null)
         {
-            if (!File.Exists(_computeShaderFilePath))
-            {
-                return Result.Failure($"File {_computeShaderFilePath} does not exist");
-            }
-
             var computeShaderSource = File.ReadAllText(_computeShaderFilePath);
             ComputeShader = new Shader(ShaderType.ComputeShader, computeShaderSource, "CS" + _label);
 
             return Result.Success();
         }
 
-        if (!File.Exists(_vertexShaderFilePath))
+        if (string.IsNullOrEmpty(_vertexShaderSource))
         {
-            return Result.Failure($"File {_vertexShaderFilePath} does not exist");
+            return Result.Failure($"File {_vertexShaderSource} does not exist");
         }
 
-        var vertexShaderSource = File.ReadAllText(_vertexShaderFilePath);
-        VertexShader = new Shader(ShaderType.VertexShader, vertexShaderSource, "VS" + _label);
+        VertexShader = new Shader(ShaderType.VertexShader, _vertexShaderSource, "VS" + _label);
 
-        if (!File.Exists(_fragmentShaderFilePath))
+        if (string.IsNullOrEmpty(_fragmentShaderSource))
         {
-            return Result.Failure($"File {_fragmentShaderFilePath} does not exist");
+            return Result.Failure($"File {_fragmentShaderSource} does not exist");
         }
 
-        var fragmentShaderSource = File.ReadAllText(_fragmentShaderFilePath);
-
-        FragmentShader = new Shader(ShaderType.FragmentShader, fragmentShaderSource, "FS" + _label);
+        FragmentShader = new Shader(ShaderType.FragmentShader, _fragmentShaderSource, "FS" + _label);
 
         return Result.Success();
     }
