@@ -374,7 +374,7 @@ internal sealed class DeferredRenderingApplication : Application
     private IComputePipeline CreateRsmIndirectComputePipeline()
     {
         var computePipelineResult = _graphicsContext.CreateComputePipelineBuilder()
-            .WithShader("Shaders/RsmIndirect.cs.glsl")
+            .WithShaderFromFile("Shaders/RsmIndirect.cs.glsl")
             .Build("RsmIndirectPipeline");
 
         if (computePipelineResult.IsFailure)
@@ -389,7 +389,7 @@ internal sealed class DeferredRenderingApplication : Application
     private IComputePipeline CreateRsmIndirectDitheredFilteredComputePipeline()
     {
         var computePipelineResult = _graphicsContext.CreateComputePipelineBuilder()
-            .WithShader("Shaders/RsmIndirectDitheredFiltered.cs.glsl")
+            .WithShaderFromFile("Shaders/RsmIndirectDitheredFiltered.cs.glsl")
             .Build("RsmIndirectDitheredFilteredPipeline");
 
         if (computePipelineResult.IsFailure)
