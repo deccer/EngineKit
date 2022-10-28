@@ -4,5 +4,5 @@ internal record struct ComputePipelineDescriptor
 {
     public Label PipelineProgramLabel;
 
-    public string ComputeShaderFilePath;
+    public string ComputeShaderSource;
 }

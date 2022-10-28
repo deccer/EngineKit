@@ -6,5 +6,7 @@ public interface IComputePipelineBuilder
 {
     Result<IComputePipeline> Build(Label label);
 
-    IComputePipelineBuilder WithShader(string computeShaderFilePath);
+    IComputePipelineBuilder WithShaderFromFile(string computeShaderFilePath);
+
+    IComputePipelineBuilder WithShaderFromSource(string computeShaderSource);
 }
