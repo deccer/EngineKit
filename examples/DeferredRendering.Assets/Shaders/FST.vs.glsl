@@ -4,7 +4,7 @@ layout(location = 0) out vec2 fs_uv;
 
 void main()
 {
-  vec2 pos = vec2(gl_VertexID == 0, gl_VertexID == 2);
-  fs_uv = pos.xy * 2.0;
-  gl_Position = vec4(pos * 4.0 - 1.0, 0.0, 1.0);
+    vec2 pos = vec2(gl_VertexID == 0, gl_VertexID == 2);
+    fs_uv = pos.xy * 2.0;
+    gl_Position = vec4(pos * 4.0 - 1.0, 0.0, 1.0);
 }
