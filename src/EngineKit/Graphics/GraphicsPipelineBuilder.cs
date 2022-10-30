@@ -196,17 +196,15 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
 
             _fragmentShaderSource = File.ReadAllText(_fragmentShaderFilePath);
         }
-        else
-        {
-            if (string.IsNullOrEmpty(_vertexShaderSource))
-            {
-                return Result.Failure<IGraphicsPipeline>($"Vertex shader source not provided");
-            }
 
-            if (string.IsNullOrEmpty(_fragmentShaderSource))
-            {
-                return Result.Failure<IGraphicsPipeline>($"Fragment shader source not provided");
-            }
+        if (string.IsNullOrEmpty(_vertexShaderSource))
+        {
+            return Result.Failure<IGraphicsPipeline>($"Vertex shader source not provided");
+        }
+
+        if (string.IsNullOrEmpty(_fragmentShaderSource))
+        {
+            return Result.Failure<IGraphicsPipeline>($"Fragment shader source not provided");
         }
 
         _graphicsPipelineDescriptor.VertexShaderSource = _vertexShaderSource;
