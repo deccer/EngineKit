@@ -317,5 +317,8 @@ public sealed class MeshData
         _uvs.Add(uv ?? Vector2.Zero);
         _realTangents.Add(realTangent ?? Vector4.Zero);
         _biTangents.Add(Vector3.Zero);
+        _tangents.Add(realTangent != null
+            ? new Vector3(realTangent.Value.X, realTangent.Value.Y, realTangent.Value.Z)
+            : Vector3.Zero);
     }
 }
