@@ -8,6 +8,9 @@ using EngineKit.Mathematics;
 using Serilog;
 using SharpGLTF.Schema2;
 using SharpGLTF.Validation;
+using Vector2 = EngineKit.Mathematics.Vector2;
+using Vector3 = EngineKit.Mathematics.Vector3;
+using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace EngineKit.Graphics.MeshLoaders;
 
@@ -34,11 +37,6 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
         var model = ModelRoot.Load(filePath, readSettings);
 
-        foreach (var texture in model.LogicalTextures)
-        {
-            //ProcessImage(texture)
-        }
-
         foreach (var material in model.LogicalMaterials)
         {
             if (material != null)
@@ -47,116 +45,15 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             }
         }
 
-        var positions = new List<Vector3>(16384);
-        var normals = new List<Vector3>(16384);
-        var uvs = new List<Vector2>(16384);
-        var realTangents = new List<Vector4>(16384);
-
         var meshDates = new List<MeshData>(model.LogicalMeshes.Count);
-        foreach (var mesh in model.LogicalMeshes)
+        foreach (var node in model.LogicalNodes)
         {
-            var node = model.LogicalNodes.FirstOrDefault(o => o.Mesh == mesh);
-            foreach (var primitive in mesh.Primitives)
+            if (node.Mesh == null)
             {
-                positions.Clear();
-                normals.Clear();
-                uvs.Clear();
-                realTangents.Clear();
-                var meshData = new MeshData(mesh.Name + primitive.LogicalIndex);
-                meshData.Transform = node.WorldMatrix.ToMatrix();
-                meshData.MaterialName = primitive.Material?.Name ?? "Unnamed Material";
-
-                var vertexType = GetVertexTypeFromVertexAccessorNames(primitive.VertexAccessors.Keys.ToList());
-
-                positions.Clear();
-                if (primitive.VertexAccessors.TryGetValue("POSITION", out var positionAccessor))
-                {
-                    positions = positionAccessor
-                        .AsVector3Array()
-                        .Select(position =>
-                            Vector3.TransformPosition(new Vector3(position.X, position.Y, position.Z), meshData.Transform))
-                        .ToList();
-                }
-
-                if (positions.Count == 0)
-                {
-                    continue;
-                }
-
-                normals.Clear();
-                if (primitive.VertexAccessors.TryGetValue("NORMAL", out var normalAccessor))
-                {
-                    normals = normalAccessor
-                        .AsVector3Array()
-                        .Select(normal => new Vector3(normal.X, normal.Y, normal.Z))
-                        .ToList();
-                }
-
-                uvs.Clear();
-                if (primitive.VertexAccessors.TryGetValue("TEXCOORD_0", out var uvAccessor))
-                {
-                    uvs = uvAccessor
-                        .AsVector2Array()
-                        .Select(uv => new Vector2(uv.X, uv.Y))
-                        .ToList();
-                }
-
-                realTangents.Clear();
-                if (primitive.VertexAccessors.TryGetValue("TANGENT", out var tangentAccessor))
-                {
-                    realTangents = tangentAccessor
-                        .AsVector4Array()
-                        .Select(tangent => new Vector4(tangent.X, tangent.Y, tangent.Z, tangent.W))
-                        .ToList();
-                }
-
-                var indexCount = 0;
-                if (primitive.IndexAccessor != null)
-                {
-                    var indices = primitive.IndexAccessor.AsIndicesArray().ToArray();
-                    indexCount = indices.Length;
-                    meshData.AddIndices(indices);
-                }
-                else
-                {
-                    Debugger.Break();
-                }
-
-
-                for (var i = 0; i < positions.Count; i++)
-                {
-                    switch (vertexType)
-                    {
-                        case VertexType.PositionNormal:
-                            meshData.AddPositionNormal(positions[i], normals[i]);
-                            break;
-                        case VertexType.PositionNormalUv:
-                            meshData.AddPositionNormalUvRealTangent(positions[i], normals[i], uvs[i], Vector4.One);
-                            break;
-                        case VertexType.PositionNormalUvTangent:
-                            meshData.AddPositionNormalUvRealTangent(
-                                positions[i],
-                                normals[i],
-                                uvs[i],
-                                realTangents[i]);
-                            break;
-                        case VertexType.PositionUv:
-                            meshData.AddPositionUv(positions[i], uvs[i]);
-                            break;
-                        default:
-                        {
-                            if (vertexType == VertexType.PositionUv)
-                            {
-                                meshData.AddPositionUv(positions[i], uvs[i]);
-                            }
-
-                            break;
-                        }
-                    }
-                }
-
-                meshDates.Add(meshData);
+                continue;
             }
+
+            ProcessNode(meshDates, node);
         }
 
         _logger.Debug("{Category}: Loaded {PrimitiveCount} primitives from {FilePath}", nameof(SharpGltfMeshLoader),
@@ -266,11 +163,6 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
         var meshData = new MeshData(node.Name ?? Guid.NewGuid().ToString());
         meshData.Transform = node.WorldMatrix.ToMatrix();
 
-        var positions = new List<Vector3>(16384);
-        var normals = new List<Vector3>(16384);
-        var uvs = new List<Vector2>(16384);
-        var realTangents = new List<Vector4>(16384);
-
         foreach (var primitive in node.Mesh.Primitives)
         {
             meshData.MaterialName = primitive?.Material?.Name ?? "Unnamed Material";
@@ -282,53 +174,14 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
             var vertexType = GetVertexTypeFromVertexAccessorNames(primitive.VertexAccessors.Keys.ToList());
 
-            positions.Clear();
-            if (primitive.VertexAccessors.TryGetValue("POSITION", out var positionAccessor))
-            {
-                positions = positionAccessor
-                    .AsVector3Array()
-                    .Select(position =>
-                        Vector3.TransformPosition(new Vector3(position.X, position.Y, position.Z), meshData.Transform))
-                    .ToList();
-            }
+            var positions = primitive.VertexAccessors.GetValueOrDefault("POSITION").AsSpan<Vector3>();
+            var normals = primitive.VertexAccessors.GetValueOrDefault("NORMAL").AsSpan<Vector3>();
+            var uvs = primitive.VertexAccessors.GetValueOrDefault("TEXCOORD_0").AsSpan<Vector2>();
+            var realTangents = primitive.VertexAccessors.GetValueOrDefault("TANGENT").AsSpan<Vector4>();
 
-            if (positions.Count == 0)
-            {
-                continue;
-            }
-
-            normals.Clear();
-            if (primitive.VertexAccessors.TryGetValue("NORMAL", out var normalAccessor))
-            {
-                normals = normalAccessor
-                    .AsVector3Array()
-                    .Select(normal => new Vector3(normal.X, normal.Y, normal.Z))
-                    .ToList();
-            }
-
-            uvs.Clear();
-            if (primitive.VertexAccessors.TryGetValue("TEXCOORD_0", out var uvAccessor))
-            {
-                uvs = uvAccessor
-                    .AsVector2Array()
-                    .Select(uv => new Vector2(uv.X, uv.Y))
-                    .ToList();
-            }
-
-            realTangents.Clear();
-            if (primitive.VertexAccessors.TryGetValue("TANGENT", out var tangentAccessor))
-            {
-                realTangents = tangentAccessor
-                    .AsVector4Array()
-                    .Select(tangent => new Vector4(tangent.X, tangent.Y, tangent.Z, tangent.W))
-                    .ToList();
-            }
-
-            var indexCount = 0;
             if (primitive.IndexAccessor != null)
             {
                 var indices = primitive.IndexAccessor.AsIndicesArray().ToArray();
-                indexCount = indices.Length;
                 meshData.AddIndices(indices);
             }
             else
@@ -336,44 +189,36 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 Debugger.Break();
             }
 
-            /*
-            _logger.Debug(
-                "{Category}: Processing Primitive {VertexType} - {IndexType} I:{IndexCount} P:{PositionCount} N:{NormalCount} U:{UvCount} T:{TangentCount}",
-                nameof(MeshFactory),
-                vertexType,
-                primitive.IndexAccessor?.Encoding ?? EncodingType.FLOAT,
-                indexCount,
-                positions.Count,
-                normals.Count,
-                uvs.Count,
-                realTangents.Count);
-                */
-
-            for (var i = 0; i < positions.Count; i++)
+            for (var i = 0; i < positions.Length; i++)
             {
+                var position = Vector3.TransformPosition(positions[i], meshData.Transform);
+                var normal = Vector3.TransformDirection(normals[i], meshData.Transform);
+                var realTangentXyz = new Vector3(realTangents[i].X, realTangents[i].Y, realTangents[i].Z);
+                var realTangent = new Vector4(Vector3.TransformDirection(realTangentXyz, meshData.Transform), realTangents[i].W);
+
                 switch (vertexType)
                 {
                     case VertexType.PositionNormal:
-                        meshData.AddPositionNormal(positions[i], normals[i]);
+                        meshData.AddPositionNormal(position, normal);
                         break;
                     case VertexType.PositionNormalUv:
-                        meshData.AddPositionNormalUvRealTangent(positions[i], normals[i], uvs[i], Vector4.One);
+                        meshData.AddPositionNormalUvRealTangent(position, normal, uvs[i], Vector4.One);
                         break;
                     case VertexType.PositionNormalUvTangent:
                         meshData.AddPositionNormalUvRealTangent(
-                            positions[i],
-                            normals[i],
+                            position,
+                            normal,
                             uvs[i],
-                            realTangents[i]);
+                            realTangent);
                         break;
                     case VertexType.PositionUv:
-                        meshData.AddPositionUv(positions[i], uvs[i]);
+                        meshData.AddPositionUv(position, uvs[i]);
                         break;
                     default:
                     {
                         if (vertexType == VertexType.PositionUv)
                         {
-                            meshData.AddPositionUv(positions[i], uvs[i]);
+                            meshData.AddPositionUv(position, uvs[i]);
                         }
 
                         break;
