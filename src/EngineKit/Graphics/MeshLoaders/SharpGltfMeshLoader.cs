@@ -178,6 +178,15 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             var normals = primitive.VertexAccessors.GetValueOrDefault("NORMAL").AsSpan<Vector3>();
             var uvs = primitive.VertexAccessors.GetValueOrDefault("TEXCOORD_0").AsSpan<Vector2>();
             var realTangents = primitive.VertexAccessors.GetValueOrDefault("TANGENT").AsSpan<Vector4>();
+            if (uvs.Length == 0)
+            {
+                uvs = new Vector2[positions.Length].AsSpan();
+            }
+
+            if (realTangents.Length == 0)
+            {
+                realTangents = new Vector4[positions.Length].AsSpan();
+            }
 
             if (primitive.IndexAccessor != null)
             {
