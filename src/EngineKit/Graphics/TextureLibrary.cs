@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using EngineKit.Mathematics;
@@ -68,7 +69,7 @@ internal sealed class TextureLibrary : ITextureLibrary
                         Label = $"TA_{textureIndex.Key}_{imageWidth}x{imageHeight}x{textureIndex.Value.Count}",
                         Size = new Int3(imageWidth, imageHeight, 1),
                         ArrayLayers = (uint)textureIndex.Value.Count,
-                        MipLevels = 1,
+                        MipLevels = 1 + (uint)MathF.Ceiling(MathF.Log2(MathF.Max(imageWidth, imageHeight))),
                         SampleCount = SampleCount.OneSample
                     };
 
@@ -90,13 +91,14 @@ internal sealed class TextureLibrary : ITextureLibrary
                 {
                     case Image<Rgb24> imageRgb24 when
                         imageRgb24.DangerousTryGetSinglePixelMemory(out var pixelSpan24):
-                        texture.Update(textureUploadDescriptor, pixelSpan24.Pin());
+                        texture!.Update(textureUploadDescriptor, pixelSpan24.Pin());
                         break;
                     case Image<Rgba32> imageRgba32 when
                         imageRgba32.DangerousTryGetSinglePixelMemory(out var pixelSpan32):
-                        texture.Update(textureUploadDescriptor, pixelSpan32.Pin());
+                        texture!.Update(textureUploadDescriptor, pixelSpan32.Pin());
                         break;
                 }
+                texture!.GenerateMipmaps();
 
                 if (!textureArrayIndices.TryGetValue(layer.ImageName, out var textureId))
                 {
