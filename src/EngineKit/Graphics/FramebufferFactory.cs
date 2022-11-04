@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using EngineKit.Native.OpenGL;
 using Serilog;
 
@@ -48,9 +49,16 @@ internal sealed class FramebufferFactory : IFramebufferFactory
             drawBuffers.Add((GL.DrawBuffer)((int)GL.DrawBuffer.ColorAttachment0 + i));
         }
 
-        GL.NamedFramebufferDrawBuffers(
-            framebufferId,
-            drawBuffers.ToArray());
+        if (drawBuffers.Any())
+        {
+            GL.NamedFramebufferDrawBuffers(
+                framebufferId,
+                drawBuffers.ToArray());
+        }
+        else
+        {
+            GL.NamedFramebufferDrawBuffers(framebufferId, GL.DrawBuffer.None);
+        }
 
         if (framebufferRenderDescriptor.DepthAttachment.HasValue &&
             framebufferRenderDescriptor.StencilAttachment.HasValue)
