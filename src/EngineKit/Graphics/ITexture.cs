@@ -13,6 +13,8 @@ public interface ITexture : IDisposable
 
     TextureView CreateTextureView();
 
+    void GenerateMipmaps();
+
     void Update(
         TextureUpdateDescriptor textureUpdateDescriptor,
         IntPtr pixelPtr);

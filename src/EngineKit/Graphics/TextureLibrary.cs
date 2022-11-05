@@ -10,10 +10,12 @@ namespace EngineKit.Graphics;
 
 internal sealed class TextureLibrary : ITextureLibrary
 {
+    private readonly IGraphicsContext _graphicsContext;
     private readonly ILogger _logger;
 
-    public TextureLibrary(ILogger logger)
+    public TextureLibrary(ILogger logger, IGraphicsContext graphicsContext)
     {
+        _graphicsContext = graphicsContext;
         _logger = logger.ForContext<TextureLibrary>();
     }
 
@@ -57,7 +59,7 @@ internal sealed class TextureLibrary : ITextureLibrary
             var imageHeight = firstImageLibraryItem.Image.Height;
 
             var textureArraySlice = 0;
-            Texture? texture = null;
+            ITexture? texture = null;
             foreach (var layer in textureIndex.Value)
             {
                 if (textureArraySlice == 0)
@@ -73,7 +75,7 @@ internal sealed class TextureLibrary : ITextureLibrary
                         SampleCount = SampleCount.OneSample
                     };
 
-                    texture = new Texture(textureCreateDescriptor);
+                    texture = _graphicsContext.CreateTexture(textureCreateDescriptor);
                 }
 
                 var textureUploadDescriptor = new TextureUpdateDescriptor
