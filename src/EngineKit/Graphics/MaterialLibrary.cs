@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using EngineKit.Mathematics;
+using OpenTK.Mathematics;
 using Serilog;
 
 namespace EngineKit.Graphics;
@@ -32,14 +32,14 @@ internal sealed class MaterialLibrary : IMaterialLibrary
 
     private void CreateDefaultMaterials()
     {
-        var colors = typeof(Color)
+        var colors = typeof(Color4)
             .GetFields()
             .Where(field => field.IsStatic && field.IsPublic);
 
         foreach (var color in colors)
         {
             var materialName = $"M_Default_{color.Name}";
-            var colorValue = (Color)color.GetValue(color);
+            var colorValue = (Color4)color.GetValue(color);
             _materials.Add(materialName, new Material(materialName)
             {
                 BaseColor = colorValue
@@ -149,11 +149,11 @@ internal sealed class MaterialLibrary : IMaterialLibrary
             Diffuse = material.BaseColor,
             Emissive = material.Emissive,
             BaseColorTextureId = baseColorTextureIdExists
-                ? new Int4(baseColorTextureId.ArrayIndex, baseColorTextureId.ArraySlice, -1, -1)
-                : new Int4(-1, -1, -1, -1),
+                ? new Vector4i(baseColorTextureId.ArrayIndex, baseColorTextureId.ArraySlice, -1, -1)
+                : new Vector4i(-1, -1, -1, -1),
             NormalTextureId = normalTextureIdExists
-                ? new Int4(normalTextureId.ArrayIndex, normalTextureId.ArraySlice, -1, -1)
-                : new Int4(-1, -1, -1, -1)
+                ? new Vector4i(normalTextureId.ArrayIndex, normalTextureId.ArraySlice, -1, -1)
+                : new Vector4i(-1, -1, -1, -1)
         };
     }
 }

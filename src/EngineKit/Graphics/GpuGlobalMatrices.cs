@@ -1,14 +1,14 @@
 ﻿using System.Runtime.InteropServices;
-using EngineKit.Mathematics;
+using OpenTK.Mathematics;
 
 namespace EngineKit.Graphics;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct GpuGlobalMatrices
 {
-    public Matrix CameraToClipMatrix;
+    public Matrix4 CameraToClipMatrix;
 
-    public Matrix WorldToCameraMatrix;
+    public Matrix4 WorldToCameraMatrix;
 
-    public Int4 DrawIndex;
+    public Vector4i DrawIndex;
 }

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using System.Net.Mime;
 using EngineKit.Mathematics;
+using OpenTK.Mathematics;
 using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -42,7 +42,7 @@ internal sealed class TextureLoader : ITextureLoader
         var textureCreateDescriptor = new TextureCreateDescriptor
         {
             Format = Format.R8G8B8A8UNorm,
-            Size = new Int3(image.Width, image.Height, 1),
+            Size = new Vector3i(image.Width, image.Height, 1),
             Label = $"T_{Path.GetFileName(filePath)}",
             ArrayLayers = 0,
             ImageType = ImageType.Texture2D,
@@ -60,8 +60,8 @@ internal sealed class TextureLoader : ITextureLoader
         var textureUpdateDescriptor = new TextureUpdateDescriptor
         {
             Level = 0,
-            Offset = Int3.Zero,
-            Size = new Int3(image.Width, image.Height, 1),
+            Offset = Vector3i.Zero,
+            Size = new Vector3i(image.Width, image.Height, 1),
             UploadDimension = UploadDimension.Two,
             UploadFormat = UploadFormat.RedGreenBlueAlpha,
             UploadType = UploadType.UnsignedByte

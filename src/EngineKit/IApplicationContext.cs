@@ -1,14 +1,12 @@
-using EngineKit.Mathematics;
-
 namespace EngineKit;
 
 public interface IApplicationContext
 {
-    Point ScreenSize { get; set; }
+    OpenTK.Mathematics.Vector2i ScreenSize { get; set; }
 
-    Point WindowSize { get; set; }
+    OpenTK.Mathematics.Vector2i WindowSize { get; set; }
 
-    Point FramebufferSize { get; set; }
+    OpenTK.Mathematics.Vector2i FramebufferSize { get; set; }
 
-    Point ScaledFramebufferSize { get; set; }
+    OpenTK.Mathematics.Vector2i ScaledFramebufferSize { get; set; }
 }

@@ -1,16 +1,16 @@
 using System.Runtime.InteropServices;
-using EngineKit.Mathematics;
+using OpenTK.Mathematics;
 
 namespace EngineKit.Graphics;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct GpuMaterial
 {
-    public Vector4 Diffuse { get; set; }
+    public Color4 Diffuse { get; set; }
 
-    public Vector4 Emissive { get; set; }
+    public Color4 Emissive { get; set; }
 
-    public Int4 BaseColorTextureId { get; set; }
+    public Vector4i BaseColorTextureId { get; set; }
 
-    public Int4 NormalTextureId { get; set; }
+    public Vector4i NormalTextureId { get; set; }
 }

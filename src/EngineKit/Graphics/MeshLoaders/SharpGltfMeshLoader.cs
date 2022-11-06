@@ -4,13 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using EngineKit.Extensions;
-using EngineKit.Mathematics;
+using OpenTK.Mathematics;
 using Serilog;
 using SharpGLTF.Schema2;
 using SharpGLTF.Validation;
-using Vector2 = EngineKit.Mathematics.Vector2;
-using Vector3 = EngineKit.Mathematics.Vector3;
-using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace EngineKit.Graphics.MeshLoaders;
 
@@ -201,9 +198,9 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             for (var i = 0; i < positions.Length; i++)
             {
                 var position = Vector3.TransformPosition(positions[i], meshData.Transform);
-                var normal = Vector3.TransformDirection(normals[i], meshData.Transform);
+                var normal = Vector3.TransformNormal(normals[i], meshData.Transform);
                 var realTangentXyz = new Vector3(realTangents[i].X, realTangents[i].Y, realTangents[i].Z);
-                var realTangent = new Vector4(Vector3.TransformDirection(realTangentXyz, meshData.Transform), realTangents[i].W);
+                var realTangent = new Vector4(Vector3.TransformNormal(realTangentXyz, meshData.Transform), realTangents[i].W);
 
                 switch (vertexType)
                 {

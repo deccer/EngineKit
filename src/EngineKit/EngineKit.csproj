@@ -22,7 +22,6 @@
 
     <ItemGroup>
         <PackageReference Include="CSharpFunctionalExtensions" Version="2.35.1" />
-        <PackageReference Include="EngineKit.Mathematics" Version="1.0.0" />
         <PackageReference Include="EngineKit.Native.Glfw" Version="1.3.7" />
         <PackageReference Include="EngineKit.Native.OpenGL" Version="1.0.3" />
         <PackageReference Include="ImGui.NET" Version="1.88.0" />
@@ -32,6 +31,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="OpenTK.Mathematics" Version="4.7.5" />
         <PackageReference Include="Serilog" Version="2.12.0" />
         <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
         <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0026" />

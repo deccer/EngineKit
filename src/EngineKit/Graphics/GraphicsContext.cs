@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using CSharpFunctionalExtensions;
 using EngineKit.Extensions;
-using EngineKit.Mathematics;
 using EngineKit.Native.OpenGL;
+using OpenTK.Mathematics;
 
 namespace EngineKit.Graphics;
 
@@ -182,7 +182,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         var textureCreateDescriptor = new TextureCreateDescriptor
         {
             Format = format,
-            Size = new Int3(width, height, 1),
+            Size = new Vector3i(width, height, 1),
             Label = string.IsNullOrEmpty(label) ? $"T_{width}x{height}_{format}" : $"T_{width}x{height}_{format}_{label}",
             ArrayLayers = 0,
             MipLevels = 1,
@@ -322,10 +322,14 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
         if (swapchainRenderDescriptor.ScissorRect.HasValue)
         {
-            GL.Scissor(swapchainRenderDescriptor.ScissorRect.Value);
+            var v = swapchainRenderDescriptor.ScissorRect.Value;
+            var x = new EngineKit.Mathematics.Viewport(v.X, v.Y, v.Z, v.W);
+            GL.Scissor(x);
         }
 
-        GL.Viewport(swapchainRenderDescriptor.Viewport);
+        var vv = swapchainRenderDescriptor.Viewport;
+        var xx = new EngineKit.Mathematics.Viewport(vv.X, vv.Y, vv.Z, vv.W);
+        GL.Viewport(xx);
     }
 
     public void BeginRenderToFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
@@ -381,10 +385,14 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         // TODO(deccer) clear stencil
         // TODO(deccer) depth & stencil
 
-        GL.Viewport(framebufferRenderDescriptor.Viewport);
+        var vv = framebufferRenderDescriptor.Viewport;
+        var xx = new EngineKit.Mathematics.Viewport(vv.X, vv.Y, vv.Z, vv.W);
+        GL.Viewport(xx);
+        /*
         GL.DepthRange(
             framebufferRenderDescriptor.Viewport.MinDepth,
             framebufferRenderDescriptor.Viewport.MaxDepth);
+            */
     }
 
     public void EndRender()

@@ -1,12 +1,12 @@
-using EngineKit.Mathematics;
+using OpenTK.Mathematics;
 
 namespace EngineKit.Graphics;
 
 public record struct SwapchainRenderDescriptor
 {
-    public Viewport Viewport;
+    public Vector4i Viewport;
 
-    public Viewport? ScissorRect;
+    public Vector4i? ScissorRect;
 
     public bool ClearColor;
 
