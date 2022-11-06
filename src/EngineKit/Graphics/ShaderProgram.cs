@@ -7,7 +7,7 @@ namespace EngineKit.Graphics;
 
 public class ShaderProgram : IDisposable
 {
-    private readonly string? _computeShaderFilePath;
+    private readonly string? _computeShaderSource;
     private readonly string? _vertexShaderSource;
     private readonly string? _fragmentShaderSource;
     private readonly Label _label;
@@ -20,12 +20,12 @@ public class ShaderProgram : IDisposable
 
     public Shader? ComputeShader { get; private set; }
 
-    public ShaderProgram(string computeShaderFilePath, Label label)
+    public ShaderProgram(string computeShaderSource, Label label)
     {
-        _computeShaderFilePath = computeShaderFilePath;
-        _label = label;
+        _computeShaderSource = computeShaderSource;
         _vertexShaderSource = null!;
         _fragmentShaderSource = null!;
+        _label = label;
     }
 
     public ShaderProgram(
@@ -33,7 +33,7 @@ public class ShaderProgram : IDisposable
         string? fragmentShaderSource,
         Label label)
     {
-        _computeShaderFilePath = null!;
+        _computeShaderSource = null!;
         _vertexShaderSource = vertexShaderSource;
         _fragmentShaderSource = fragmentShaderSource;
         _label = label;
@@ -119,10 +119,9 @@ public class ShaderProgram : IDisposable
 
     private Result CreateShaders()
     {
-        if (_computeShaderFilePath != null)
+        if (!string.IsNullOrEmpty(_computeShaderSource))
         {
-            var computeShaderSource = File.ReadAllText(_computeShaderFilePath);
-            ComputeShader = new Shader(ShaderType.ComputeShader, computeShaderSource, "CS" + _label);
+            ComputeShader = new Shader(ShaderType.ComputeShader, _computeShaderSource, "CS" + _label);
 
             return Result.Success();
         }
