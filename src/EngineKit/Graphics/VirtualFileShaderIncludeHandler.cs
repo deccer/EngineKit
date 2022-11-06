@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using EngineKit.Mathematics;
+using OpenTK.Mathematics;
 using Point = SixLabors.ImageSharp.Point;
 using Vector2 = System.Numerics.Vector2;
 
@@ -71,12 +71,12 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
             return "ivec2";
         }
 
-        if (type == typeof(Int3))
+        if (type == typeof(Vector3i))
         {
             return "ivec3";
         }
 
-        if (type == typeof(Int4))
+        if (type == typeof(Vector4i))
         {
             return "ivec4";
         }

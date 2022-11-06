@@ -1,5 +1,5 @@
 using System.Runtime.InteropServices;
-using EngineKit.Mathematics;
+using OpenTK.Mathematics;
 
 namespace EngineKit.Graphics;
 
@@ -10,5 +10,5 @@ public struct GpuLightInformation
 
     public Vector4 DirectionalLightColor { get; set; }
 
-    public Int4 LightCount { get; set; }
+    public Vector4i LightCount { get; set; }
 }

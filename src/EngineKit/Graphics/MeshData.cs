@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using EngineKit.Mathematics;
+using OpenTK.Mathematics;
+using Vector2 = OpenTK.Mathematics.Vector2;
+using Vector3 = OpenTK.Mathematics.Vector3;
+using Vector4 = OpenTK.Mathematics.Vector4;
 
 namespace EngineKit.Graphics;
 
@@ -11,7 +14,7 @@ public sealed class MeshData
 
     private readonly List<Vector3> _normals;
 
-    private readonly List<Color3> _colors;
+    private readonly List<Vector3> _colors;
 
     private readonly List<Vector2> _uvs;
 
@@ -25,7 +28,7 @@ public sealed class MeshData
 
     public string MeshName { get; set; }
 
-    public Matrix Transform { get; set; }
+    public Matrix4 Transform { get; set; }
 
     public List<uint> Indices => _indices;
 
@@ -41,7 +44,7 @@ public sealed class MeshData
 
     public string? MaterialName { get; set; }
 
-    public BoundingBox BoundingBox { get; set; }
+    public OpenTK.Mathematics.Box3 BoundingBox { get; set; }
 
     public List<Vector3> Positions => _positions;
 
@@ -49,7 +52,7 @@ public sealed class MeshData
 
     public List<Vector2> Uvs => _uvs;
 
-    public List<Color3> Colors => _colors;
+    public List<Vector3> Colors => _colors;
 
     public List<Vector3> Tangents => _tangents;
 
@@ -89,7 +92,7 @@ public sealed class MeshData
         VertexType = VertexType.Unknown;
         _positions = new List<Vector3>(512);
         _normals = new List<Vector3>(512);
-        _colors = new List<Color3>(512);
+        _colors = new List<Vector3>(512);
         _uvs = new List<Vector2>(512);
         _tangents = new List<Vector3>(512);
         _biTangents = new List<Vector3>(512);
@@ -148,16 +151,16 @@ public sealed class MeshData
                 break;
             }
 
-            var triangle = Matrix3x3.Identity;
-            triangle.Row1 = _positions[i + 0];
-            triangle.Row2 = _positions[i + 1];
-            triangle.Row3 = _positions[i + 2];
+            var triangle = Matrix3.Identity;
+            triangle.Row0 = _positions[i + 0];
+            triangle.Row1 = _positions[i + 1];
+            triangle.Row2 = _positions[i + 2];
 
             var uv0 = _uvs[i + 1] - _uvs[i + 0];
             var uv1 = _uvs[i + 2] - _uvs[i + 0];
 
-            var q1 = triangle.Row2 - triangle.Row1;
-            var q2 = triangle.Row3 - triangle.Row1;
+            var q1 = triangle.Row1 - triangle.Row1;
+            var q2 = triangle.Row2 - triangle.Row1;
 
             var det = uv0.X * uv1.Y - uv1.X * uv0.Y;
             if (MathF.Abs(det) <= 0.000001f)
@@ -218,7 +221,7 @@ public sealed class MeshData
 
     public void AddPositionColor(
         Vector3 position,
-        Color3 color)
+        Vector3 color)
     {
         AddVertex(position, color, uv: null, tangent: null);
         VertexType = VertexType.PositionColor;
@@ -226,7 +229,7 @@ public sealed class MeshData
 
     public void AddPositionColorNormal(
         Vector3 position,
-        Color3 color,
+        Vector3 color,
         Vector3 normal)
     {
         AddVertex(position, color, normal, tangent: null);
@@ -235,7 +238,7 @@ public sealed class MeshData
 
     public void AddPositionColorNormalUv(
         Vector3 position,
-        Color3 color,
+        Vector3 color,
         Vector3 normal,
         Vector2 uv)
     {

@@ -2,10 +2,10 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using EngineKit.Input;
-using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
 using Microsoft.Extensions.Options;
+using OpenTK.Mathematics;
 using Serilog;
 
 namespace EngineKit;
@@ -159,14 +159,14 @@ public class Application : IApplication
         var screenWidth = videoMode.Width;
         var screenHeight = videoMode.Height;
 
-        _applicationContext.ScreenSize = new Point(screenWidth, screenHeight);
+        _applicationContext.ScreenSize = new Vector2i(screenWidth, screenHeight);
         _applicationContext.WindowSize = windowResizable
-            ? new Point(_windowSettings.Value.ResolutionWidth,  _windowSettings.Value.ResolutionHeight)
-            : new Point((int)(screenWidth * 0.8f), (int)(screenHeight * 0.8f));
+            ? new Vector2i(_windowSettings.Value.ResolutionWidth,  _windowSettings.Value.ResolutionHeight)
+            : new Vector2i((int)(screenWidth * 0.8f), (int)(screenHeight * 0.8f));
 
         if (!windowResizable)
         {
-            _applicationContext.WindowSize = new Point(screenWidth, screenHeight);
+            _applicationContext.WindowSize = new Vector2i(screenWidth, screenHeight);
         }
         monitorHandle = windowResizable || windowSettings.WindowMode == WindowMode.WindowedFullscreen
             ? IntPtr.Zero
@@ -248,10 +248,10 @@ public class Application : IApplication
             _windowHandle,
             out var framebufferWidth,
             out var framebufferHeight);
-        _applicationContext.FramebufferSize = new Point(
+        _applicationContext.FramebufferSize = new Vector2i(
             framebufferWidth,
             framebufferHeight);
-        _applicationContext.ScaledFramebufferSize = new Point(
+        _applicationContext.ScaledFramebufferSize = new Vector2i(
             (int)(framebufferWidth * _windowSettings.Value.ResolutionScale),
             (int)(framebufferHeight * _windowSettings.Value.ResolutionScale));
 
@@ -429,13 +429,13 @@ public class Application : IApplication
         int width,
         int height)
     {
-        _applicationContext.WindowSize = new Point(width, height);
+        _applicationContext.WindowSize = new Vector2i(width, height);
         WindowResized();
     }
 
     private void OnFramebufferSize(IntPtr windowHandle, int width, int height)
     {
-        _applicationContext.FramebufferSize = new Point(width, height);
+        _applicationContext.FramebufferSize = new Vector2i(width, height);
         FramebufferResized();
     }
 

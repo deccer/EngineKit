@@ -2,30 +2,28 @@ using System.Runtime.InteropServices;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
-using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
+using OpenTK.Mathematics;
 using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using Color = EngineKit.Mathematics.Color;
-using Point = EngineKit.Mathematics.Point;
 
 namespace HelloWindow;
 
 public struct GpuGlobalUniforms
 {
-    public Matrix ViewProjection;
-    public Matrix InverseViewProjection;
-    public Matrix Projection;
-    public Matrix CameraPosition;
+    public Matrix4 ViewProjection;
+    public Matrix4 InverseViewProjection;
+    public Matrix4 Projection;
+    public Matrix4 CameraPosition;
 }
 
 public struct GpuShadingUniforms
 {
-    public Matrix SunViewProjection;
+    public Matrix4 SunViewProjection;
     public Vector4 SunDirection;
     public Vector4 SunStrength;
 }
@@ -33,8 +31,8 @@ public struct GpuShadingUniforms
 [StructLayout(LayoutKind.Sequential, Pack = 16)]
 public struct GpuRsmUniforms
 {
-    public Matrix SunViewProjection;
-    public Matrix SunInverseViewProjection;
+    public Matrix4 SunViewProjection;
+    public Matrix4 SunInverseViewProjection;
     public Point TargetDimension;
     public float RMax;
     public uint CurrentPass;
@@ -273,13 +271,13 @@ internal sealed class DeferredRenderingApplication : Application
             ImageType = ImageType.Texture2D,
             MipLevels = 1,
             SampleCount = SampleCount.OneSample,
-            Size = new Int3(image.Width, image.Height, 1)
+            Size = new Vector3i(image.Width, image.Height, 1)
         };
         var texture = _graphicsContext.CreateTexture(textureCreateDescriptor);
         var textureUpdateDescriptor = new TextureUpdateDescriptor
         {
             Level = 0,
-            Offset = Int3.Zero,
+            Offset = Vector3i.Zero,
             Size = textureCreateDescriptor.Size,
             UploadDimension = UploadDimension.Two,
             UploadFormat = UploadFormat.RedGreenBlueAlpha,
