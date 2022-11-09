@@ -67,15 +67,17 @@ public sealed class Sampler : IDisposable
                 case BorderColor.FloatOpaqueWhite:
                     GL.SamplerParameter(_id, GL.SamplerParameterF.TextureBorderColor, _whiteBorderColorFloat);
                     break;
+                /*
                 case BorderColor.IntTransparentBlack:
-                    GL.SamplerParameter(_id, GL.SamplerParameterI.TextureBorderColor, _transparentBorderColorInt);
+                    GL.SamplerParameter(_id, GL.SamplerParameterF.TextureBorderColor, _transparentBorderColorInt);
                     break;
                 case BorderColor.IntOpaqueBlack:
-                    GL.SamplerParameter(_id, GL.SamplerParameterI.TextureBorderColor, _blackBorderColorInt);
+                    GL.SamplerParameter(_id, GL.SamplerParameterF.TextureBorderColor, _blackBorderColorInt);
                     break;
                 case BorderColor.IntOpaqueWhite:
-                    GL.SamplerParameter(_id, GL.SamplerParameterI.TextureBorderColor, _whiteBorderColorInt);
+                    GL.SamplerParameter(_id, GL.SamplerParameterF.TextureBorderColor, _whiteBorderColorInt);
                     break;
+                    */
             }
         }
 
