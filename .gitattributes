@@ -1,0 +1,12 @@
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/SM_Skull.bin filter=lfs diff=lfs merge=lfs -text
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/SM_Skull_Optimized.gltf filter=lfs diff=lfs merge=lfs -text
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/SM_Skull_Optimized_point1.bin filter=lfs diff=lfs merge=lfs -text
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/SM_Skull_Optimized_point2.gltf filter=lfs diff=lfs merge=lfs -text
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/TD_Checker_Base_Color.png filter=lfs diff=lfs merge=lfs -text
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/TD_Checker_Mixed_AO.png filter=lfs diff=lfs merge=lfs -text
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/SM_Skull.gltf filter=lfs diff=lfs merge=lfs -text
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/SM_Skull_Optimized.bin filter=lfs diff=lfs merge=lfs -text
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/SM_Skull_Optimized_point1.gltf filter=lfs diff=lfs merge=lfs -text
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/SM_Skull_Optimized_point2.bin filter=lfs diff=lfs merge=lfs -text
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/TD_Checker_Normal_OpenGL.png filter=lfs diff=lfs merge=lfs -text
+examples/DeferredRendering/DeferredRendering.Assets/Data/Props/Skull/TD_Checker_Roughness.png filter=lfs diff=lfs merge=lfs -text
