@@ -28,7 +28,7 @@ public interface IGraphicsPipelineBuilder
 
     IGraphicsPipelineBuilder WithFaceWinding(FaceWinding faceWinding);
 
-    IGraphicsPipelineBuilder EnableDepthTest();
+    IGraphicsPipelineBuilder EnableDepthTest(CompareOperation compareOperation = CompareOperation.Less);
 
     IGraphicsPipelineBuilder EnableDepthWrite();
 
@@ -43,6 +43,4 @@ public interface IGraphicsPipelineBuilder
     IGraphicsPipelineBuilder DisableDepthBias();
 
     IGraphicsPipelineBuilder DisableBlending();
-
-    IGraphicsPipelineBuilder UseDepthComparison(CompareOperation compareOperation);
 }

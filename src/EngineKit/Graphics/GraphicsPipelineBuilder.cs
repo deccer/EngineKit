@@ -109,9 +109,10 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
-    public IGraphicsPipelineBuilder EnableDepthTest()
+    public IGraphicsPipelineBuilder EnableDepthTest(CompareOperation compareOperation = CompareOperation.Less)
     {
         _graphicsPipelineDescriptor.DepthStencilDescriptor.IsDepthTestEnabled = true;
+        _graphicsPipelineDescriptor.DepthStencilDescriptor.DepthCompareOperation = compareOperation;
         return this;
     }
 
@@ -169,12 +170,6 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
             colorBlendAttachmentDescriptor
         };
 
-        return this;
-    }
-
-    public IGraphicsPipelineBuilder UseDepthComparison(CompareOperation compareOperation)
-    {
-        _graphicsPipelineDescriptor.DepthStencilDescriptor.DepthCompareOperation = compareOperation;
         return this;
     }
 
