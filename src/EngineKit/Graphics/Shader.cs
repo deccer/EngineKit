@@ -41,7 +41,7 @@ public sealed class Shader : IDisposable
             var errorMessage = GL.GetProgramInfoLog(Id, 1024, ref infoLogLength);
             GL.DeleteProgram(Id);
 
-            return Result.Failure(errorMessage);
+            return Result.Failure($"{_label}: {errorMessage}");
         }
 
         return Result.Success();
