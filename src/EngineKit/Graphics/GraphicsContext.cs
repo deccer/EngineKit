@@ -172,6 +172,16 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         return new IndirectBuffer(label, indirectElementData);
     }
 
+    public ISampler CreateSampler(SamplerDescriptor samplerDescriptor)
+    {
+        return new Sampler(samplerDescriptor);
+    }
+
+    public SamplerBuilder CreateSamplerBuilder()
+    {
+        return new SamplerBuilder(this);
+    }
+
     public ITexture CreateTexture(TextureCreateDescriptor textureCreateDescriptor)
     {
         return new Texture(textureCreateDescriptor);
@@ -322,14 +332,10 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
         if (swapchainRenderDescriptor.ScissorRect.HasValue)
         {
-            var v = swapchainRenderDescriptor.ScissorRect.Value;
-            var x = new EngineKit.Mathematics.Viewport(v.X, v.Y, v.Z, v.W);
-            GL.Scissor(x);
+            GL.Scissor(swapchainRenderDescriptor.ScissorRect.Value);
         }
 
-        var vv = swapchainRenderDescriptor.Viewport;
-        var xx = new EngineKit.Mathematics.Viewport(vv.X, vv.Y, vv.Z, vv.W);
-        GL.Viewport(xx);
+        GL.Viewport(swapchainRenderDescriptor.Viewport);
     }
 
     public void BeginRenderToFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
@@ -384,10 +390,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
         // TODO(deccer) clear stencil
         // TODO(deccer) depth & stencil
-
-        var vv = framebufferRenderDescriptor.Viewport;
-        var xx = new EngineKit.Mathematics.Viewport(vv.X, vv.Y, vv.Z, vv.W);
-        GL.Viewport(xx);
+        GL.Viewport(framebufferRenderDescriptor.Viewport);
         /*
         GL.DepthRange(
             framebufferRenderDescriptor.Viewport.MinDepth,
