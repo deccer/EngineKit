@@ -20,13 +20,13 @@ struct GpuObject
 
 layout(binding = 1, std430) readonly buffer ObjectBuffer
 {
-    ObjectUniforms Objects[];
+    GpuObject Objects[];
 } objectBuffer;
 
 void main()
 {
     int i = gl_InstanceID + gl_BaseInstance;
-    ObjectUniforms object = objectBuffer.Objects[i];
+    GpuObject object = objectBuffer.Objects[i];
     v_position = (object.Model * vec4(i_position, 1.0)).xyz;
     v_normal = normalize(inverse(transpose(mat3(object.Model))) * i_normal);
     v_uv = i_uv;
