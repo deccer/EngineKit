@@ -50,6 +50,10 @@ public interface IGraphicsContext : IDisposable
         TUniformData uniformData)
         where TUniformData : unmanaged;
 
+    ISampler CreateSampler(SamplerDescriptor samplerDescriptor);
+
+    SamplerBuilder CreateSamplerBuilder();
+
     IComputePipelineBuilder CreateComputePipelineBuilder();
 
     IGraphicsPipelineBuilder CreateGraphicsPipelineBuilder();
