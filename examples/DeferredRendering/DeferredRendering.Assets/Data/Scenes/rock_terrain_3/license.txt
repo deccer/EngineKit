@@ -1,0 +1,11 @@
+Model Information:
+* title:	Rock Terrain 3
+* source:	https://sketchfab.com/3d-models/rock-terrain-3-8d16b9d28b1841ada0c3c3595feccf52
+* author:	Lassi Kaukonen (https://sketchfab.com/thesidekick)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Rock Terrain 3" (https://sketchfab.com/3d-models/rock-terrain-3-8d16b9d28b1841ada0c3c3595feccf52) by Lassi Kaukonen (https://sketchfab.com/thesidekick) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
