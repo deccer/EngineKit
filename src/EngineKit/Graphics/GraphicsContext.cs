@@ -97,7 +97,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         return new VertexBuffer<TVertex>(label, vertices);
     }
 
-    public IVertexBuffer CreateVertexBuffer(MeshData[] meshDates, VertexType targetVertexType)
+    public IVertexBuffer CreateVertexBuffer(Label label, MeshData[] meshDates, VertexType targetVertexType)
     {
         var bufferData = new List<VertexPositionNormalUvTangent>(1_024_000);
         foreach (var meshData in meshDates)
@@ -117,15 +117,15 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
             }
         }
 
-        return new VertexBuffer<VertexPositionNormalUvTangent>("Vertices", bufferData.ToArray());
+        return new VertexBuffer<VertexPositionNormalUvTangent>(label, bufferData.ToArray());
     }
 
-    public IIndexBuffer CreateIndexBuffer(MeshData[] meshDates)
+    public IIndexBuffer CreateIndexBuffer(Label label, MeshData[] meshDates)
     {
         var indices = meshDates
             .SelectMany(meshData => meshData.Indices)
             .ToArray();
-        return new IndexBuffer<uint>("Indices", indices);
+        return new IndexBuffer<uint>(label, indices);
     }
 
     public IIndexBuffer CreateIndexBuffer<TIndex>(

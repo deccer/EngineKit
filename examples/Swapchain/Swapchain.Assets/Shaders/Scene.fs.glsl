@@ -1,37 +1,38 @@
 #version 460 core
 
-layout(location = 0) out vec3 o_color;
+layout(location = 0) out vec4 o_color;
 layout(location = 1) out vec3 o_normal;
 
 layout(location = 0) in vec3 v_position;
 layout(location = 1) in vec3 v_normal;
 layout(location = 2) in vec2 v_uv;
+layout(location = 3) in flat int v_object_id;
 
 layout(binding = 0) uniform sampler2D s_base_color;
 
-#define HAS_BASE_COLOR_TEXTURE (1 << 0)
-layout(binding = 2, std140) uniform MaterialUniforms
+struct GpuMaterial
 {
-    uint flags;
-    float alphaCutoff;
-    uint pad01;
-    uint pad02;
-    vec4 baseColorFactor;
-} u_material;
+    ivec4 flagsInt;
+    vec4 flagsFloat;
+    vec4 baseColor;
+};
+
+layout(binding = 2, std140) buffer MaterialBuffer
+{
+    GpuMaterial[] Materials;
+} materialBuffer;
 
 void main()
 {
-    vec4 color = u_material.baseColorFactor.rgba;
-    if ((u_material.flags & HAS_BASE_COLOR_TEXTURE) != 0)
-    {
-        color *= texture(s_base_color, v_uv).rgba;
-    }
+    GpuMaterial material = materialBuffer.Materials[v_object_id];
+    vec4 color = material.baseColor.rgba;
+    color *= texture(s_base_color, v_uv).rgba;
 
-    if (color.a < u_material.alphaCutoff)
+    if (color.a < material.flagsFloat.x)
     {
         discard;
     }
 
-    o_color = color.rgb;
+    o_color = vec4(color.rgb, v_object_id);
     o_normal = normalize(v_normal);
 }

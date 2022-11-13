@@ -1,7 +1,9 @@
 ﻿using EngineKit;
 using EngineKit.Extensions;
+using EngineKit.Input;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTK.Mathematics;
 using Serilog;
 
 namespace Swapchain;
@@ -32,6 +34,8 @@ internal static class Program
         services.Configure<WindowSettings>(configuration.GetSection(nameof(WindowSettings)));
         services.Configure<ContextSettings>(configuration.GetSection(nameof(ContextSettings)));
         services.AddEngine();
+        services.AddSingleton<ICamera>(provider => new Camera(provider.GetRequiredService<IApplicationContext>(),
+            provider.GetRequiredService<IInputProvider>(), new Vector3(0, 0, 10), Vector3.UnitY));
         services.AddSingleton<IApplication, SwapchainApplication>();
         return services.BuildServiceProvider();
     }
