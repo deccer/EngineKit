@@ -4,7 +4,7 @@ using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
 
-public sealed class Sampler : IDisposable
+internal sealed class Sampler : ISampler
 {
     private static readonly int[] _transparentBorderColorInt = { 0, 0, 0, 0 };
     private static readonly float[] _transparentBorderColorFloat = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -16,18 +16,18 @@ public sealed class Sampler : IDisposable
 
     public uint Id => _id;
 
-    public static Sampler Create(SamplerDescriptor samplerDescriptor)
-    {
-        var sampler = new Sampler(samplerDescriptor);
-        return sampler;
-    }
-
-    private Sampler(SamplerDescriptor samplerDescriptor)
+    public Sampler(SamplerDescriptor samplerDescriptor)
     {
         _id = GL.CreateSampler();
+        if (!string.IsNullOrEmpty(samplerDescriptor.Label))
+        {
+            GL.ObjectLabel(GL.ObjectIdentifier.Sampler, _id, samplerDescriptor.Label);
+        }
+
+        var magFilter = samplerDescriptor.MagFilter == Filter.Linear ? GL.Filter.Linear : GL.Filter.Nearest;
+        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureMagFilter, (int)magFilter);
 
         var minFilter = GL.Filter.Nearest;
-        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureMagFilter, (int)samplerDescriptor.MagFilter.ToGL());
         switch (samplerDescriptor.MipmapFilter)
         {
             case Filter.None:

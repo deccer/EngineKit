@@ -49,13 +49,13 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
         shaderStorageBuffer.Bind(bindingIndex);
     }
 
-    public void BindSampledTexture(Sampler sampler, ITexture texture, uint bindingIndex)
+    public void BindSampledTexture(ISampler sampler, ITexture texture, uint bindingIndex)
     {
         GL.BindTextureUnit(bindingIndex, texture.Id);
         GL.BindSampler(bindingIndex, sampler.Id);
     }
 
-    public void BindSampledTexture(Sampler sampler, uint textureId, uint bindingIndex)
+    public void BindSampledTexture(ISampler sampler, uint textureId, uint bindingIndex)
     {
         GL.BindTextureUnit(bindingIndex, textureId);
         GL.BindSampler(bindingIndex, sampler.Id);
@@ -91,7 +91,7 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
             indexCount,
             GL.IndexElementType.UnsignedInt,
-            offset);
+            (nint)offset);
     }
 
     public void DrawElementsInstanced(int indexCount, int offset, int instanceCount)
@@ -100,7 +100,7 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
             indexCount,
             GL.IndexElementType.UnsignedInt,
-            offset,
+            (nint)offset,
             instanceCount);
     }
 

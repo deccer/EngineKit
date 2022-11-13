@@ -14,12 +14,12 @@ public interface IGraphicsPipeline : IPipeline
         uint bindingIndex);
 
     void BindSampledTexture(
-        Sampler sampler,
+        ISampler sampler,
         ITexture texture,
         uint bindingIndex);
 
     void BindSampledTexture(
-        Sampler sampler,
+        ISampler sampler,
         uint textureId,
         uint bindingIndex);
 
