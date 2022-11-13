@@ -17,6 +17,19 @@ public class SamplerBuilder
         _samplerDescriptor.IsCompareEnabled = false;
     }
 
+    public SamplerBuilder WithMagnificationFilter(Filter filter = Filter.Linear)
+    {
+        _samplerDescriptor.MagFilter = filter;
+        return this;
+    }
+
+    public SamplerBuilder WithMinificationFilter(Filter mipmapFilter = Filter.Linear, Filter filter = Filter.Linear)
+    {
+        _samplerDescriptor.MipmapFilter = mipmapFilter;
+        _samplerDescriptor.MinFilter = filter;
+        return this;
+    }
+
     public SamplerBuilder WithLodBias(float loadBias)
     {
         _samplerDescriptor.LodBias = loadBias;

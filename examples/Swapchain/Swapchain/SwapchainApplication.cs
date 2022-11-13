@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.IO;
+using System.Linq;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
 using EngineKit.Native.Glfw;
-using EngineKit.Native.OpenGL;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
 using OpenTK.Mathematics;
@@ -32,20 +32,26 @@ internal sealed class SwapchainApplication : Application
     private readonly IGraphicsContext _graphicsContext;
     private readonly IUIRenderer _uiRenderer;
     private readonly IImageLoader _imageLoader;
+    private readonly IMeshLoader _meshLoader;
+    private readonly ICamera _camera;
 
-    private ITexture? _blueNoiseTexture;
+    private ITexture? _skullBaseColorTexture;
     private SwapchainRenderDescriptor _swapchainRenderDescriptor;
 
     private IGraphicsPipeline _sceneGraphicsPipeline;
 
     private GpuConstants _gpuConstants;
+    private IUniformBuffer _gpuConstantsBuffer;
     private IList<GpuObject> _gpuObjects;
+    private IShaderStorageBuffer _gpuObjectsBuffer;
+    private IList<GpuMaterial> _gpuMaterials;
+    private IShaderStorageBuffer _gpuMaterialBuffer;
 
-    private IVertexBuffer _sceneVertexBuffer;
-    private IIndexBuffer _sceneIndexBuffer;
+    private IVertexBuffer _skullVertexBuffer;
+    private IIndexBuffer _skullIndexBuffer;
 
-    private ISampler _nearestSampler;
-    private ISampler _rsmSampler;
+    private ISampler _linearMipmapNearestSampler;
+    private ISampler _linearMipmapLinear;
 
     public SwapchainApplication(
         ILogger logger,
@@ -56,7 +62,9 @@ internal sealed class SwapchainApplication : Application
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer,
-        IImageLoader imageLoader)
+        IImageLoader imageLoader,
+        IMeshLoader meshLoader,
+        ICamera camera)
         : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider)
     {
         _logger = logger;
@@ -64,9 +72,12 @@ internal sealed class SwapchainApplication : Application
         _graphicsContext = graphicsContext;
         _uiRenderer = uiRenderer;
         _imageLoader = imageLoader;
+        _meshLoader = meshLoader;
+        _camera = camera;
 
         _gpuConstants = new GpuConstants();
         _gpuObjects = new List<GpuObject>();
+        _gpuMaterials = new List<GpuMaterial>();
     }
 
     protected override bool Load()
@@ -78,6 +89,11 @@ internal sealed class SwapchainApplication : Application
         }
 
         if (!_uiRenderer.Load(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y))
+        {
+            return false;
+        }
+
+        if (!LoadMeshes())
         {
             return false;
         }
@@ -97,15 +113,103 @@ internal sealed class SwapchainApplication : Application
             return false;
         }
 
+        _gpuConstantsBuffer = _graphicsContext.CreateUniformBuffer("Camera", _gpuConstants);
+
+        _gpuObjects.Add(new GpuObject
+        {
+            World = Matrix4.CreateTranslation(-5, 0, 0)
+        });
+        _gpuObjects.Add(new GpuObject
+        {
+            World = Matrix4.CreateTranslation(0, 0, 0)
+        });
+        _gpuObjects.Add(new GpuObject
+        {
+            World = Matrix4.CreateTranslation(+5, 0, 0)
+        });
+
+        _gpuObjectsBuffer = _graphicsContext.CreateShaderStorageBuffer("Objects", _gpuObjects.ToArray());
+
+        _gpuMaterials.Add(new GpuMaterial
+        {
+            FlagsInt = new Vector4i(0, 0, 0, 0),
+            FlagsFloat = new Vector4(0.5f, 0.0f, 0.0f, 0.0f),
+            BaseColor = new Vector4(0.1f, 0.2f, 0.3f, 1.0f),
+        });
+        _gpuMaterials.Add(new GpuMaterial
+        {
+            FlagsInt = new Vector4i(0, 0, 0, 0),
+            FlagsFloat = new Vector4(0.5f, 0.0f, 0.0f, 0.0f),
+            BaseColor = new Vector4(0.2f, 0.3f, 0.4f, 1.0f),
+        });
+        _gpuMaterials.Add(new GpuMaterial
+        {
+            FlagsInt = new Vector4i(0, 0, 0, 0),
+            FlagsFloat = new Vector4(0.5f, 0.0f, 0.0f, 0.0f),
+            BaseColor = new Vector4(0.3f, 0.4f, 0.5f, 1.0f),
+        });
+
+        _gpuMaterialBuffer = _graphicsContext
+            .CreateShaderStorageBuffer<GpuMaterial>("Materials", _gpuMaterials.ToArray());
+
         return true;
     }
 
     protected override void Render()
     {
-        _graphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline);
+        _gpuConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
+        _gpuConstantsBuffer.Update(_gpuConstants, 0);
+
         _graphicsContext.BeginRenderToSwapchain(_swapchainRenderDescriptor);
+        _graphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline);
+        _sceneGraphicsPipeline.BindVertexBuffer(_skullVertexBuffer, 0, 0);
+        _sceneGraphicsPipeline.BindIndexBuffer(_skullIndexBuffer);
+
+        _sceneGraphicsPipeline.BindUniformBuffer(_gpuConstantsBuffer, 0);
+        _sceneGraphicsPipeline.BindShaderStorageBuffer(_gpuObjectsBuffer, 1);
+        _sceneGraphicsPipeline.BindShaderStorageBuffer(_gpuMaterialBuffer, 2);
+        _sceneGraphicsPipeline.BindSampledTexture(_linearMipmapLinear, _skullBaseColorTexture, 0);
+
+        _sceneGraphicsPipeline.DrawElementsInstanced(_skullIndexBuffer.Count, 0, _gpuObjects.Count);
         _graphicsContext.EndRender();
 
+        RenderUi();
+    }
+
+    protected override void FramebufferResized()
+    {
+        base.FramebufferResized();
+        _uiRenderer.WindowResized(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y);
+    }
+
+    protected override void Unload()
+    {
+        _linearMipmapNearestSampler.Dispose();
+        _skullBaseColorTexture?.Dispose();
+
+        _sceneGraphicsPipeline.Dispose();
+
+        _graphicsContext.Dispose();
+        base.Unload();
+    }
+
+    protected override void Update()
+    {
+        _camera.ProcessMouseMovement();
+        _uiRenderer.Update(1.0f / 60.0f);
+        if (IsKeyPressed(Glfw.Key.KeyEscape))
+        {
+            Close();
+        }
+
+        if (IsMousePressed(Glfw.MouseButton.ButtonLeft))
+        {
+            _logger.Debug("Left Mouse Button Pressed");
+        }
+    }
+
+    private void RenderUi()
+    {
         _uiRenderer.BeginLayout();
         ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode);
         if (ImGui.BeginMainMenuBar())
@@ -130,41 +234,12 @@ internal sealed class SwapchainApplication : Application
         _uiRenderer.EndLayout();
     }
 
-    protected override void FramebufferResized()
-    {
-        base.FramebufferResized();
-        _uiRenderer.WindowResized(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y);
-    }
-
-    protected override void Unload()
-    {
-        _nearestSampler?.Dispose();
-        _blueNoiseTexture?.Dispose();
-
-        _sceneGraphicsPipeline.Dispose();
-
-        _graphicsContext.Dispose();
-        base.Unload();
-    }
-
-    protected override void Update()
-    {
-        _uiRenderer.Update(1.0f / 60.0f);
-        if (IsKeyPressed(Glfw.Key.KeyEscape))
-        {
-            Close();
-        }
-
-        if (IsMousePressed(Glfw.MouseButton.ButtonLeft))
-        {
-            _logger.Debug("Left Mouse Button Pressed");
-        }
-    }
-
     private bool LoadRenderDescriptors()
     {
         //TODO(deccer) hide SwapchainDescriptor in Application/also make sure to resize when window resize
         _swapchainRenderDescriptor = new SwapchainRenderDescriptorBuilder()
+            .ClearColor(Color4.DimGray)
+            .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build();
 
@@ -179,9 +254,12 @@ internal sealed class SwapchainApplication : Application
                 .AddAttribute(0, DataType.Float, 3, 0)
                 .AddAttribute(0, DataType.Float, 3, 12)
                 .AddAttribute(0, DataType.Float, 2, 24)
-                .Build("PositionNormalUv"))
+                .AddAttribute(0, DataType.Float, 4, 32)
+                .Build(nameof(VertexPositionNormalUvTangent)))
+            .WithTopology(PrimitiveTopology.Triangles)
+            .WithFaceWinding(FaceWinding.CounterClockwise)
+            .EnableCulling(CullMode.Back)
             .EnableDepthTest()
-            .EnableDepthWrite()
             .Build("ScenePipeline");
 
         if (graphicsPipelineResult.IsFailure)
@@ -196,20 +274,39 @@ internal sealed class SwapchainApplication : Application
         return true;
     }
 
+    private bool LoadMeshes()
+    {
+        var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        var skullMeshDates = _meshLoader.LoadModel(Path.Combine(baseDirectory, "Data/Props/Skull/SM_Skull_Optimized_point2.gltf")).ToArray();
+        _skullVertexBuffer = _graphicsContext.CreateVertexBuffer("SkullVertices", skullMeshDates, VertexType.PositionNormalUvTangent);
+        _skullIndexBuffer = _graphicsContext.CreateIndexBuffer("SkullIndices", skullMeshDates);
+
+        return true;
+    }
+
     private bool LoadResources()
     {
-        _blueNoiseTexture = LoadTexture("Data/Default/T_BlueNoise32.png");
-        if (_blueNoiseTexture == null)
+        _skullBaseColorTexture = LoadTexture("Data/Props/Skull/TD_Checker_Base_Color.png");
+        if (_skullBaseColorTexture == null)
         {
             return false;
         }
+
+        _linearMipmapNearestSampler = _graphicsContext.CreateSamplerBuilder()
+            .WithMagnificationFilter()
+            .WithMinificationFilter(Filter.Linear, Filter.Nearest)
+            .WithAddressMode(AddressMode.Repeat)
+            .Build("LinearMipmapNearest");
+
+        _linearMipmapLinear = _graphicsContext.CreateSamplerBuilder()
+            .Build("LinearMipmapLinear");
 
         return true;
     }
 
     private ITexture? LoadTexture(string filePath)
     {
-        if (_imageLoader.LoadImage<Rgba32>("Data/Default/T_BlueNoise32.png") is not Image<Rgba32> image)
+        if (_imageLoader.LoadImage<Rgba32>(filePath) is not Image<Rgba32> image)
         {
             return null;
         }
@@ -217,10 +314,10 @@ internal sealed class SwapchainApplication : Application
         var textureCreateDescriptor = new TextureCreateDescriptor
         {
             Format = Format.R8G8B8A8UNorm,
-            Label = "T_BlueNoise",
+            Label = Path.GetFileNameWithoutExtension(filePath),
             ArrayLayers = 0,
             ImageType = ImageType.Texture2D,
-            MipLevels = 1,
+            MipLevels = 1 + (uint)MathF.Ceiling(MathF.Log2(MathF.Max(image.Width, image.Height))),
             SampleCount = SampleCount.OneSample,
             Size = new Vector3i(image.Width, image.Height, 1)
         };
@@ -238,18 +335,13 @@ internal sealed class SwapchainApplication : Application
         if (image.DangerousTryGetSinglePixelMemory(out var pixelData))
         {
             texture.Update(textureUpdateDescriptor, pixelData.Pin());
+            if (textureCreateDescriptor.MipLevels > 1)
+            {
+                texture.GenerateMipmaps();
+            }
             image.Dispose();
         }
 
         return texture;
-    }
-
-    private static VertexInputDescriptor CreatePositionNormalUvVertexInput()
-    {
-        return new VertexInputDescriptorBuilder()
-            .AddAttribute(0, DataType.Float, 3, 0)
-            .AddAttribute(0, DataType.Float, 3, 12)
-            .AddAttribute(0, DataType.Float, 2, 24)
-            .Build("PositionNormalUv");
     }
 }
