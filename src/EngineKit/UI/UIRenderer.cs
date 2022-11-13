@@ -9,7 +9,6 @@ using ImGuiNET;
 using OpenTK.Mathematics;
 using Serilog;
 using Num = System.Numerics;
-using Vector2 = EngineKit.Mathematics.Vector2;
 
 namespace EngineKit.UI;
 
@@ -74,7 +73,7 @@ internal sealed class UIRenderer : IUIRenderer
     private ImGuiIOPtr _imGuiIo;
 
     private ITexture? _fontTexture;
-    private Sampler? _fontSampler;
+    private ISampler? _fontSampler;
 
     private readonly ILogger _logger;
     private readonly IGraphicsContext _graphicsContext;
@@ -265,7 +264,7 @@ internal sealed class UIRenderer : IUIRenderer
             AddressModeU = AddressMode.ClampToBorder,
             AddressModeV = AddressMode.ClampToBorder
         };
-        _fontSampler = Sampler.Create(samplerDescriptor);
+        _fontSampler = _graphicsContext.CreateSampler(samplerDescriptor);
 
         _imGuiIo.Fonts.SetTexID((IntPtr)_fontTexture.Id);
         _imGuiIo.Fonts.ClearTexData();
@@ -443,7 +442,7 @@ internal sealed class UIRenderer : IUIRenderer
                         GL.PrimitiveType.Triangles,
                         (int)drawCmdPtr.ElemCount,
                         GL.IndexElementType.UnsignedShort,
-                        (int)drawCmdPtr.IdxOffset * sizeof(ushort));
+                        (nint)drawCmdPtr.IdxOffset * sizeof(ushort));
                 }
 
                 indexOffset += (int)drawCmdPtr.ElemCount;
