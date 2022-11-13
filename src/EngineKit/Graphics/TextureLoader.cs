@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using EngineKit.Mathematics;
 using OpenTK.Mathematics;
 using Serilog;
 using SixLabors.ImageSharp;
