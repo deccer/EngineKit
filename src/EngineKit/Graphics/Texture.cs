@@ -49,6 +49,14 @@ public class Texture : ITexture
                     textureCreateDescriptor.Size.X,
                     textureCreateDescriptor.Size.Y);
                 break;
+            case ImageType.TextureCube:
+                GL.TextureStorage2D(
+                    _id,
+                    textureCreateDescriptor.MipLevels,
+                    textureCreateDescriptor.Format.ToGL(),
+                    textureCreateDescriptor.Size.X,
+                    textureCreateDescriptor.Size.Y);
+                break;
             case ImageType.Texture3D:
                 GL.TextureStorage3D(
                     _id,
@@ -67,6 +75,9 @@ public class Texture : ITexture
                     textureCreateDescriptor.Size.Y,
                     (int)textureCreateDescriptor.ArrayLayers);
                 break;
+            default:
+                throw new NotImplementedException(
+                    $"ImageType {textureCreateDescriptor.ImageType} is not implemented yet");
         }
     }
 
