@@ -142,6 +142,8 @@ public class Application : IApplication
             _logger.Error("{Category}: Unable to initialize", "Glfw");
             return false;
         }
+        
+        Glfw.SetErrorCallback(ErrorCallback);
 
         var windowSettings = _windowSettings.Value;
         var windowResizable = windowSettings.WindowMode is WindowMode.Windowed or WindowMode.WindowedBorderless;
@@ -491,5 +493,10 @@ public class Application : IApplication
                 Debugger.Break();
             }
         }
+    }
+    
+    private void ErrorCallback(Glfw.ErrorCode errorCode, string errorDescription)
+    {
+        _logger.Error("{Category}: {ErrorCode} - {ErrorDescription}", "Glfw", errorCode, errorDescription);
     }
 }
