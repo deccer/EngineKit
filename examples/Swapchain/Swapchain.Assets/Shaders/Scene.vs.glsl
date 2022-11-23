@@ -5,25 +5,16 @@ layout(location = 1) in vec3 i_normal;
 layout(location = 2) in vec2 i_uv;
 layout(location = 3) in vec2 i_tangent;
 
+layout (location = 0) out gl_PerVertex
+{
+    vec4 gl_Position;
+};
 layout(location = 0) out vec3 v_position;
 layout(location = 1) out vec3 v_normal;
 layout(location = 2) out vec2 v_uv;
 layout(location = 3) out flat int v_object_id;
 
-layout(binding = 0, std140) uniform GpuConstants
-{
-    mat4 ViewProj;
-};
-
-struct GpuObject
-{
-    mat4 World;
-};
-
-layout(binding = 1, std430) readonly buffer ObjectBuffer
-{
-    GpuObject Objects[];
-} objectBuffer;
+#include "Common.glsl"
 
 void main()
 {
