@@ -7,9 +7,10 @@ namespace EngineKit.Graphics;
 
 public class ShaderProgram : IDisposable
 {
-    private readonly string? _computeShaderSource;
-    private readonly string? _vertexShaderSource;
-    private readonly string? _fragmentShaderSource;
+    private static readonly ShaderParser _shaderParser;
+    private string? _computeShaderSource;
+    private string? _vertexShaderSource;
+    private string? _fragmentShaderSource;
     private readonly Label _label;
 
     public uint ProgramPipelineId;
@@ -19,6 +20,14 @@ public class ShaderProgram : IDisposable
     public Shader? FragmentShader { get; private set; }
 
     public Shader? ComputeShader { get; private set; }
+
+    static ShaderProgram()
+    {
+        _shaderParser = new ShaderParser(
+            new CompositeShaderIncludeHandler(
+                new FileShaderIncludeHandler(),
+                new VirtualFileShaderIncludeHandler()));
+    }
 
     public ShaderProgram(string computeShaderSource, Label label)
     {
@@ -121,6 +130,7 @@ public class ShaderProgram : IDisposable
     {
         if (!string.IsNullOrEmpty(_computeShaderSource))
         {
+            _computeShaderSource = _shaderParser.ParseShader(_computeShaderSource);
             ComputeShader = new Shader(ShaderType.ComputeShader, _computeShaderSource, "CS" + _label);
 
             return Result.Success();
@@ -131,6 +141,7 @@ public class ShaderProgram : IDisposable
             return Result.Failure($"File {_vertexShaderSource} does not exist");
         }
 
+        _vertexShaderSource = _shaderParser.ParseShader(_vertexShaderSource);
         VertexShader = new Shader(ShaderType.VertexShader, _vertexShaderSource, "VS" + _label);
 
         if (string.IsNullOrEmpty(_fragmentShaderSource))
@@ -138,6 +149,7 @@ public class ShaderProgram : IDisposable
             return Result.Failure($"File {_fragmentShaderSource} does not exist");
         }
 
+        _fragmentShaderSource = _shaderParser.ParseShader(_fragmentShaderSource);
         FragmentShader = new Shader(ShaderType.FragmentShader, _fragmentShaderSource, "FS" + _label);
 
         return Result.Success();
