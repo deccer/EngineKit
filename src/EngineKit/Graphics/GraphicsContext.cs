@@ -434,4 +434,9 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         GL.DepthMask(true);
         GL.StencilMask(true);
     }
+    
+    public void InsertMemoryBarrier(BarrierMask mask)
+    {
+        GL.MemoryBarrier(mask.ToGL());
+    }
 }
