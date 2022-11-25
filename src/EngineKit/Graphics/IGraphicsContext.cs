@@ -68,4 +68,6 @@ public interface IGraphicsContext : IDisposable
     ITexture CreateTexture2D(int width, int height, Format format, Label? label = null);
 
     void EndRender();
+
+    public void InsertMemoryBarrier(BarrierMask mask);
 }

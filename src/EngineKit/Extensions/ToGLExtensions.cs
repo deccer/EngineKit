@@ -293,4 +293,29 @@ public static class ToGLExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null)
         };
     }
+
+    public static GL.MemoryBarrierMask ToGL(this BarrierMask barrierMask)
+    {
+        return barrierMask switch
+        {
+            BarrierMask.VertexAttribArray => GL.MemoryBarrierMask.VertexAttribArrayBarrierBit,
+            BarrierMask.ElementArray => GL.MemoryBarrierMask.ElementArrayBarrierBit,
+            BarrierMask.Uniform => GL.MemoryBarrierMask.UniformBarrierBit,
+            BarrierMask.TextureFetch => GL.MemoryBarrierMask.TextureFetchBarrierBit,
+            BarrierMask.ShaderGlobalAccess => GL.MemoryBarrierMask.ShaderGlobalAccessBarrierBitNv,
+            BarrierMask.ShaderImageAccess => GL.MemoryBarrierMask.ShaderImageAccessBarrierBit,
+            BarrierMask.Command => GL.MemoryBarrierMask.CommandBarrierBit,
+            BarrierMask.PixelBuffer => GL.MemoryBarrierMask.PixelBufferBarrierBit,
+            BarrierMask.TextureUpdate => GL.MemoryBarrierMask.TextureUpdateBarrierBit,
+            BarrierMask.BufferUpdate => GL.MemoryBarrierMask.BufferUpdateBarrierBit,
+            BarrierMask.Framebuffer => GL.MemoryBarrierMask.FramebufferBarrierBit,
+            BarrierMask.TransformFeedback => GL.MemoryBarrierMask.TransformFeedbackBarrierBit,
+            BarrierMask.AtomicCounter => GL.MemoryBarrierMask.AtomicCounterBarrierBit,
+            BarrierMask.ShaderStorage => GL.MemoryBarrierMask.ShaderStorageBarrierBit,
+            BarrierMask.ClientMappedBuffer => GL.MemoryBarrierMask.ClientMappedBufferBarrierBit,
+            BarrierMask.QueryBuffer => GL.MemoryBarrierMask.QueryBufferBarrierBit,
+            BarrierMask.All => GL.MemoryBarrierMask.AllBarrierBits,
+            _ => throw new ArgumentOutOfRangeException(nameof(barrierMask), barrierMask, null)
+        };
+    }
 }

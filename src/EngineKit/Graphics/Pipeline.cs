@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
 
@@ -16,20 +17,6 @@ public abstract class Pipeline : IPipeline
         ShaderProgram?.Dispose();
     }
 
-    internal Result LinkPrograms()
-    {
-        if (ShaderProgram is null)
-        {
-            return Result.Failure("No shader program available");
-        }
-
-        var linkResult = ShaderProgram.Link();
-
-        return linkResult.IsFailure
-            ? linkResult
-            : Result.Success();
-    }
-
     public void BindUniformBuffer(
         IUniformBuffer buffer,
         uint bindingIndex)
@@ -42,5 +29,19 @@ public abstract class Pipeline : IPipeline
         uint bindingIndex)
     {
         buffer.Bind(bindingIndex);
+    }
+
+    internal Result LinkPrograms()
+    {
+        if (ShaderProgram is null)
+        {
+            return Result.Failure("No shader program available");
+        }
+
+        var linkResult = ShaderProgram.Link();
+
+        return linkResult.IsFailure
+            ? linkResult
+            : Result.Success();
     }
 }
