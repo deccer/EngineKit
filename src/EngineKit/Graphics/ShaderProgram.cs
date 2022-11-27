@@ -69,7 +69,7 @@ public class ShaderProgram : IDisposable
 
             GL.UseProgramStages(
                 ProgramPipelineId,
-                GL.UseProgramStageMask.VertexShaderBit,
+                GL.UseProgramStageMask.ComputeShaderBit,
                 ComputeShader.Id);
 
             return Result.Success();
