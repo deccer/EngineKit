@@ -204,7 +204,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
     public bool BindComputePipeline(IComputePipeline computePipeline)
     {
-        if (_computePipelineCache.TryGetValue(computePipeline, out var computePipelineDescriptor))
+        if (!_computePipelineCache.TryGetValue(computePipeline, out var computePipelineDescriptor))
         {
             return false;
         }

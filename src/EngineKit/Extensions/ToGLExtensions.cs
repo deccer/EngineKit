@@ -318,4 +318,15 @@ public static class ToGLExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(barrierMask), barrierMask, null)
         };
     }
+
+    public static GL.MemoryAccess ToGL(this MemoryAccess memoryAccess)
+    {
+        return memoryAccess switch
+        {
+            MemoryAccess.ReadOnly => GL.MemoryAccess.ReadOnly,
+            MemoryAccess.WriteOnly => GL.MemoryAccess.WriteOnly,
+            MemoryAccess.ReadWrite => GL.MemoryAccess.ReadWrite,
+            _ => throw new ArgumentOutOfRangeException(nameof(memoryAccess), memoryAccess, null)
+        };
+    }
 }

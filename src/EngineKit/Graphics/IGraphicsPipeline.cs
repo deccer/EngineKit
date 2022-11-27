@@ -9,20 +9,6 @@ public interface IGraphicsPipeline : IPipeline
 
     void BindIndexBuffer(IIndexBuffer indexBuffer);
 
-    void BindInstanceBuffer(
-        IShaderStorageBuffer shaderStorageBuffer,
-        uint bindingIndex);
-
-    void BindSampledTexture(
-        ISampler sampler,
-        ITexture texture,
-        uint bindingIndex);
-
-    void BindSampledTexture(
-        ISampler sampler,
-        uint textureId,
-        uint bindingIndex);
-
     void DrawElementsIndirect(
         IIndirectBuffer indirectBuffer,
         int indirectElementIndex);

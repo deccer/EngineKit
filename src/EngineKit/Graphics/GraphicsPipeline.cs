@@ -44,23 +44,6 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
         indexBuffer.Bind(CurrentInputLayout!);
     }
 
-    public void BindInstanceBuffer(IShaderStorageBuffer shaderStorageBuffer, uint bindingIndex)
-    {
-        shaderStorageBuffer.Bind(bindingIndex);
-    }
-
-    public void BindSampledTexture(ISampler sampler, ITexture texture, uint bindingIndex)
-    {
-        GL.BindTextureUnit(bindingIndex, texture.Id);
-        GL.BindSampler(bindingIndex, sampler.Id);
-    }
-
-    public void BindSampledTexture(ISampler sampler, uint textureId, uint bindingIndex)
-    {
-        GL.BindTextureUnit(bindingIndex, textureId);
-        GL.BindSampler(bindingIndex, sampler.Id);
-    }
-
     public void DrawArraysInstanced(
         int firstVertex,
         int vertexCount,
