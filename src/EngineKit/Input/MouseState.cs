@@ -42,7 +42,7 @@ public class MouseState
     public bool this[Glfw.MouseButton button]
     {
         get => _buttons[(int)button];
-        internal set { _buttons[(int)button] = value; }
+        internal set => _buttons[(int)button] = value;
     }
 
     public bool IsButtonDown(Glfw.MouseButton button)

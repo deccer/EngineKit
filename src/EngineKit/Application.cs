@@ -30,6 +30,7 @@ public class Application : IApplication
 
     private readonly bool _showUpdatesPerSecond = true;
     private readonly int _showUpdatesPerSecondRate = 1000;
+    private bool _cursorVisible;
 
     public Application(
         ILogger logger,
@@ -76,9 +77,12 @@ public class Application : IApplication
         var nextUpdate = lastTime + _showUpdatesPerSecondRate;
         _metrics.UpdateRate = 1.0f / 60.0f;
 
+        Glfw.SetInputMode(_windowHandle, Glfw.InputMode.RawMouseMotion, 1);
+
         while (!Glfw.ShouldWindowClose(_windowHandle))
         {
             _inputProvider.MouseState.Center();
+            Glfw.SetCursorPos(_windowHandle, _applicationContext.WindowSize.X / 2.0f, _applicationContext.WindowSize.Y / 2.0f);
             Glfw.PollEvents();
 
             currentTime = stopwatch.ElapsedMilliseconds;
@@ -129,6 +133,18 @@ public class Application : IApplication
         _logger.Debug("{Category}: Unloaded", "App");
     }
 
+    protected void HideCursor()
+    {
+        _cursorVisible = false;
+        Glfw.SetInputMode(_windowHandle, Glfw.InputMode.Cursor, Glfw.CursorHidden);
+    }
+
+    protected void ShowCursor()
+    {
+        _cursorVisible = true;
+        Glfw.SetInputMode(_windowHandle, Glfw.InputMode.Cursor, Glfw.CursorNormal);
+    }
+
     protected virtual void FixedUpdate()
     {
     }
@@ -142,7 +158,7 @@ public class Application : IApplication
             _logger.Error("{Category}: Unable to initialize", "Glfw");
             return false;
         }
-        
+
         Glfw.SetErrorCallback(ErrorCallback);
 
         var windowSettings = _windowSettings.Value;
@@ -256,6 +272,11 @@ public class Application : IApplication
         _applicationContext.ScaledFramebufferSize = new Vector2i(
             (int)(framebufferWidth * _windowSettings.Value.ResolutionScale),
             (int)(framebufferHeight * _windowSettings.Value.ResolutionScale));
+
+        if (Glfw.IsRawMouseMotionSupported())
+        {
+            Glfw.SetInputMode(_windowHandle, Glfw.InputMode.RawMouseMotion, 1);
+        }
 
         Glfw.MakeContextCurrent(_windowHandle);
 
@@ -397,8 +418,8 @@ public class Application : IApplication
 
         _inputProvider.MouseState.X = (float)currentCursorX;
         _inputProvider.MouseState.Y = (float)currentCursorY;
-        _inputProvider.MouseState.DeltaX = (float)currentCursorX - _inputProvider.MouseState.PreviousX;
-        _inputProvider.MouseState.DeltaY = _inputProvider.MouseState.PreviousY - (float)currentCursorY;
+        _inputProvider.MouseState.DeltaX += (float)currentCursorX - _inputProvider.MouseState.PreviousX;
+        _inputProvider.MouseState.DeltaY += _inputProvider.MouseState.PreviousY - (float)currentCursorY;
         _inputProvider.MouseState.PreviousX = (float)currentCursorX;
         _inputProvider.MouseState.PreviousY = (float)currentCursorY;
 
@@ -494,7 +515,7 @@ public class Application : IApplication
             }
         }
     }
-    
+
     private void ErrorCallback(Glfw.ErrorCode errorCode, string errorDescription)
     {
         _logger.Error("{Category}: {ErrorCode} - {ErrorDescription}", "Glfw", errorCode, errorDescription);
