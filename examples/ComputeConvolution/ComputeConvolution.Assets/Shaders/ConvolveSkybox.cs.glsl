@@ -1,22 +1,22 @@
 #version 460 core
 
-layout(binding = 0, rgba8) readonly uniform imageCube u_environment;
+layout(binding = 0) uniform samplerCube u_environment;
 layout(binding = 1, rgba16f) writeonly uniform imageCube u_irradiance;
 
 const float PI = 3.14159265359;
 
 vec3 cubeCoordToWorld(ivec3 cubeCoord, vec2 cubemapSize)
 {
-    vec2 texCoord = vec2(cubeCoord.xy) / cubemapSize;
-    texCoord = texCoord  * 2.0 - 1.0; // -1..1
+    vec2 uv = vec2(cubeCoord.xy) / cubemapSize;
+    uv = uv  * 2.0 - 1.0; // -1..1
     switch(cubeCoord.z)
     {
-        case 0: return vec3(1.0, -texCoord.yx); // posx
-        case 1: return vec3(-1.0, -texCoord.y, texCoord.x); //negx
-        case 2: return vec3(texCoord.x, 1.0, texCoord.y); // posy
-        case 3: return vec3(texCoord.x, -1.0, -texCoord.y); //negy
-        case 4: return vec3(texCoord.x, -texCoord.y, 1.0); // posz
-        case 5: return vec3(-texCoord.xy, -1.0); // negz
+        case 0: return vec3(1.0, -uv.yx); // posx
+        case 1: return vec3(-1.0, -uv.y, uv.x); //negx
+        case 2: return vec3(uv.x, 1.0, uv.y); // posy
+        case 3: return vec3(uv.x, -1.0, -uv.y); //negy
+        case 4: return vec3(uv.x, -uv.y, 1.0); // posz
+        case 5: return vec3(-uv.xy, -1.0); // negz
     }
     return vec3(0.0);
 }
@@ -90,8 +90,9 @@ void main()
         {
             vec3 tangentSample = vec3(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
             vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * normal;
-            ivec3 sampleCoord = texCoordToCube(sampleVec, cubeSize);
-            irradiance += imageLoad(u_environment, sampleCoord).rgb * cos(theta) * sin(theta);
+            //ivec3 sampleCoord = texCoordToCube(sampleVec, cubeSize);
+            //irradiance += imageLoad(u_environment, sampleCoord).rgb * cos(theta) * sin(theta);
+            irradiance += textureLod(u_environment, sampleVec, 0).rgb * cos(theta) * sin(theta);
             nrSamples++;
         }
     }
