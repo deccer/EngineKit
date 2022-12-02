@@ -249,12 +249,15 @@ internal sealed class ComputeConvolutionApplication : Application
 
         using var convolutionComputePipeline = convolutionComputePipelineResult.Value;
         _graphicsContext.BindComputePipeline(convolutionComputePipeline);
+        convolutionComputePipeline.BindSampledTexture(_skyboxSampler, _skyboxTexture, 0);
+        /*
         convolutionComputePipeline.BindImage(
             skybox,
             0,
             0,
             MemoryAccess.ReadOnly,
             _skyboxTexture.Format);
+            */
         convolutionComputePipeline.BindImage(
             skyboxConvolved,
             1,
