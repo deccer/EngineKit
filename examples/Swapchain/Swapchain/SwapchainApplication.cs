@@ -206,6 +206,16 @@ internal sealed class SwapchainApplication : Application
         {
             _logger.Debug("Left Mouse Button Pressed");
         }
+
+        if (IsKeyPressed(Glfw.Key.KeyF5))
+        {
+            HideCursor();
+        }
+
+        if (IsKeyPressed(Glfw.Key.KeyF6))
+        {
+            ShowCursor();
+        }
     }
 
     private void RenderUi()
