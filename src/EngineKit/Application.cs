@@ -91,6 +91,9 @@ public class Application : IApplication
             accumulator += lastRenderTimeInSeconds;
             lastTime = currentTime;
 
+            _metrics.CurrentTime = currentTime;
+            _metrics.DeltaTime = deltaTime;
+
             while (accumulator >= _metrics.UpdateRate)
             {
                 FixedUpdate();
@@ -112,7 +115,7 @@ public class Application : IApplication
             _metrics.FrameCounter++;
             _metrics.FramesPerSecond++;
 
-            if (_showUpdatesPerSecond && stopwatch.ElapsedMilliseconds >= nextUpdate)
+            if (_metrics.ShowFramesPerSecond && stopwatch.ElapsedMilliseconds >= nextUpdate)
             {
                 _logger.Debug("{Category}: FPS: {@FramesPerSecond} UPS: {@UpdatesPerSecond} UR: {@UpdateRate} SD: {SwapBufferDuration:F3}ms",
                     "App",
