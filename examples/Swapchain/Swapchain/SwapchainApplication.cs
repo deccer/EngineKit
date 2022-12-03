@@ -29,6 +29,7 @@ internal sealed class SwapchainApplication : Application
 
     private readonly ILogger _logger;
     private readonly IApplicationContext _applicationContext;
+    private readonly IMetrics _metrics;
     private readonly IGraphicsContext _graphicsContext;
     private readonly IUIRenderer _uiRenderer;
     private readonly IImageLoader _imageLoader;
@@ -69,6 +70,7 @@ internal sealed class SwapchainApplication : Application
     {
         _logger = logger;
         _applicationContext = applicationContext;
+        _metrics = metrics;
         _graphicsContext = graphicsContext;
         _uiRenderer = uiRenderer;
         _imageLoader = imageLoader;
@@ -78,6 +80,7 @@ internal sealed class SwapchainApplication : Application
         _gpuConstants = new GpuConstants();
         _gpuObjects = new List<GpuObject>();
         _gpuMaterials = new List<GpuMaterial>();
+        _camera.Sensitivity = 0.25f;
     }
 
     protected override bool Load()
@@ -195,8 +198,13 @@ internal sealed class SwapchainApplication : Application
 
     protected override void Update()
     {
-        _camera.ProcessMouseMovement();
         _uiRenderer.Update(1.0f / 60.0f);
+
+        if (IsMousePressed(Glfw.MouseButton.ButtonRight))
+        {
+            _camera.ProcessMouseMovement();
+        }
+
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();
@@ -235,10 +243,23 @@ internal sealed class SwapchainApplication : Application
                     ImGui.EndMenu();
                 }
 
+                if (ImGui.BeginMenu($"{_metrics.DeltaTime:F2}"))
+                {
+                    ImGui.EndMenu();
+                }
+
                 ImGui.EndMenuBar();
+                ImGui.EndMainMenuBar();
             }
 
-            ImGui.EndMainMenuBar();
+            if (ImGui.Begin("Debug"))
+            {
+                var sensitivity = _camera.Sensitivity;
+                ImGui.SliderFloat("Camera Sensitivity", ref sensitivity, 0.01f, 2.0f);
+                _camera.Sensitivity = sensitivity;
+
+                ImGui.End();
+            }
         }
         _uiRenderer.ShowDemoWindow();
         _uiRenderer.EndLayout();

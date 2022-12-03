@@ -8,9 +8,11 @@ namespace Swapchain;
 
 public sealed class Camera : ICamera
 {
-    private const float Speed = 1.2f;
-    private const float Sensitivity = 0.5f;
-    private const float Zoom = 45.0f;
+    public float Speed { get; set; } = 1.2f;
+
+    public float Sensitivity { get; set; } = 0.5f;
+
+    public float Zoom { get; set; } = 45.0f;
 
     private readonly IApplicationContext _applicationContext;
     private readonly IInputProvider _inputProvider;
