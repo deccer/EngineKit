@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using OpenTK.Mathematics;
+using Serilog;
 using Point = SixLabors.ImageSharp.Point;
 using Vector2 = System.Numerics.Vector2;
 
@@ -12,23 +13,22 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
 {
     public string? HandleInclude(string? include)
     {
-        if (include == null)
+        if (include == null || !include.EndsWith("virtual.glsl"))
         {
             return null;
         }
 
-        if (include.EndsWith("virtual.glsl"))
+        var splitTypeName = include.Split(".").Reverse().Skip(2).Reverse();
+        var includeTypeName = string.Join(".", splitTypeName);
+        var includeTypeFullName = $"{includeTypeName}, {splitTypeName.First()}";
+        var includeType = Type.GetType(includeTypeFullName);
+        if (includeType == null)
         {
-            var includeTypeName = string.Join(".", include.Split(".").Reverse().Skip(2).Reverse());
-            var includeType = Type.GetType(includeTypeName);
-            if (includeType == null)
-            {
-                return null;
-            }
-            return GenerateGlslFromType(includeType);
+            Log.Logger.Error("{Category}: Unable to resolve virtual shader to type '{VirtualType}'", "Shader", includeTypeFullName);
+            return null;
         }
 
-        return null;
+        return GenerateGlslFromType(includeType);
     }
 
     private string? GenerateGlslFromType(Type includeType)
