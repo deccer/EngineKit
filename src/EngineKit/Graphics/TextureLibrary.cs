@@ -54,9 +54,9 @@ internal sealed class TextureLibrary : ITextureLibrary
         var textureArrayIndex = 0;
         foreach (var textureIndex in textureIndices)
         {
-            var firstImageLibraryItem = textureIndex.Value.FirstOrDefault();
-            var imageWidth = firstImageLibraryItem.Image.Width;
-            var imageHeight = firstImageLibraryItem.Image.Height;
+            var firstImageLibraryItem = textureIndex.Value.First();
+            var imageWidth = firstImageLibraryItem.Image!.Width;
+            var imageHeight = firstImageLibraryItem.Image!.Height;
 
             var textureArraySlice = 0;
             ITexture? texture = null;

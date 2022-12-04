@@ -27,8 +27,8 @@ internal sealed class UIRenderer : IUIRenderer
     {
         vec4 gl_Position;
     };
-    layout(location = 1) out vec4 fs_color;
-    layout(location = 2) out vec2 fs_uv;
+    layout(location = 1) out vec4 v_color;
+    layout(location = 2) out vec2 v_uv;
 
     layout(std140, binding = 0) uniform GlobalMatrices
     {
@@ -38,8 +38,8 @@ internal sealed class UIRenderer : IUIRenderer
     void main()
     {
         gl_Position = ProjectionMatrix * vec4(in_position, 0, 1);
-        fs_color = in_color;
-        fs_uv = in_uv;
+        v_color = in_color;
+        v_uv = in_uv;
     }
         ";
 
@@ -48,8 +48,8 @@ internal sealed class UIRenderer : IUIRenderer
     #extension GL_ARB_separate_shader_objects : enable
     #extension GL_ARB_explicit_uniform_location : enable
 
-    layout(location = 1) in vec4 fs_color;
-    layout(location = 2) in vec2 fs_uv;
+    layout(location = 1) in vec4 v_color;
+    layout(location = 2) in vec2 v_uv;
 
     layout(location = 0) out vec4 out_color;
 
@@ -57,7 +57,7 @@ internal sealed class UIRenderer : IUIRenderer
 
     void main()
     {
-        out_color = fs_color * texture(t_font, fs_uv);
+        out_color = v_color * texture(t_font, v_uv);
     }";
 
     private IGraphicsPipeline? _imGuiGraphicsPipeline;
@@ -83,9 +83,8 @@ internal sealed class UIRenderer : IUIRenderer
     private int _framebufferHeight;
 
     private int _scrollWheelValue;
-    private readonly List<char> _pressedChars = new List<char>();
-
-    private Num.Vector2 _scaleFactor = Num.Vector2.One;
+    private readonly List<char> _pressedChars;
+    private readonly Num.Vector2 _scaleFactor = Num.Vector2.One;
 
     public UIRenderer(
         ILogger logger,
@@ -95,6 +94,7 @@ internal sealed class UIRenderer : IUIRenderer
         _logger = logger.ForContext<UIRenderer>();
         _graphicsContext = graphicsContext;
         _inputProvider = inputProvider;
+        _pressedChars = new List<char>();
     }
 
     public bool Load(int width, int height, Action<ImGuiIOPtr>? configureIo = null)

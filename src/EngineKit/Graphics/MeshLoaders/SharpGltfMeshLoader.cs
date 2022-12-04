@@ -93,8 +93,10 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
-                    material.BaseColorTextureDataName = Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Name) ?? Guid.NewGuid().ToString();
-                    if (materialChannel.Texture.PrimaryImage.Content.IsEmpty)
+                    material.BaseColorTextureDataName =
+                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Name) ??
+                        Guid.NewGuid().ToString();
+                    if (materialChannel.Texture!.PrimaryImage!.Content.IsEmpty)
                     {
                         material.BaseColorTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
                     }
@@ -108,8 +110,10 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             {
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
-                    material.NormalTextureDataName = Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Name) ?? Guid.NewGuid().ToString();
-                    if (materialChannel.Texture.PrimaryImage.Content.IsEmpty)
+                    material.NormalTextureDataName =
+                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Name) ??
+                        Guid.NewGuid().ToString();
+                    if (materialChannel.Texture!.PrimaryImage!.Content.IsEmpty)
                     {
                         material.NormalTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
                     }
@@ -123,9 +127,23 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             }
             else if (materialChannel.Key == "MetallicRoughness")
             {
-                // MetallicFactor
-                // RoughnessFactor
-                // metallicRoughnessTexture
+                material.MetallicFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "MetallicFactor")?.Value ?? 0.0f;
+                material.RoughnessFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "RuoghnessFactor")?.Value ?? 0.0f;
+
+                if (materialChannel.Texture?.PrimaryImage != null)
+                {
+                    material.MetalnessRoughnessTextureDataName =
+                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Name) ??
+                        Guid.NewGuid().ToString();
+                    if (materialChannel.Texture!.PrimaryImage!.Content.IsEmpty)
+                    {
+                        material.MetalnessRoughnessTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
+                    }
+                    else
+                    {
+                        material.MetalnessRoughnessEmbeddedImageData = materialChannel.Texture.PrimaryImage.Content.Content;
+                    }
+                }
             }
             else if (materialChannel.Key == "SpecularGlossiness")
             {
@@ -143,6 +161,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             else if (materialChannel.Key == "Emissive")
             {
                 // Color
+                material.Emissive = new Color4(materialChannel.Color.X, materialChannel.Color.Y, materialChannel.Color.Z, 0.0f);
             }
         }
 

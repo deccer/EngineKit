@@ -16,5 +16,7 @@ internal sealed class Metrics : IMetrics
 
     public bool ShowFramesPerSecond { get; set; } = true;
 
+    public int ShowFramesPerSecondInterval { get; set; } = 1000;
+
     public long CurrentTime { get; set; }
 }

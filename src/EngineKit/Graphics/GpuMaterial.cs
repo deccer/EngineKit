@@ -6,11 +6,15 @@ namespace EngineKit.Graphics;
 [StructLayout(LayoutKind.Sequential)]
 public struct GpuMaterial
 {
-    public Color4 Diffuse { get; set; }
+    public Color4 Diffuse;
 
-    public Color4 Emissive { get; set; }
+    public Color4 Emissive;
 
-    public Vector4i BaseColorTextureId { get; set; }
+    public Vector4i BaseColorTextureId;
 
-    public Vector4i NormalTextureId { get; set; }
+    public Vector4i NormalTextureId;
+
+    public Vector4i SpecularTextureId;
+
+    public Vector4i MetalnessRoughnessTextureId;
 }

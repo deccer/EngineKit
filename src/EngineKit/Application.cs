@@ -28,9 +28,7 @@ public class Application : IApplication
     private Glfw.CursorPositionCallback? _cursorPositionCallback;
     private Glfw.WindowSizeCallback? _windowSizeCallback;
 
-    private readonly bool _showUpdatesPerSecond = true;
-    private readonly int _showUpdatesPerSecondRate = 1000;
-    private bool _cursorVisible;
+    private bool _cursorVisible = true;
 
     public Application(
         ILogger logger,
@@ -74,7 +72,7 @@ public class Application : IApplication
         var accumulator = 0f;
         var currentTime = stopwatch.ElapsedMilliseconds;
         var lastTime = currentTime;
-        var nextUpdate = lastTime + _showUpdatesPerSecondRate;
+        var nextUpdate = lastTime + _metrics.ShowFramesPerSecondInterval;
         _metrics.UpdateRate = 1.0f / 60.0f;
 
         Glfw.SetInputMode(_windowHandle, Glfw.InputMode.RawMouseMotion, 1);
@@ -87,7 +85,7 @@ public class Application : IApplication
 
             currentTime = stopwatch.ElapsedMilliseconds;
             var deltaTime = currentTime - lastTime;
-            var lastRenderTimeInSeconds = deltaTime / (float)_showUpdatesPerSecondRate;
+            var lastRenderTimeInSeconds = deltaTime / (float)_metrics.ShowFramesPerSecondInterval;
             accumulator += lastRenderTimeInSeconds;
             lastTime = currentTime;
 
@@ -125,7 +123,7 @@ public class Application : IApplication
                     _metrics.SwapBufferDuration);
                 _metrics.UpdatesPerSecond = 0;
                 _metrics.FramesPerSecond = 0;
-                nextUpdate = stopwatch.ElapsedMilliseconds + _showUpdatesPerSecondRate;
+                nextUpdate = stopwatch.ElapsedMilliseconds + _metrics.ShowFramesPerSecondInterval;
             }
         }
 
