@@ -36,10 +36,15 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
         var glsl = new StringBuilder();
         glsl.AppendLine($"struct {includeType.Name}");
         glsl.AppendLine("{");
-        var members = includeType
-            .GetFields(BindingFlags.Public)
-            .Select(field => new { Name = field.Name, Type = field.FieldType })
-            .Concat(includeType.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(property => new { Name = property.Name, Type = property.PropertyType }));
+        var fields = includeType
+            .GetFields(BindingFlags.Public | BindingFlags.Instance)
+            .Select(field => new { Name = field.Name, Type = field.FieldType });
+
+        var properties = includeType
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Select(property => new { property.Name, Type = property.PropertyType });
+
+        var members = fields.Concat(properties);
         foreach (var member in members)
         {
             glsl.AppendLine($"    {ToGlslType(member.Type)} {member.Name};");
