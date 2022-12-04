@@ -75,12 +75,14 @@ public class Application : IApplication
         var nextUpdate = lastTime + _metrics.ShowFramesPerSecondInterval;
         _metrics.UpdateRate = 1.0f / 60.0f;
 
-        Glfw.SetInputMode(_windowHandle, Glfw.InputMode.RawMouseMotion, 1);
+        if (Glfw.IsRawMouseMotionSupported())
+        {
+            Glfw.SetInputMode(_windowHandle, Glfw.InputMode.RawMouseMotion, Glfw.True);
+        }
 
         while (!Glfw.ShouldWindowClose(_windowHandle))
         {
             _inputProvider.MouseState.Center();
-            Glfw.SetCursorPos(_windowHandle, _applicationContext.WindowSize.X / 2.0f, _applicationContext.WindowSize.Y / 2.0f);
             Glfw.PollEvents();
 
             currentTime = stopwatch.ElapsedMilliseconds;
@@ -126,6 +128,8 @@ public class Application : IApplication
                 nextUpdate = stopwatch.ElapsedMilliseconds + _metrics.ShowFramesPerSecondInterval;
             }
         }
+
+        stopwatch.Stop();
 
         _logger.Debug("{Category}: Unloading", "App");
 
