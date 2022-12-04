@@ -1,11 +1,14 @@
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Text;
 using OpenTK.Mathematics;
 using Serilog;
 using Point = SixLabors.ImageSharp.Point;
 using Vector2 = System.Numerics.Vector2;
+using Vector3 = OpenTK.Mathematics.Vector3;
+using Vector4 = OpenTK.Mathematics.Vector4;
 
 namespace EngineKit.Graphics;
 
@@ -54,7 +57,7 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
         return glsl.ToString();
     }
 
-    private string ToGlslType(Type type)
+    private static string ToGlslType(Type type)
     {
         if (type == typeof(int))
         {
@@ -99,6 +102,46 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
         if (type == typeof(Vector4))
         {
             return "vec4";
+        }
+
+        if (type == typeof(Matrix2))
+        {
+            return "mat2";
+        }
+
+        if (type == typeof(Matrix3))
+        {
+            return "mat3";
+        }
+
+        if (type == typeof(Matrix4) || type == typeof(Matrix4x4))
+        {
+            return "mat4";
+        }
+
+        if (type == typeof(Matrix4x3))
+        {
+            return "mat4x3";
+        }
+
+        if (type == typeof(Matrix2d))
+        {
+            return "dmat2";
+        }
+
+        if (type == typeof(Matrix3d))
+        {
+            return "dmat3";
+        }
+
+        if (type == typeof(Matrix4d))
+        {
+            return "dmat4";
+        }
+
+        if (type == typeof(Matrix4x3d))
+        {
+            return "dmat4x3";
         }
 
         return "INVALID";
