@@ -56,12 +56,14 @@ internal sealed class ImageLibrary : IImageLibrary
         _imagesToBeLoaded.Add(name, imageSpan.ToArray());
     }
 
-    public IDictionary<string, IList<ImageLibraryItem>> GetImageDataPerMaterial(IImmutableList<Material> materials)
+    public IDictionary<string, IList<ImageLibraryItem>> GetImageDataPerMaterial(IReadOnlyList<Material> materials)
     {
         var imagesPerMaterial = new Dictionary<string, IList<ImageLibraryItem>>();
 
         foreach (var material in materials)
         {
+            ///// base color
+
             if (!string.IsNullOrEmpty(material.BaseColorTextureDataName) && _imageFilePathsToBeLoaded.TryGetValue(material.BaseColorTextureDataName, out var baseColorTextureFilePath))
             {
                 if (File.Exists(baseColorTextureFilePath))
@@ -70,8 +72,8 @@ internal sealed class ImageLibrary : IImageLibrary
                 }
                 else
                 {
-                    //TODO use dummy texture
-                    _logger.Warning("{Category}: {FilePath} not found", nameof(ImageLibrary), baseColorTextureFilePath);
+                    _logger.Warning("{Category}: {FilePath} not found. Loading fallback 'Data/Default/T_Default_B.png", nameof(ImageLibrary), baseColorTextureFilePath);
+                    LoadImageFromFile(material.Name, "T_Default_B", "Data/Default/T_Default_B.png", imagesPerMaterial);
                 }
             }
 
@@ -79,6 +81,8 @@ internal sealed class ImageLibrary : IImageLibrary
             {
                 LoadImageFromSpan(material.Name, material.BaseColorTextureDataName, baseColorImageSpan, imagesPerMaterial);
             }
+
+            ///// normal
 
             if (!string.IsNullOrEmpty(material.NormalTextureDataName) && _imageFilePathsToBeLoaded.TryGetValue(material.NormalTextureDataName, out var normalTextureFilePath))
             {
@@ -88,14 +92,54 @@ internal sealed class ImageLibrary : IImageLibrary
                 }
                 else
                 {
-                    //TODO use dummy texture
-                    _logger.Warning("{Category}: {FilePath} not found", nameof(ImageLibrary), normalTextureFilePath);
+                    _logger.Warning("{Category}: {FilePath} not found. Loading fallback 'Data/Default/T_Default_N.png", nameof(ImageLibrary), normalTextureFilePath);
+                    LoadImageFromFile(material.Name, "T_Default_N", "Data/Default/T_Default_N.png", imagesPerMaterial);
                 }
             }
 
             if (!string.IsNullOrEmpty(material.NormalTextureDataName) && _imagesToBeLoaded.TryGetValue(material.NormalTextureDataName, out var normalImageSpan))
             {
                 LoadImageFromSpan(material.Name, material.NormalTextureDataName, normalImageSpan, imagesPerMaterial);
+            }
+
+            ///// specular
+
+            if (!string.IsNullOrEmpty(material.SpecularTextureDataName) && _imageFilePathsToBeLoaded.TryGetValue(material.SpecularTextureDataName, out var specularTextureFilePath))
+            {
+                if (File.Exists(specularTextureFilePath))
+                {
+                    LoadImageFromFile(material.Name, material.SpecularTextureDataName, specularTextureFilePath, imagesPerMaterial);
+                }
+                else
+                {
+                    _logger.Warning("{Category}: {FilePath} not found. Loading fallback 'Data/Default/T_Default_S.png", nameof(ImageLibrary), specularTextureFilePath);
+                    LoadImageFromFile(material.Name, "T_Default_S", "Data/Default/T_Default_S.png", imagesPerMaterial);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(material.SpecularTextureDataName) && _imagesToBeLoaded.TryGetValue(material.SpecularTextureDataName, out var specularImageSpan))
+            {
+                LoadImageFromSpan(material.Name, material.SpecularTextureDataName, specularImageSpan, imagesPerMaterial);
+            }
+
+            ///// metalness roughness
+
+            if (!string.IsNullOrEmpty(material.MetalnessRoughnessTextureDataName) && _imageFilePathsToBeLoaded.TryGetValue(material.MetalnessRoughnessTextureDataName, out var roughnessTextureFilePath))
+            {
+                if (File.Exists(roughnessTextureFilePath))
+                {
+                    LoadImageFromFile(material.Name, material.MetalnessRoughnessTextureDataName, roughnessTextureFilePath, imagesPerMaterial);
+                }
+                else
+                {
+                    _logger.Warning("{Category}: {FilePath} not found. Loading fallback 'Data/Default/T_Default_MR.png", nameof(ImageLibrary), roughnessTextureFilePath);
+                    LoadImageFromFile(material.Name, "T_Default_MR", "Data/Default/T_Default_MR.png", imagesPerMaterial);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(material.MetalnessRoughnessTextureDataName) && _imagesToBeLoaded.TryGetValue(material.MetalnessRoughnessTextureDataName, out var roughnessImageSpan))
+            {
+                LoadImageFromSpan(material.Name, material.MetalnessRoughnessTextureDataName, roughnessImageSpan, imagesPerMaterial);
             }
         }
 
@@ -168,7 +212,7 @@ internal sealed class ImageLibrary : IImageLibrary
         {
             image.Mutate(i => i.Flip(FlipMode.Horizontal));
         }
-        var textureArrayIndex = (int)Math.Log2(image.Width);
+        var textureArrayIndex = (int)Math.Log2(image!.Width);
         var imageLibraryItem = new ImageLibraryItem
         {
             ImageName = imageName,

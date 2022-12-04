@@ -6,8 +6,12 @@ namespace EngineKit.Graphics;
 public struct GpuIndirectElementData
 {
     public uint IndexCount; // count
+
     public uint InstanceCount; // primitivecount
+
     public uint FirstIndex;
+
     public int BaseVertex;
+
     public uint BaseInstance;
 }

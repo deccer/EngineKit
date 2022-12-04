@@ -9,21 +9,15 @@ namespace EngineKit.Graphics;
 internal sealed class MaterialLibrary : IMaterialLibrary
 {
     private readonly ILogger _logger;
-    private readonly ITextureLibrary _textureLibrary;
-    private readonly ITextureLoader _textureLoader;
     private readonly IImageLibrary _imageLibrary;
     private readonly IDictionary<string, Material> _materials;
     private readonly Random _random;
 
     public MaterialLibrary(
         ILogger logger,
-        ITextureLibrary textureLibrary,
-        ITextureLoader textureLoader,
         IImageLibrary imageLibrary)
     {
         _logger = logger.ForContext<MaterialLibrary>();
-        _textureLibrary = textureLibrary;
-        _textureLoader = textureLoader;
         _imageLibrary = imageLibrary;
         _materials = new Dictionary<string, Material>(256);
         _random = new Random();
@@ -39,10 +33,10 @@ internal sealed class MaterialLibrary : IMaterialLibrary
         foreach (var color in colors)
         {
             var materialName = $"M_Default_{color.Name}";
-            var colorValue = (Color4)color.GetValue(color);
+            var colorValue = (Color4?)color.GetValue(color);
             _materials.Add(materialName, new Material(materialName)
             {
-                BaseColor = colorValue
+                BaseColor = colorValue ?? Color4.Fuchsia
             });
         }
     }
@@ -103,6 +97,38 @@ internal sealed class MaterialLibrary : IMaterialLibrary
             }
         }
 
+        if (!string.IsNullOrEmpty(material.SpecularTextureDataName))
+        {
+            if (material.SpecularEmbeddedImageData.HasValue)
+            {
+                var imageSpan = material.SpecularEmbeddedImageData.Value.Span;
+                _imageLibrary.AddImage(material.SpecularTextureDataName, imageSpan);
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(material.SpecularTextureFilePath))
+                {
+                    _imageLibrary.AddImage(material.SpecularTextureDataName, material.SpecularTextureFilePath);
+                }
+            }
+        }
+
+        if (!string.IsNullOrEmpty(material.MetalnessRoughnessTextureDataName))
+        {
+            if (material.MetalnessRoughnessEmbeddedImageData.HasValue)
+            {
+                var imageSpan = material.MetalnessRoughnessEmbeddedImageData.Value.Span;
+                _imageLibrary.AddImage(material.MetalnessRoughnessTextureDataName, imageSpan);
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(material.MetalnessRoughnessTextureFilePath))
+                {
+                    _imageLibrary.AddImage(material.MetalnessRoughnessTextureDataName, material.MetalnessRoughnessTextureFilePath);
+                }
+            }
+        }
+
         _materials.Add(name, material);
     }
 
@@ -135,7 +161,7 @@ internal sealed class MaterialLibrary : IMaterialLibrary
             : _materials["M_Default_White"];
     }
 
-    private GpuMaterial ToGpuMaterial(Material material, IDictionary<string, TextureId> textureArrayIndices)
+    private static GpuMaterial ToGpuMaterial(Material material, IDictionary<string, TextureId> textureArrayIndices)
     {
         //TODO(deccer) get rid of that guid.newguid bs
         var baseColorTextureIdExists =
@@ -144,16 +170,28 @@ internal sealed class MaterialLibrary : IMaterialLibrary
         var normalTextureIdExists =
             textureArrayIndices.TryGetValue(material.NormalTextureDataName ?? Guid.NewGuid().ToString(), out var normalTextureId);
 
+        var specularTextureIdExists =
+            textureArrayIndices.TryGetValue(material.SpecularTextureDataName ?? Guid.NewGuid().ToString(), out var specularTextureId);
+
+        var metalnessRoughnessTextureIdExists =
+            textureArrayIndices.TryGetValue(material.MetalnessRoughnessTextureDataName ?? Guid.NewGuid().ToString(), out var metalnessRoughnessTextureId);
+
         return new GpuMaterial
         {
             Diffuse = material.BaseColor,
             Emissive = material.Emissive,
             BaseColorTextureId = baseColorTextureIdExists
-                ? new Vector4i(baseColorTextureId.ArrayIndex, baseColorTextureId.ArraySlice, -1, -1)
+                ? new Vector4i(baseColorTextureId!.ArrayIndex, baseColorTextureId.ArraySlice, -1, -1)
                 : new Vector4i(-1, -1, -1, -1),
             NormalTextureId = normalTextureIdExists
-                ? new Vector4i(normalTextureId.ArrayIndex, normalTextureId.ArraySlice, -1, -1)
-                : new Vector4i(-1, -1, -1, -1)
+                ? new Vector4i(normalTextureId!.ArrayIndex, normalTextureId.ArraySlice, -1, -1)
+                : new Vector4i(-1, -1, -1, -1),
+            SpecularTextureId = specularTextureIdExists
+                ? new Vector4i(specularTextureId!.ArrayIndex, specularTextureId.ArraySlice, -1, -1)
+                : new Vector4i(-1, -1, -1, -1),
+            MetalnessRoughnessTextureId = metalnessRoughnessTextureIdExists
+                ? new Vector4i(metalnessRoughnessTextureId!.ArrayIndex, metalnessRoughnessTextureId.ArraySlice, -1, -1)
+                : new Vector4i(-1, -1, -1, -1),
         };
     }
 }

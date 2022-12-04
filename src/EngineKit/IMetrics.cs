@@ -16,5 +16,7 @@ public interface IMetrics
 
     bool ShowFramesPerSecond { get; set; }
 
+    int ShowFramesPerSecondInterval { get; set; }
+
     long CurrentTime { get; set; }
 }
