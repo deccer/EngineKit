@@ -188,9 +188,14 @@ internal sealed class SwapchainApplication : Application
     protected override void Unload()
     {
         _linearMipmapNearestSampler.Dispose();
+        _linearMipmapLinear.Dispose();
         _skullBaseColorTexture?.Dispose();
-
+        _skullVertexBuffer.Dispose();
+        _skullIndexBuffer.Dispose();
         _sceneGraphicsPipeline.Dispose();
+        _gpuConstantsBuffer.Dispose();
+        _gpuMaterialBuffer.Dispose();
+        _gpuObjectsBuffer.Dispose();
 
         _graphicsContext.Dispose();
         base.Unload();
@@ -204,6 +209,7 @@ internal sealed class SwapchainApplication : Application
         {
             _camera.ProcessMouseMovement();
         }
+        _camera.ProcessKeyboard(Vector3.Zero, _metrics.DeltaTime);
 
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
@@ -311,6 +317,8 @@ internal sealed class SwapchainApplication : Application
         var skullMeshDates = _meshLoader.LoadModel(Path.Combine(baseDirectory, "Data/Props/Skull/SM_Skull_Optimized_point2.gltf")).ToArray();
         _skullVertexBuffer = _graphicsContext.CreateVertexBuffer("SkullVertices", skullMeshDates, VertexType.PositionNormalUvTangent);
         _skullIndexBuffer = _graphicsContext.CreateIndexBuffer("SkullIndices", skullMeshDates);
+
+        //var pbrScene = _meshLoader.LoadModel(Path.Combine(baseDirectory, "Data/Scenes/Pbr_Reference/scene.gltf")).ToArray();
 
         return true;
     }

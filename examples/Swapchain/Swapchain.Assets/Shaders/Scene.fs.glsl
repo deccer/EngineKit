@@ -10,12 +10,15 @@ layout(location = 3) in flat int v_object_id;
 
 layout(binding = 0) uniform sampler2D s_base_color;
 
+#include <Swapchain.GpuMaterial.virtual.glsl>
+/*
 struct GpuMaterial
 {
     ivec4 flagsInt;
     vec4 flagsFloat;
     vec4 baseColor;
 };
+*/
 
 layout(binding = 2, std140) buffer MaterialBuffer
 {
@@ -25,10 +28,10 @@ layout(binding = 2, std140) buffer MaterialBuffer
 void main()
 {
     GpuMaterial material = materialBuffer.Materials[v_object_id];
-    vec4 color = material.baseColor.rgba;
+    vec4 color = material.BaseColor.rgba;
     color *= texture(s_base_color, v_uv).rgba;
 
-    if (color.a < material.flagsFloat.x)
+    if (color.a < material.FlagsFloat.x)
     {
         discard;
     }
