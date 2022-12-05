@@ -1,3 +1,4 @@
+using System.Linq;
 using EngineKit.Graphics;
 using FluentAssertions;
 using Xunit;
@@ -22,15 +23,19 @@ public class ShaderIncludesShould
         _shaderParser.Should().NotBeNull();
     }
 
-    [Fact]
-    public void ShouldReplaceIncludeWithContent()
+    [Theory]
+    [InlineData("EngineKit.Graphics.GpuMaterial")]
+    [InlineData("EngineKit.Graphics.GpuLightInformation")]
+    [InlineData("EngineKit.Graphics.GpuInstanceData")]
+    [InlineData("EngineKit.Graphics.GpuGlobalMatrices")]
+    public void ShouldReplaceIncludeWithContent(string virtualShader)
     {
         // Arrange
-        var shaderSource = $$"""
+        var shaderSource = """
         #version 460 core
 
         #include "Common.glsl"
-        #include "EngineKit.Graphics.GpuMaterial.virtual.glsl"
+        #include "@@VIRTUALSHADER@@.virtual.glsl"
 
         void main()
         {
@@ -38,10 +43,12 @@ public class ShaderIncludesShould
         """;
 
         // Act
-        var compiledString = _shaderParser.ParseShader(shaderSource);
+        var compiledString = _shaderParser.ParseShader(shaderSource.Replace("@@VIRTUALSHADER@@", virtualShader));
 
         // Assert
         compiledString.Should().NotBeEmpty();
+        compiledString.Should().Contain(virtualShader.Split(".").Last());
         compiledString.Should().NotContain("#include");
+        compiledString.Should().NotContain("INVALID");
     }
 }

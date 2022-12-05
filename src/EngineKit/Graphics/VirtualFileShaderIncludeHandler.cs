@@ -79,6 +79,11 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
             return "ivec2";
         }
 
+        if (type == typeof(Color4))
+        {
+            return "vec4";
+        }
+
         if (type == typeof(Vector3i))
         {
             return "ivec3";
