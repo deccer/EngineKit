@@ -20,7 +20,7 @@ internal sealed class FramebufferFactory : IFramebufferFactory
     {
         foreach (var fbo in _framebufferCache.Values)
         {
-            GL.DeleteFramebuffer((int)fbo);
+            GL.DeleteFramebuffer(fbo);
         }
 
         _framebufferCache.Clear();
