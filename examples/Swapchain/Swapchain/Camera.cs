@@ -84,6 +84,7 @@ public sealed class Camera : ICamera
     {
         var velocity = Speed * deltaTime;
         _position += movement * velocity;
+        UpdateCameraVectors();
     }
 
     public void ProcessMouseMovement()

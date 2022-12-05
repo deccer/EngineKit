@@ -1,0 +1,11 @@
+Model Information:
+* title:	Sketchfab PBR Material Reference Chart
+* source:	https://sketchfab.com/3d-models/sketchfab-pbr-material-reference-chart-8ca5084b181340e0b19245094788fdff
+* author:	NAHIN (https://sketchfab.com/NAHIN)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Sketchfab PBR Material Reference Chart" (https://sketchfab.com/3d-models/sketchfab-pbr-material-reference-chart-8ca5084b181340e0b19245094788fdff) by NAHIN (https://sketchfab.com/NAHIN) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
