@@ -49,7 +49,7 @@ public class Application : IApplication
 
     public void Dispose()
     {
-        Glfw.Terminate();
+        //Glfw.Terminate();
     }
 
     public void Run()
