@@ -1,7 +1,8 @@
 #version 460 core
 
-layout(binding = 0) uniform samplerCube u_environment;
-layout(binding = 1, rgba16f) writeonly uniform imageCube u_irradiance;
+//layout(binding = 0) uniform samplerCube u_environment;
+layout(binding = 0, rgba8) uniform readonly imageCube u_environment;
+layout(binding = 1, rgba16f) uniform writeonly imageCube u_irradiance;
 
 const float PI = 3.14159265359;
 
@@ -23,7 +24,7 @@ vec3 cubeCoordToWorld(ivec3 cubeCoord, vec2 cubemapSize)
 
 float max3(vec3 v)
 {
-  return max(max(v.x, v.y), v.z);
+    return max(max(v.x, v.y), v.z);
 }
 
 ivec3 texCoordToCube(vec3 texCoord, vec2 cubemapSize)
@@ -81,7 +82,7 @@ void main()
     vec3 irradiance = vec3(0.0);
 
     //float sampleDelta = 0.025;
-    float sampleDelta = 1.0;
+    float sampleDelta = 0.09;
     float nrSamples = 0.0;
 
     for (float phi = 0.0; phi < 2.0 * PI; phi += sampleDelta)
@@ -90,9 +91,10 @@ void main()
         {
             vec3 tangentSample = vec3(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
             vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * normal;
-            //ivec3 sampleCoord = texCoordToCube(sampleVec, cubeSize);
-            //irradiance += imageLoad(u_environment, sampleCoord).rgb * cos(theta) * sin(theta);
-            irradiance += textureLod(u_environment, sampleVec, 0).rgb * cos(theta) * sin(theta);
+            ivec3 sampleCoord = texCoordToCube(sampleVec, cubeSize);
+            irradiance += imageLoad(u_environment, sampleCoord).rgb * cos(theta) * sin(theta);
+
+            //irradiance += textureLod(u_environment, sampleVec, 0).rgb * cos(theta) * sin(theta);
             nrSamples++;
         }
     }

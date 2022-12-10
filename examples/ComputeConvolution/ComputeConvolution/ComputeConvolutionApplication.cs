@@ -85,7 +85,7 @@ internal sealed class ComputeConvolutionApplication : Application
     {
         if (_metrics.FrameCounter == 0)
         {
-            if (!ConvolveSkybox(_skyboxTexture!, _skyboxConvolvedTexture!))
+            if (!ConvolveSkybox())
             {
                 return;
             }
@@ -93,7 +93,7 @@ internal sealed class ComputeConvolutionApplication : Application
         _graphicsContext.BeginRenderToSwapchain(_swapchainRenderDescriptor);
         _graphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline!);
 
-        _sceneGraphicsPipeline!.BindSampledTexture(_skyboxSampler!, _skyboxConvolvedTexture!, 0);
+        _sceneGraphicsPipeline!.BindSampledTexture(_skyboxSampler!, _skyboxTexture.Id!, 0);
 
         _sceneGraphicsPipeline.DrawArrays(3, 0);
         _graphicsContext.EndRender();
@@ -112,7 +112,6 @@ internal sealed class ComputeConvolutionApplication : Application
         _skyboxSampler?.Dispose();
         _skyboxTexture?.Dispose();
         _skyboxConvolvedTexture?.Dispose();
-
         _sceneGraphicsPipeline?.Dispose();
 
         _graphicsContext.Dispose();
@@ -227,7 +226,7 @@ internal sealed class ComputeConvolutionApplication : Application
         return true;
     }
 
-    private bool ConvolveSkybox(ITexture skybox, ITexture skyboxConvolved)
+    private bool ConvolveSkybox()
     {
         var convolutionComputePipelineResult = _graphicsContext.CreateComputePipelineBuilder()
             .WithShaderFromFile("Shaders/ConvolveSkybox.cs.glsl")
@@ -246,23 +245,22 @@ internal sealed class ComputeConvolutionApplication : Application
 
         using var convolutionComputePipeline = convolutionComputePipelineResult.Value;
         _graphicsContext.BindComputePipeline(convolutionComputePipeline);
-        convolutionComputePipeline.BindSampledTexture(_skyboxSampler!, _skyboxTexture!, 0);
-        /*
+
         convolutionComputePipeline.BindImage(
-            skybox,
+            _skyboxTexture,
             0,
             0,
             MemoryAccess.ReadOnly,
-            _skyboxTexture.Format);
-            */
+            _skyboxTexture!.Format);
         convolutionComputePipeline.BindImage(
-            skyboxConvolved,
+            _skyboxConvolvedTexture,
             1,
             0,
             MemoryAccess.WriteOnly,
-            skyboxConvolved.Format);
+            _skyboxConvolvedTexture.Format);
         convolutionComputePipeline.Dispatch(xGroups, yGroups, 6);
         _graphicsContext.InsertMemoryBarrier(BarrierMask.ShaderImageAccess);
+
         _skyboxConvolvedTexture!.GenerateMipmaps();
 
         return true;
