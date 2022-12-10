@@ -134,6 +134,7 @@ public class Application : IApplication
         _logger.Debug("{Category}: Unloading", "App");
 
         Unload();
+        Glfw.DestroyWindow(_windowHandle);
 
         _logger.Debug("{Category}: Unloaded", "App");
     }
