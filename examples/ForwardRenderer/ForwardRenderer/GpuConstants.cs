@@ -1,6 +1,6 @@
 using OpenTK.Mathematics;
 
-namespace Swapchain;
+namespace ForwardRenderer;
 
 public struct GpuConstants
 {

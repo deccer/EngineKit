@@ -1,5 +1,6 @@
 using EngineKit.Graphics;
 using EngineKit.Input;
+using EngineKit.Native.OpenGL;
 using Microsoft.Extensions.Options;
 using Serilog;
 
@@ -49,6 +50,17 @@ public class GraphicsApplication : Application
         {
             return false;
         }
+
+        GL.Disable(GL.EnableType.Blend);
+        GL.Disable(GL.EnableType.CullFace);
+        GL.Disable(GL.EnableType.ScissorTest);
+        GL.Disable(GL.EnableType.DepthTest);
+        GL.Disable(GL.EnableType.StencilTest);
+        GL.Disable(GL.EnableType.SampleCoverage);
+        GL.Disable(GL.EnableType.SampleAlphaToCoverage);
+        GL.Disable(GL.EnableType.PolygonOffsetFill);
+        //GL.Enable(GL.EnableType.FramebufferSrgb);
+        GL.Disable(GL.EnableType.Multisample);
 
         return true;
     }

@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using EngineKit;
 using EngineKit.Input;
 using OpenTK.Mathematics;
 using MathHelper = EngineKit.MathHelper;
 
-namespace Swapchain;
+namespace ForwardRenderer;
 
 public sealed class Camera : ICamera
 {

@@ -13,9 +13,9 @@ using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace Swapchain;
+namespace ForwardRenderer;
 
-internal sealed class SwapchainApplication : GraphicsApplication
+internal sealed class ForwardRendererApplication : GraphicsApplication
 {
     private readonly ILogger _logger;
     private readonly IApplicationContext _applicationContext;
@@ -23,6 +23,8 @@ internal sealed class SwapchainApplication : GraphicsApplication
     private readonly IImageLoader _imageLoader;
     private readonly IMeshLoader _meshLoader;
     private readonly ICamera _camera;
+    private readonly IList<GpuObject> _gpuObjects;
+    private readonly IList<GpuMaterial> _gpuMaterials;
 
     private ITexture? _skullBaseColorTexture;
     private SwapchainRenderDescriptor _swapchainRenderDescriptor;
@@ -31,9 +33,7 @@ internal sealed class SwapchainApplication : GraphicsApplication
 
     private GpuConstants _gpuConstants;
     private IUniformBuffer? _gpuConstantsBuffer;
-    private readonly IList<GpuObject> _gpuObjects;
     private IShaderStorageBuffer? _gpuObjectsBuffer;
-    private readonly IList<GpuMaterial> _gpuMaterials;
     private IShaderStorageBuffer? _gpuMaterialBuffer;
 
     private IVertexBuffer? _skullVertexBuffer;
@@ -42,7 +42,7 @@ internal sealed class SwapchainApplication : GraphicsApplication
     private ISampler? _linearMipmapNearestSampler;
     private ISampler? _linearMipmapLinear;
 
-    public SwapchainApplication(
+    public ForwardRendererApplication(
         ILogger logger,
         IOptions<WindowSettings> windowSettings,
         IOptions<ContextSettings> contextSettings,
@@ -116,20 +116,14 @@ internal sealed class SwapchainApplication : GraphicsApplication
 
         _gpuMaterials.Add(new GpuMaterial
         {
-            FlagsInt = new Vector4i(0, 0, 0, 0),
-            FlagsFloat = new Vector4(0.5f, 0.0f, 0.0f, 0.0f),
             BaseColor = new Vector4(0.1f, 0.2f, 0.3f, 1.0f),
         });
         _gpuMaterials.Add(new GpuMaterial
         {
-            FlagsInt = new Vector4i(0, 0, 0, 0),
-            FlagsFloat = new Vector4(0.5f, 0.0f, 0.0f, 0.0f),
             BaseColor = new Vector4(0.2f, 0.3f, 0.4f, 1.0f),
         });
         _gpuMaterials.Add(new GpuMaterial
         {
-            FlagsInt = new Vector4i(0, 0, 0, 0),
-            FlagsFloat = new Vector4(0.5f, 0.0f, 0.0f, 0.0f),
             BaseColor = new Vector4(0.3f, 0.4f, 0.5f, 1.0f),
         });
 
@@ -222,11 +216,6 @@ internal sealed class SwapchainApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
-                if (ImGui.BeginMenu($"{_metrics.DeltaTime:F2}"))
-                {
-                    ImGui.EndMenu();
-                }
-
                 ImGui.EndMenuBar();
                 ImGui.EndMainMenuBar();
             }
@@ -246,7 +235,6 @@ internal sealed class SwapchainApplication : GraphicsApplication
 
     private bool LoadRenderDescriptors()
     {
-        //TODO(deccer) hide SwapchainDescriptor in Application/also make sure to resize when window resize
         _swapchainRenderDescriptor = new SwapchainRenderDescriptorBuilder()
             .ClearColor(Color4.DimGray)
             .ClearDepth()
