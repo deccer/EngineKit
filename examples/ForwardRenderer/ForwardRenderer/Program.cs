@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenTK.Mathematics;
 using Serilog;
 
-namespace Swapchain;
+namespace ForwardRenderer;
 
 internal static class Program
 {
@@ -36,7 +36,7 @@ internal static class Program
         services.AddEngine();
         services.AddSingleton<ICamera>(provider => new Camera(provider.GetRequiredService<IApplicationContext>(),
             provider.GetRequiredService<IInputProvider>(), new Vector3(0, 0, 10), Vector3.UnitY));
-        services.AddSingleton<IApplication, SwapchainApplication>();
+        services.AddSingleton<IApplication, ForwardRendererApplication>();
         return services.BuildServiceProvider();
     }
 }

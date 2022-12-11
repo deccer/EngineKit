@@ -1,6 +1,6 @@
 ﻿using OpenTK.Mathematics;
 
-namespace Swapchain;
+namespace ForwardRenderer;
 
 public interface ICamera
 {
@@ -15,8 +15,11 @@ public interface ICamera
     Vector3 Right { get; }
 
     Vector3 Up { get; set; }
+
     float Speed { get; set; }
+
     float Sensitivity { get; set; }
+
     float Zoom { get; set; }
 
     void ProcessKeyboard(Vector3 movement, float deltaTime);

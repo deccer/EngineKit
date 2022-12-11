@@ -1,4 +1,4 @@
-﻿namespace Swapchain;
+﻿namespace ForwardRenderer;
 
 public enum CameraMode
 {
