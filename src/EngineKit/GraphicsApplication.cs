@@ -13,7 +13,7 @@ public class GraphicsApplication : Application
     protected IGraphicsContext GraphicsContext { get; }
     protected IUIRenderer UIRenderer { get; }
 
-    public GraphicsApplication(
+    protected GraphicsApplication(
         ILogger logger,
         IOptions<WindowSettings> windowSettings,
         IOptions<ContextSettings> contextSettings,
