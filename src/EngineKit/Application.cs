@@ -28,8 +28,6 @@ public class Application : IApplication
     private Glfw.CursorPositionCallback? _cursorPositionCallback;
     private Glfw.WindowSizeCallback? _windowSizeCallback;
 
-    private bool _cursorVisible = true;
-
     public Application(
         ILogger logger,
         IOptions<WindowSettings> windowSettings,
@@ -141,13 +139,11 @@ public class Application : IApplication
 
     protected void HideCursor()
     {
-        _cursorVisible = false;
         Glfw.SetInputMode(_windowHandle, Glfw.InputMode.Cursor, Glfw.CursorHidden);
     }
 
     protected void ShowCursor()
     {
-        _cursorVisible = true;
         Glfw.SetInputMode(_windowHandle, Glfw.InputMode.Cursor, Glfw.CursorNormal);
     }
 
