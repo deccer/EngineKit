@@ -15,23 +15,11 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Swapchain;
 
-public struct GpuGlobalUniforms
+internal sealed class SwapchainApplication : GraphicsApplication
 {
-    public Matrix4 ViewProjection;
-    public Matrix4 InverseViewProjection;
-    public Matrix4 Projection;
-    public Vector4 CameraPosition;
-}
-
-internal sealed class SwapchainApplication : Application
-{
-    private const int ShadowmapSize = 1024;
-
     private readonly ILogger _logger;
     private readonly IApplicationContext _applicationContext;
     private readonly IMetrics _metrics;
-    private readonly IGraphicsContext _graphicsContext;
-    private readonly IUIRenderer _uiRenderer;
     private readonly IImageLoader _imageLoader;
     private readonly IMeshLoader _meshLoader;
     private readonly ICamera _camera;
@@ -39,20 +27,20 @@ internal sealed class SwapchainApplication : Application
     private ITexture? _skullBaseColorTexture;
     private SwapchainRenderDescriptor _swapchainRenderDescriptor;
 
-    private IGraphicsPipeline _sceneGraphicsPipeline;
+    private IGraphicsPipeline? _sceneGraphicsPipeline;
 
     private GpuConstants _gpuConstants;
-    private IUniformBuffer _gpuConstantsBuffer;
-    private IList<GpuObject> _gpuObjects;
-    private IShaderStorageBuffer _gpuObjectsBuffer;
-    private IList<GpuMaterial> _gpuMaterials;
-    private IShaderStorageBuffer _gpuMaterialBuffer;
+    private IUniformBuffer? _gpuConstantsBuffer;
+    private readonly IList<GpuObject> _gpuObjects;
+    private IShaderStorageBuffer? _gpuObjectsBuffer;
+    private readonly IList<GpuMaterial> _gpuMaterials;
+    private IShaderStorageBuffer? _gpuMaterialBuffer;
 
-    private IVertexBuffer _skullVertexBuffer;
-    private IIndexBuffer _skullIndexBuffer;
+    private IVertexBuffer? _skullVertexBuffer;
+    private IIndexBuffer? _skullIndexBuffer;
 
-    private ISampler _linearMipmapNearestSampler;
-    private ISampler _linearMipmapLinear;
+    private ISampler? _linearMipmapNearestSampler;
+    private ISampler? _linearMipmapLinear;
 
     public SwapchainApplication(
         ILogger logger,
@@ -66,13 +54,11 @@ internal sealed class SwapchainApplication : Application
         IImageLoader imageLoader,
         IMeshLoader meshLoader,
         ICamera camera)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider)
+        : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider, graphicsContext, uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;
         _metrics = metrics;
-        _graphicsContext = graphicsContext;
-        _uiRenderer = uiRenderer;
         _imageLoader = imageLoader;
         _meshLoader = meshLoader;
         _camera = camera;
@@ -88,11 +74,6 @@ internal sealed class SwapchainApplication : Application
         if (!base.Load())
         {
             _logger.Error("{Category}: Unable to load", "App");
-            return false;
-        }
-
-        if (!_uiRenderer.Load(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y))
-        {
             return false;
         }
 
@@ -116,7 +97,7 @@ internal sealed class SwapchainApplication : Application
             return false;
         }
 
-        _gpuConstantsBuffer = _graphicsContext.CreateUniformBuffer("Camera", _gpuConstants);
+        _gpuConstantsBuffer = GraphicsContext.CreateUniformBuffer("Camera", _gpuConstants);
 
         _gpuObjects.Add(new GpuObject
         {
@@ -131,7 +112,7 @@ internal sealed class SwapchainApplication : Application
             World = Matrix4.CreateTranslation(+5, 0, 0)
         });
 
-        _gpuObjectsBuffer = _graphicsContext.CreateShaderStorageBuffer("Objects", _gpuObjects.ToArray());
+        _gpuObjectsBuffer = GraphicsContext.CreateShaderStorageBuffer("Objects", _gpuObjects.ToArray());
 
         _gpuMaterials.Add(new GpuMaterial
         {
@@ -152,7 +133,7 @@ internal sealed class SwapchainApplication : Application
             BaseColor = new Vector4(0.3f, 0.4f, 0.5f, 1.0f),
         });
 
-        _gpuMaterialBuffer = _graphicsContext
+        _gpuMaterialBuffer = GraphicsContext
             .CreateShaderStorageBuffer<GpuMaterial>("Materials", _gpuMaterials.ToArray());
 
         return true;
@@ -161,49 +142,42 @@ internal sealed class SwapchainApplication : Application
     protected override void Render()
     {
         _gpuConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
-        _gpuConstantsBuffer.Update(_gpuConstants, 0);
+        _gpuConstantsBuffer!.Update(_gpuConstants, 0);
 
-        _graphicsContext.BeginRenderToSwapchain(_swapchainRenderDescriptor);
-        _graphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline);
-        _sceneGraphicsPipeline.BindVertexBuffer(_skullVertexBuffer, 0, 0);
-        _sceneGraphicsPipeline.BindIndexBuffer(_skullIndexBuffer);
+        GraphicsContext.BeginRenderToSwapchain(_swapchainRenderDescriptor);
+        GraphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline!);
+        _sceneGraphicsPipeline!.BindVertexBuffer(_skullVertexBuffer!, 0, 0);
+        _sceneGraphicsPipeline.BindIndexBuffer(_skullIndexBuffer!);
 
         _sceneGraphicsPipeline.BindUniformBuffer(_gpuConstantsBuffer, 0);
-        _sceneGraphicsPipeline.BindShaderStorageBuffer(_gpuObjectsBuffer, 1);
-        _sceneGraphicsPipeline.BindShaderStorageBuffer(_gpuMaterialBuffer, 2);
-        _sceneGraphicsPipeline.BindSampledTexture(_linearMipmapLinear, _skullBaseColorTexture, 0);
+        _sceneGraphicsPipeline.BindShaderStorageBuffer(_gpuObjectsBuffer!, 1);
+        _sceneGraphicsPipeline.BindShaderStorageBuffer(_gpuMaterialBuffer!, 2);
+        _sceneGraphicsPipeline.BindSampledTexture(_linearMipmapLinear!, _skullBaseColorTexture!, 0);
 
-        _sceneGraphicsPipeline.DrawElementsInstanced(_skullIndexBuffer.Count, 0, _gpuObjects.Count);
-        _graphicsContext.EndRender();
+        _sceneGraphicsPipeline.DrawElementsInstanced(_skullIndexBuffer!.Count, 0, _gpuObjects.Count);
+        GraphicsContext.EndRender();
 
         RenderUi();
     }
 
-    protected override void FramebufferResized()
-    {
-        base.FramebufferResized();
-        _uiRenderer.WindowResized(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y);
-    }
-
     protected override void Unload()
     {
-        _linearMipmapNearestSampler.Dispose();
-        _linearMipmapLinear.Dispose();
+        _linearMipmapNearestSampler?.Dispose();
+        _linearMipmapLinear?.Dispose();
         _skullBaseColorTexture?.Dispose();
-        _skullVertexBuffer.Dispose();
-        _skullIndexBuffer.Dispose();
-        _sceneGraphicsPipeline.Dispose();
-        _gpuConstantsBuffer.Dispose();
-        _gpuMaterialBuffer.Dispose();
-        _gpuObjectsBuffer.Dispose();
+        _skullVertexBuffer?.Dispose();
+        _skullIndexBuffer?.Dispose();
+        _sceneGraphicsPipeline?.Dispose();
+        _gpuConstantsBuffer?.Dispose();
+        _gpuMaterialBuffer?.Dispose();
+        _gpuObjectsBuffer?.Dispose();
 
-        _graphicsContext.Dispose();
         base.Unload();
     }
 
     protected override void Update()
     {
-        _uiRenderer.Update(1.0f / 60.0f);
+        base.Update();
 
         if (IsMousePressed(Glfw.MouseButton.ButtonRight))
         {
@@ -234,8 +208,7 @@ internal sealed class SwapchainApplication : Application
 
     private void RenderUi()
     {
-        _uiRenderer.BeginLayout();
-        ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode);
+        UIRenderer.BeginLayout();
         if (ImGui.BeginMainMenuBar())
         {
             if (ImGui.BeginMenuBar())
@@ -267,8 +240,8 @@ internal sealed class SwapchainApplication : Application
                 ImGui.End();
             }
         }
-        _uiRenderer.ShowDemoWindow();
-        _uiRenderer.EndLayout();
+        UIRenderer.ShowDemoWindow();
+        UIRenderer.EndLayout();
     }
 
     private bool LoadRenderDescriptors()
@@ -285,7 +258,7 @@ internal sealed class SwapchainApplication : Application
 
     private bool LoadPipelines()
     {
-        var graphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
+        var graphicsPipelineResult = GraphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromFiles("Shaders/Scene.vs.glsl", "Shaders/Scene.fs.glsl")
             .WithVertexInput(new VertexInputDescriptorBuilder()
                 .AddAttribute(0, DataType.Float, 3, 0)
@@ -315,8 +288,8 @@ internal sealed class SwapchainApplication : Application
     {
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         var skullMeshDates = _meshLoader.LoadModel(Path.Combine(baseDirectory, "Data/Props/Skull/SM_Skull_Optimized_point2.gltf")).ToArray();
-        _skullVertexBuffer = _graphicsContext.CreateVertexBuffer("SkullVertices", skullMeshDates, VertexType.PositionNormalUvTangent);
-        _skullIndexBuffer = _graphicsContext.CreateIndexBuffer("SkullIndices", skullMeshDates);
+        _skullVertexBuffer = GraphicsContext.CreateVertexBuffer("SkullVertices", skullMeshDates, VertexType.PositionNormalUvTangent);
+        _skullIndexBuffer = GraphicsContext.CreateIndexBuffer("SkullIndices", skullMeshDates);
 
         //var pbrScene = _meshLoader.LoadModel(Path.Combine(baseDirectory, "Data/Scenes/Pbr_Reference/scene.gltf")).ToArray();
 
@@ -331,13 +304,13 @@ internal sealed class SwapchainApplication : Application
             return false;
         }
 
-        _linearMipmapNearestSampler = _graphicsContext.CreateSamplerBuilder()
+        _linearMipmapNearestSampler = GraphicsContext.CreateSamplerBuilder()
             .WithMagnificationFilter()
             .WithMinificationFilter(Filter.Linear, Filter.Nearest)
             .WithAddressMode(AddressMode.Repeat)
             .Build("LinearMipmapNearest");
 
-        _linearMipmapLinear = _graphicsContext.CreateSamplerBuilder()
+        _linearMipmapLinear = GraphicsContext.CreateSamplerBuilder()
             .Build("LinearMipmapLinear");
 
         return true;
@@ -360,7 +333,7 @@ internal sealed class SwapchainApplication : Application
             SampleCount = SampleCount.OneSample,
             Size = new Vector3i(image.Width, image.Height, 1)
         };
-        var texture = _graphicsContext.CreateTexture(textureCreateDescriptor);
+        var texture = GraphicsContext.CreateTexture(textureCreateDescriptor);
         var textureUpdateDescriptor = new TextureUpdateDescriptor
         {
             Level = 0,

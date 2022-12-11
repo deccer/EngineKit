@@ -12,13 +12,11 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace ComputeConvolution;
 
-internal sealed class ComputeConvolutionApplication : Application
+internal sealed class ComputeConvolutionApplication : GraphicsApplication
 {
     private readonly ILogger _logger;
     private readonly IApplicationContext _applicationContext;
     private readonly IMetrics _metrics;
-    private readonly IGraphicsContext _graphicsContext;
-    private readonly IUIRenderer _uiRenderer;
 
     private ITexture? _skyboxTexture;
     private ITexture? _skyboxConvolvedTexture;
@@ -36,13 +34,11 @@ internal sealed class ComputeConvolutionApplication : Application
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider)
+        : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider, graphicsContext, uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;
         _metrics = metrics;
-        _graphicsContext = graphicsContext;
-        _uiRenderer = uiRenderer;
     }
 
     protected override bool Load()
@@ -50,11 +46,6 @@ internal sealed class ComputeConvolutionApplication : Application
         if (!base.Load())
         {
             _logger.Error("{Category}: Unable to load", "App");
-            return false;
-        }
-
-        if (!_uiRenderer.Load(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y))
-        {
             return false;
         }
 
@@ -90,21 +81,15 @@ internal sealed class ComputeConvolutionApplication : Application
                 return;
             }
         }
-        _graphicsContext.BeginRenderToSwapchain(_swapchainRenderDescriptor);
-        _graphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline!);
+        GraphicsContext.BeginRenderToSwapchain(_swapchainRenderDescriptor);
+        GraphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline!);
 
-        _sceneGraphicsPipeline!.BindSampledTexture(_skyboxSampler!, _skyboxTexture.Id!, 0);
+        _sceneGraphicsPipeline!.BindSampledTexture(_skyboxSampler!, _skyboxTexture!.Id, 0);
 
         _sceneGraphicsPipeline.DrawArrays(3, 0);
-        _graphicsContext.EndRender();
+        GraphicsContext.EndRender();
 
         RenderUi();
-    }
-
-    protected override void FramebufferResized()
-    {
-        base.FramebufferResized();
-        _uiRenderer.WindowResized(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y);
     }
 
     protected override void Unload()
@@ -114,13 +99,12 @@ internal sealed class ComputeConvolutionApplication : Application
         _skyboxConvolvedTexture?.Dispose();
         _sceneGraphicsPipeline?.Dispose();
 
-        _graphicsContext.Dispose();
         base.Unload();
     }
 
     protected override void Update()
     {
-        _uiRenderer.Update(1.0f / 60.0f);
+        base.Update();
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();
@@ -129,7 +113,7 @@ internal sealed class ComputeConvolutionApplication : Application
 
     private void RenderUi()
     {
-        _uiRenderer.BeginLayout();
+        UIRenderer.BeginLayout();
         ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode);
         if (ImGui.BeginMainMenuBar())
         {
@@ -149,8 +133,8 @@ internal sealed class ComputeConvolutionApplication : Application
 
             ImGui.EndMainMenuBar();
         }
-        _uiRenderer.ShowDemoWindow();
-        _uiRenderer.EndLayout();
+        UIRenderer.ShowDemoWindow();
+        UIRenderer.EndLayout();
     }
 
     private bool LoadRenderDescriptors()
@@ -167,7 +151,7 @@ internal sealed class ComputeConvolutionApplication : Application
 
     private bool LoadPipelines()
     {
-        var graphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
+        var graphicsPipelineResult = GraphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromFiles("Shaders/FST.vs.glsl", "Shaders/Texture.fs.glsl")
             .WithVertexInput(new VertexInputDescriptorBuilder()
                 .AddAttribute(0, DataType.Float, 3, 0)
@@ -214,10 +198,9 @@ internal sealed class ComputeConvolutionApplication : Application
             MipLevels = (uint)(1 + MathF.Ceiling(MathF.Log2(1024))),
             SampleCount = SampleCount.OneSample
         };
-        _skyboxConvolvedTexture =
-            _graphicsContext.CreateTexture(skyboxTextureCreateDescriptor);
+        _skyboxConvolvedTexture = GraphicsContext.CreateTexture(skyboxTextureCreateDescriptor);
 
-        _skyboxSampler = _graphicsContext.CreateSamplerBuilder()
+        _skyboxSampler = GraphicsContext.CreateSamplerBuilder()
             .WithMagnificationFilter()
             .WithMinificationFilter(Filter.Linear, Filter.Nearest)
             .WithAddressMode(AddressMode.Repeat)
@@ -228,7 +211,7 @@ internal sealed class ComputeConvolutionApplication : Application
 
     private bool ConvolveSkybox()
     {
-        var convolutionComputePipelineResult = _graphicsContext.CreateComputePipelineBuilder()
+        var convolutionComputePipelineResult = GraphicsContext.CreateComputePipelineBuilder()
             .WithShaderFromFile("Shaders/ConvolveSkybox.cs.glsl")
             .Build("ComputeConvolution");
         if (convolutionComputePipelineResult.IsFailure)
@@ -244,22 +227,22 @@ internal sealed class ComputeConvolutionApplication : Application
         const int yGroups = (1024 + ySize - 1) / ySize;
 
         using var convolutionComputePipeline = convolutionComputePipelineResult.Value;
-        _graphicsContext.BindComputePipeline(convolutionComputePipeline);
+        GraphicsContext.BindComputePipeline(convolutionComputePipeline);
 
         convolutionComputePipeline.BindImage(
-            _skyboxTexture,
+            _skyboxTexture!,
             0,
             0,
             MemoryAccess.ReadOnly,
             _skyboxTexture!.Format);
         convolutionComputePipeline.BindImage(
-            _skyboxConvolvedTexture,
+            _skyboxConvolvedTexture!,
             1,
             0,
             MemoryAccess.WriteOnly,
-            _skyboxConvolvedTexture.Format);
+            _skyboxConvolvedTexture!.Format);
         convolutionComputePipeline.Dispatch(xGroups, yGroups, 6);
-        _graphicsContext.InsertMemoryBarrier(BarrierMask.ShaderImageAccess);
+        GraphicsContext.InsertMemoryBarrier(BarrierMask.ShaderImageAccess);
 
         _skyboxConvolvedTexture!.GenerateMipmaps();
 
@@ -268,17 +251,6 @@ internal sealed class ComputeConvolutionApplication : Application
 
     private bool LoadSkybox(string skyboxName)
     {
-        var skyboxTextureCreateDescriptor = new TextureCreateDescriptor
-        {
-            ImageType = ImageType.TextureCube,
-            Format = Format.R8G8B8A8UNorm,
-            Label = $"Skybox_{skyboxName}",
-            Size = new Vector3i(1024, 1024, 1),
-            MipLevels = 1,
-            SampleCount = SampleCount.OneSample
-        };
-        _skyboxTexture = _graphicsContext.CreateTexture(skyboxTextureCreateDescriptor);
-
         var skyboxFileNames = new[]
         {
             $"Data/Sky/TC_{skyboxName}_Xp.png",
@@ -288,10 +260,25 @@ internal sealed class ComputeConvolutionApplication : Application
             $"Data/Sky/TC_{skyboxName}_Zp.png",
             $"Data/Sky/TC_{skyboxName}_Zn.png"
         };
+
         var slice = 0;
         foreach (var skyboxFileName in skyboxFileNames)
         {
             using var image = Image.Load<Rgba32>(skyboxFileName);
+
+            if (slice == 0)
+            {
+                var skyboxTextureCreateDescriptor = new TextureCreateDescriptor
+                {
+                    ImageType = ImageType.TextureCube,
+                    Format = Format.R8G8B8A8UNorm,
+                    Label = $"Skybox_{skyboxName}",
+                    Size = new Vector3i(image.Width, image.Height, 1),
+                    MipLevels = 1,
+                    SampleCount = SampleCount.OneSample
+                };
+                _skyboxTexture = GraphicsContext.CreateTexture(skyboxTextureCreateDescriptor);
+            }
 
             var skyboxTextureUpdateDescriptor = new TextureUpdateDescriptor
             {
@@ -305,7 +292,7 @@ internal sealed class ComputeConvolutionApplication : Application
 
             if (image.DangerousTryGetSinglePixelMemory(out var imageMemory))
             {
-                _skyboxTexture.Update(skyboxTextureUpdateDescriptor, imageMemory.Pin());
+                _skyboxTexture!.Update(skyboxTextureUpdateDescriptor, imageMemory.Pin());
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using EngineKit;
 using EngineKit.Input;
 using OpenTK.Mathematics;
@@ -53,11 +54,6 @@ public sealed class Camera : ICamera
             _up = value;
             UpdateCameraVectors();
         }
-    }
-
-    private Camera()
-    {
-
     }
 
     public Camera(

@@ -9,6 +9,8 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
 private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
 
     internal IInputLayout? CurrentInputLayout;
+    private IVertexBuffer? _currentVertexBuffer;
+    private IIndexBuffer? _currentIndexBuffer;
 
     internal GraphicsPipeline(GraphicsPipelineDescriptor graphicsPipelineDescriptor)
     {
@@ -36,17 +38,25 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
         uint binding,
         uint offset)
     {
-        vertexBuffer.Bind(CurrentInputLayout!, binding, offset);
+        if (_currentVertexBuffer != vertexBuffer)
+        {
+            _currentVertexBuffer = vertexBuffer;
+            vertexBuffer.Bind(CurrentInputLayout!, binding, offset);
+        }
     }
 
     public void BindIndexBuffer(IIndexBuffer indexBuffer)
     {
-        indexBuffer.Bind(CurrentInputLayout!);
+        if (_currentIndexBuffer != indexBuffer)
+        {
+            _currentIndexBuffer = indexBuffer;
+            indexBuffer.Bind(CurrentInputLayout!);
+        }
     }
 
     public void DrawArraysInstanced(
-        int firstVertex,
         int vertexCount,
+        int firstVertex,
         int instanceCount,
         uint firstInstance)
     {

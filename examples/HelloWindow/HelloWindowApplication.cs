@@ -9,12 +9,9 @@ using Serilog;
 
 namespace HelloWindow;
 
-internal sealed class HelloWindowApplication : Application
+internal sealed class HelloWindowApplication : GraphicsApplication
 {
     private readonly ILogger _logger;
-    private readonly IApplicationContext _applicationContext;
-    private readonly IGraphicsContext _graphicsContext;
-    private readonly IUIRenderer _uiRenderer;
 
     public HelloWindowApplication(
         ILogger logger,
@@ -25,12 +22,9 @@ internal sealed class HelloWindowApplication : Application
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider)
+        : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider, graphicsContext, uiRenderer)
     {
         _logger = logger;
-        _applicationContext = applicationContext;
-        _graphicsContext = graphicsContext;
-        _uiRenderer = uiRenderer;
     }
 
     protected override bool Load()
@@ -38,11 +32,6 @@ internal sealed class HelloWindowApplication : Application
         if (!base.Load())
         {
             _logger.Error("{Category}: Unable to load", "App");
-            return false;
-        }
-
-        if (!_uiRenderer.Load(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y))
-        {
             return false;
         }
 
@@ -54,7 +43,7 @@ internal sealed class HelloWindowApplication : Application
     {
         GL.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit);
 
-        _uiRenderer.BeginLayout();
+        UIRenderer.BeginLayout();
         ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode);
         if (ImGui.BeginMainMenuBar())
         {
@@ -74,33 +63,21 @@ internal sealed class HelloWindowApplication : Application
 
             ImGui.EndMainMenuBar();
         }
-        _uiRenderer.ShowDemoWindow();
-        _uiRenderer.EndLayout();
-    }
-
-    protected override void FramebufferResized()
-    {
-        base.FramebufferResized();
-        _uiRenderer.WindowResized(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y);
+        UIRenderer.ShowDemoWindow();
+        UIRenderer.EndLayout();
     }
 
     protected override void Unload()
     {
-        _graphicsContext.Dispose();
         base.Unload();
     }
 
     protected override void Update()
     {
-        _uiRenderer?.Update(1.0f / 60.0f);
+        base.Update();
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();
-        }
-
-        if (IsMousePressed(Glfw.MouseButton.ButtonLeft))
-        {
-            _logger.Debug("Left Mouse Button Pressed");
         }
     }
 }

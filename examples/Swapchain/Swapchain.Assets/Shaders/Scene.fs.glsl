@@ -11,14 +11,6 @@ layout(location = 3) in flat int v_object_id;
 layout(binding = 0) uniform sampler2D s_base_color;
 
 #include <Swapchain.GpuMaterial.virtual.glsl>
-/*
-struct GpuMaterial
-{
-    ivec4 flagsInt;
-    vec4 flagsFloat;
-    vec4 baseColor;
-};
-*/
 
 layout(binding = 2, std140) buffer MaterialBuffer
 {
