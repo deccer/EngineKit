@@ -24,10 +24,11 @@ public class ShaderIncludesShould
     }
 
     [Theory]
-    [InlineData("EngineKit.Graphics.GpuMaterial")]
-    [InlineData("EngineKit.Graphics.GpuLightInformation")]
-    [InlineData("EngineKit.Graphics.GpuInstanceData")]
-    [InlineData("EngineKit.Graphics.GpuGlobalMatrices")]
+    [InlineData("EngineKit.Graphics." + nameof(GpuMaterial))]
+    [InlineData("EngineKit.Graphics." + nameof(GpuEnvironment))]
+    [InlineData("EngineKit.Graphics." + nameof(GpuInstanceData))]
+    [InlineData("EngineKit.Graphics." + nameof(GpuGlobalMatrices))]
+    [InlineData("EngineKit.Graphics." + nameof(GpuLight))]
     public void ShouldReplaceIncludeWithContent(string virtualShader)
     {
         // Arrange
