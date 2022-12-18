@@ -9,7 +9,11 @@ public interface ITexture : IDisposable
 
     uint Id { get; }
 
-    ulong MakeResident();
+    ulong TextureHandle { get; }
+
+    void MakeResident();
+
+    void MakeNonResident();
 
     TextureView CreateTextureView();
 
@@ -17,7 +21,7 @@ public interface ITexture : IDisposable
 
     void Update(
         TextureUpdateDescriptor textureUpdateDescriptor,
-        IntPtr pixelPtr);
+        nint pixelPtr);
 
     void Update(
         TextureUpdateDescriptor textureUpdateDescriptor,

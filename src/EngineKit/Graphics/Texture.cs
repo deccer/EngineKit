@@ -9,17 +9,31 @@ public class Texture : ITexture
 {
     private readonly TextureCreateDescriptor _textureCreateDescriptor;
     private readonly uint _id;
+    private bool _isResident;
 
     public Format Format
     {
         get => _textureCreateDescriptor.Format;
     }
 
-    public ulong MakeResident()
+    public ulong TextureHandle { get; private set; }
+
+    public void MakeResident()
     {
-        var textureHandle = GL.GetTextureHandle(_id);
-        GL.MakeTextureHandleResident(textureHandle);
-        return textureHandle;
+        TextureHandle = GL.GetTextureHandle(_id);
+        GL.MakeTextureHandleResident(TextureHandle);
+        _isResident = true;
+    }
+
+    public void MakeNonResident()
+    {
+        if (!_isResident)
+        {
+            return;
+        }
+
+        GL.MakeTextureHandleNonResident(TextureHandle);
+        _isResident = false;
     }
 
     internal Texture(TextureCreateDescriptor textureCreateDescriptor)
@@ -100,6 +114,7 @@ public class Texture : ITexture
 
     public void Dispose()
     {
+        MakeNonResident();
         GL.DeleteTexture(_id);
     }
 

@@ -89,7 +89,7 @@ internal class Buffer<TElement> : Buffer
             GL.NamedBufferStorage(
                 Id,
                 (uint)(size * sizeof(TElement)),
-                IntPtr.Zero,
+                nint.Zero,
                 GL.BufferStorageMask.DynamicStorageBit | GL.BufferStorageMask.MapWriteBit);
         }
     }
@@ -105,15 +105,15 @@ internal class Buffer<TElement> : Buffer
         GL.ObjectLabel(GL.ObjectIdentifier.Buffer, Id, innerLabel);
     }
 
-    private string GetBufferNamePrefix(BufferTarget bufferTarget)
+    private static string GetBufferNamePrefix(BufferTarget bufferTarget)
     {
         return bufferTarget switch
         {
-            BufferTarget.VertexBuffer => "VBO",
-            BufferTarget.IndexBuffer => "IBO",
-            BufferTarget.ShaderStorageBuffer => "SSBO",
-            BufferTarget.UniformBuffer => "UBO",
-            BufferTarget.IndirectDrawBuffer => "IDBO",
+            BufferTarget.VertexBuffer => "Buffer_VB",
+            BufferTarget.IndexBuffer => "Buffer_IB",
+            BufferTarget.ShaderStorageBuffer => "Buffer_SS",
+            BufferTarget.UniformBuffer => "Buffer_UB",
+            BufferTarget.IndirectDrawBuffer => "Buffer_ID",
             _ => throw new ArgumentOutOfRangeException(nameof(bufferTarget), bufferTarget, null)
         };
     }
