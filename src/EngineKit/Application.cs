@@ -18,7 +18,7 @@ public class Application : IApplication
     private readonly IMetrics _metrics;
     private readonly IInputProvider _inputProvider;
     private readonly ILogger _logger;
-    private IntPtr _windowHandle;
+    private nint _windowHandle;
 
     private GL.GLDebugProc? _debugProcCallback;
     private Glfw.FramebufferSizeCallback? _framebufferSizeCallback;
@@ -42,7 +42,7 @@ public class Application : IApplication
         _applicationContext = applicationContext;
         _metrics = metrics;
         _inputProvider = inputProvider;
-        _windowHandle = IntPtr.Zero;
+        _windowHandle = nint.Zero;
     }
 
     public void Dispose()
@@ -189,7 +189,7 @@ public class Application : IApplication
             _applicationContext.WindowSize = new Vector2i(screenWidth, screenHeight);
         }
         monitorHandle = windowResizable || windowSettings.WindowMode == WindowMode.WindowedFullscreen
-            ? IntPtr.Zero
+            ? nint.Zero
             : monitorHandle;
 
         var glVersion = new Version(4, 5);
@@ -231,8 +231,8 @@ public class Application : IApplication
             _applicationContext.WindowSize.Y,
             "EngineKit",
             monitorHandle,
-            IntPtr.Zero);
-        if (_windowHandle == IntPtr.Zero)
+            nint.Zero);
+        if (_windowHandle == nint.Zero)
         {
             _logger.Error("{Category}: Unable to create window", "Glfw");
             return false;
@@ -294,7 +294,7 @@ public class Application : IApplication
         if (_contextSettings.Value.IsDebugContext && _debugProcCallback != null)
         {
             _logger.Debug("{Category}: Debug callback enabled", "GL");
-            GL.DebugMessageCallback(_debugProcCallback, IntPtr.Zero);
+            GL.DebugMessageCallback(_debugProcCallback, nint.Zero);
             GL.Enable(GL.EnableType.DebugOutput);
             GL.Enable(GL.EnableType.DebugOutputSynchronous);
         }
@@ -383,7 +383,7 @@ public class Application : IApplication
     }
 
     private void OnKey(
-        IntPtr windowHandle,
+        nint windowHandle,
         Glfw.Key key,
         Glfw.Scancode scancode,
         Glfw.KeyAction action,
@@ -407,7 +407,7 @@ public class Application : IApplication
     private static bool _isFirstFrame = true;
 
     private void OnMouseMove(
-        IntPtr windowHandle,
+        nint windowHandle,
         double currentCursorX,
         double currentCursorY)
     {
@@ -429,14 +429,14 @@ public class Application : IApplication
     }
 
     private void OnMouseEnterLeave(
-        IntPtr windowHandle,
+        nint windowHandle,
         Glfw.CursorEnterMode cursorEnterMode)
     {
         _logger.Debug("{Category}: Mode: {CursorEnterMode}", "Glfw", cursorEnterMode);
     }
 
     private void OnMouseButton(
-        IntPtr windowHandle,
+        nint windowHandle,
         Glfw.MouseButton mouseButton,
         Glfw.KeyAction action,
         Glfw.KeyModifiers modifiers)
@@ -450,7 +450,7 @@ public class Application : IApplication
     }
 
     private void OnWindowSize(
-        IntPtr windowHandle,
+        nint windowHandle,
         int width,
         int height)
     {
@@ -458,7 +458,7 @@ public class Application : IApplication
         WindowResized();
     }
 
-    private void OnFramebufferSize(IntPtr windowHandle, int width, int height)
+    private void OnFramebufferSize(nint windowHandle, int width, int height)
     {
         _applicationContext.FramebufferSize = new Vector2i(width, height);
         FramebufferResized();
@@ -480,10 +480,10 @@ public class Application : IApplication
         uint id,
         GL.DebugSeverity severity,
         int length,
-        IntPtr messagePtr,
-        IntPtr userParam)
+        nint messagePtr,
+        nint userParam)
     {
-        if (type is GL.DebugType.Portability or GL.DebugType.PushGroup or GL.DebugType.PopGroup)
+        if (type is GL.DebugType.Portability or GL.DebugType.Other or GL.DebugType.PushGroup or GL.DebugType.PopGroup)
         {
             return;
         }

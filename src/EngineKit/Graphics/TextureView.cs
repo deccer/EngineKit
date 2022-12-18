@@ -10,7 +10,7 @@ public class TextureView : IDisposable
 
     internal TextureView(
         TextureViewDescriptor textureViewDescriptor,
-        Texture texture)
+        ITexture texture)
     {
         _id = GL.GenTexture();
         Format = textureViewDescriptor.Format;
