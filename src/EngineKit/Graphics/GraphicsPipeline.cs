@@ -56,46 +56,58 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
 
     public void DrawArraysInstanced(
         int vertexCount,
-        int firstVertex,
+        int vertexOffset,
         int instanceCount,
-        uint firstInstance)
+        uint instanceOffset)
     {
         GL.DrawArraysInstancedBaseInstance(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
-            firstVertex,
+            vertexOffset,
             vertexCount,
             instanceCount,
-            firstInstance);
+            instanceOffset);
     }
 
-    public void DrawArrays(int vertexCount, int firstVertex)
+    public void DrawArrays(int vertexCount, int vertexOffset)
     {
         GL.DrawArraysInstancedBaseInstance(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
-            firstVertex,
+            vertexOffset,
             vertexCount,
             1,
             0);
     }
 
-    public void DrawElements(int indexCount, int offset)
+    public void DrawElements(int elementCount, int offset)
     {
         GL.DrawElements(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
-            indexCount,
+            elementCount,
             GL.IndexElementType.UnsignedInt,
             (nint)offset);
     }
 
-    public void DrawElementsInstanced(int indexCount, int offset, int instanceCount)
+    public void DrawElementsInstanced(int elementCount, int elementOffset, int instanceCount)
     {
         GL.DrawElementsInstanced(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
-            indexCount,
+            elementCount,
             GL.IndexElementType.UnsignedInt,
-            (nint)offset,
+            (nint)elementOffset,
             instanceCount);
     }
+
+    public void DrawElementsInstancedBaseVertex(int elementCount, int elementOffset, int instanceCount, int baseVertex)
+    {
+        GL.DrawElementsInstancedBaseVertex(
+            _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
+            elementCount,
+            GL.IndexElementType.UnsignedInt,
+            elementOffset,
+            instanceCount,
+            baseVertex);
+    }
+
 
     public void DrawElementsIndirect(
         IIndirectBuffer indirectBuffer,
@@ -105,7 +117,7 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
         GL.DrawElementsIndirect(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
             GL.IndexElementType.UnsignedInt,
-            new IntPtr(indirectElementIndex * indirectBuffer.Stride));
+            new nint(indirectElementIndex * indirectBuffer.Stride));
     }
 
     public void MultiDrawElementsIndirect(IIndirectBuffer indirectBuffer)
@@ -114,7 +126,7 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
         GL.MultiDrawElementsIndirect(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
             GL.IndexElementType.UnsignedInt,
-            IntPtr.Zero,
+            nint.Zero,
             indirectBuffer.Count,
             indirectBuffer.Stride);
     }

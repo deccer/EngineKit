@@ -178,7 +178,7 @@ internal sealed class MaterialLibrary : IMaterialLibrary
 
         return new GpuMaterial
         {
-            Diffuse = material.BaseColor,
+            BaseColor = material.BaseColor,
             Emissive = material.Emissive,
             BaseColorTextureId = baseColorTextureIdExists
                 ? new Vector4i(baseColorTextureId!.ArrayIndex, baseColorTextureId.ArraySlice, -1, -1)

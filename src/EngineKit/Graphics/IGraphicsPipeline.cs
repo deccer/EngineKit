@@ -9,28 +9,35 @@ public interface IGraphicsPipeline : IPipeline
 
     void BindIndexBuffer(IIndexBuffer indexBuffer);
 
+    void DrawArrays(
+        int vertexCount,
+        int vertexOffset);
+
+    void DrawArraysInstanced(
+        int firstVertex,
+        int vertexOffset,
+        int instanceCount,
+        uint instanceOffset);
+
+    void DrawElements(
+        int elementCount,
+        int offset);
+
     void DrawElementsIndirect(
         IIndirectBuffer indirectBuffer,
         int indirectElementIndex);
 
-    void DrawArraysInstanced(
-        int firstVertex,
-        int vertexCount,
-        int instanceCount,
-        uint firstInstance);
-
-    void DrawArrays(
-        int vertexCount,
-        int firstVertex);
-
-    void DrawElements(
-        int indexCount,
-        int offset);
-
     void DrawElementsInstanced(
-        int indexCount,
-        int offset,
+        int elementCount,
+        int elementOffset,
         int instanceCount);
 
+    void DrawElementsInstancedBaseVertex(
+        int elementCount,
+        int elementOffset,
+        int instanceCount,
+        int baseVertex);
+
     void MultiDrawElementsIndirect(IIndirectBuffer indirectBuffer);
+
 }
