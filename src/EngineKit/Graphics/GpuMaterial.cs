@@ -6,7 +6,7 @@ namespace EngineKit.Graphics;
 [StructLayout(LayoutKind.Sequential)]
 public struct GpuMaterial
 {
-    public Color4 Diffuse;
+    public Color4 BaseColor;
 
     public Color4 Emissive;
 

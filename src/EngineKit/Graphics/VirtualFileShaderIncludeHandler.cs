@@ -34,7 +34,7 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
         return GenerateGlslFromType(includeType);
     }
 
-    private string? GenerateGlslFromType(Type includeType)
+    private static string GenerateGlslFromType(Type includeType)
     {
         var glsl = new StringBuilder();
         glsl.AppendLine($"struct {includeType.Name}");
@@ -69,6 +69,11 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
             return "uint";
         }
 
+        if (type == typeof(ulong))
+        {
+            return "uint64_t";
+        }
+
         if (type == typeof(float))
         {
             return "float";
@@ -82,6 +87,11 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
         if (type == typeof(Color4))
         {
             return "vec4";
+        }
+
+        if (type == typeof(Vector2i))
+        {
+            return "ivec2";
         }
 
         if (type == typeof(Vector3i))
