@@ -1,25 +1,29 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using CSharpFunctionalExtensions;
 using EngineKit.Extensions;
 using EngineKit.Native.OpenGL;
 using OpenTK.Mathematics;
+using Serilog;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace EngineKit.Graphics;
 
 internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsContext
 {
+    private readonly ILogger _logger;
     private readonly IFramebufferFactory _framebufferFactory;
     private readonly IDictionary<IPipeline, GraphicsPipelineDescriptor> _graphicsPipelineCache;
     private readonly IDictionary<IPipeline, ComputePipelineDescriptor> _computePipelineCache;
     private readonly IDictionary<int, IInputLayout> _inputLayoutCache;
     private uint? _currentFramebuffer;
 
-    private PrimitiveTopology _currentPrimitiveTopology;
-
-    public GraphicsContext(IFramebufferFactory framebufferFactory)
+    public GraphicsContext(ILogger logger, IFramebufferFactory framebufferFactory)
     {
+        _logger = logger.ForContext<GraphicsContext>();
         _framebufferFactory = framebufferFactory;
         _graphicsPipelineCache = new Dictionary<IPipeline, GraphicsPipelineDescriptor>(16);
         _computePipelineCache = new Dictionary<IPipeline, ComputePipelineDescriptor>(16);
@@ -83,22 +87,51 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         return Result.Success<IGraphicsPipeline>(graphicsPipeline);
     }
 
-    public IVertexBuffer CreateVertexBuffer<TVertex>(
-        Label label,
-        uint size) where TVertex: unmanaged
+    public IIndexBuffer CreateIndexBuffer(Label label, MeshData[] meshDates)
     {
-        return new VertexBuffer<TVertex>(label, size);
+        var indices = meshDates
+            .SelectMany(meshData => meshData.Indices)
+            .ToArray();
+        var indexBuffer = new IndexBuffer<uint>(label);
+        indexBuffer.AllocateStorage(indices, StorageAllocationFlags.None);
+        return indexBuffer;
     }
 
-    public IVertexBuffer CreateVertexBuffer<TVertex>(
-        Label label,
-        TVertex[] vertices) where TVertex : unmanaged
+    public IIndexBuffer CreateIndexBuffer<TIndex>(Label label)
+        where TIndex : unmanaged
     {
-        return new VertexBuffer<TVertex>(label, vertices);
+        return new IndexBuffer<TIndex>(label);
     }
 
-    public IVertexBuffer CreateVertexBuffer(Label label, MeshData[] meshDates, VertexType targetVertexType)
+    public IIndirectBuffer CreateIndirectBuffer(Label label)
     {
+        return new IndirectBuffer(label);
+    }
+
+    public IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(Label label)
+        where TShaderStorageData : unmanaged
+    {
+        return new ShaderStorageBuffer<TShaderStorageData>(label);
+    }
+
+    public IUniformBuffer CreateUniformBuffer<TUniformData>(Label label)
+        where TUniformData: unmanaged
+    {
+        return new UniformBuffer<TUniformData>(label);
+    }
+
+    public IVertexBuffer CreateVertexBuffer<TVertex>(Label label)
+        where TVertex : unmanaged
+    {
+        return new VertexBuffer<TVertex>(label);
+    }
+
+    public IVertexBuffer CreateVertexBuffer(
+        Label label,
+        MeshData[] meshDates,
+        VertexType targetVertexType)
+    {
+        //TODO(deccer) return vertexbuffers depending on targetVertexType
         var bufferData = new List<VertexPositionNormalUvTangent>(1_024_000);
         foreach (var meshData in meshDates)
         {
@@ -117,59 +150,9 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
             }
         }
 
-        return new VertexBuffer<VertexPositionNormalUvTangent>(label, bufferData.ToArray());
-    }
-
-    public IIndexBuffer CreateIndexBuffer(Label label, MeshData[] meshDates)
-    {
-        var indices = meshDates
-            .SelectMany(meshData => meshData.Indices)
-            .ToArray();
-        return new IndexBuffer<uint>(label, indices);
-    }
-
-    public IIndexBuffer CreateIndexBuffer<TIndex>(
-        Label label,
-        uint size) where TIndex : unmanaged
-    {
-        return new IndexBuffer<TIndex>(label, size);
-    }
-
-    public IIndexBuffer CreateIndexBuffer<TIndex>(
-        Label label,
-        TIndex[] indices) where TIndex : unmanaged
-    {
-        return new IndexBuffer<TIndex>(label, indices);
-    }
-
-    public IUniformBuffer CreateUniformBuffer<TUniformData>(
-        Label label,
-        TUniformData uniformData)
-        where TUniformData : unmanaged
-    {
-        return new UniformBuffer<TUniformData>(label, uniformData);
-    }
-
-    public IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(
-        Label label,
-        TShaderStorageData[] shaderStorageData)
-        where TShaderStorageData : unmanaged
-    {
-        return new ShaderStorageBuffer<TShaderStorageData>(label, shaderStorageData);
-    }
-
-    public IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(
-        Label label,
-        uint size)
-        where TShaderStorageData : unmanaged
-    {
-        return new ShaderStorageBuffer<TShaderStorageData>(label, size);
-    }
-
-    public IIndirectBuffer CreateIndirectBuffer(Label label,
-        GpuIndirectElementData[] indirectElementData)
-    {
-        return new IndirectBuffer(label, indirectElementData);
+        var vertexBuffer = new VertexBuffer<VertexPositionNormalUvTangent>(label);
+        vertexBuffer.AllocateStorage(bufferData.ToArray(), StorageAllocationFlags.None);
+        return vertexBuffer;
     }
 
     public ISampler CreateSampler(SamplerDescriptor samplerDescriptor)
@@ -202,6 +185,98 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         return CreateTexture(textureCreateDescriptor);
     }
 
+    public ITexture? CreateTextureFromFile(string filePath, bool generateMipmaps = true)
+    {
+        if (!File.Exists(filePath))
+        {
+           _logger.Error("{Category}: Unable to load image from file '{FilePath}'", "App", filePath);
+            return null;
+        }
+        using var image = Image.Load<Rgba32>(filePath);
+
+        var calculatedMipLevels = (uint)(1 + MathF.Ceiling(MathF.Log2(MathF.Min(image.Width, image.Height))));
+        var textureCreateDescriptor = new TextureCreateDescriptor
+        {
+            ImageType = ImageType.Texture2D,
+            Format = Format.R8G8B8A8UNorm,
+            Label = Path.GetFileNameWithoutExtension(filePath),
+            Size = new Vector3i(image.Width, image.Height, 1),
+            MipLevels = generateMipmaps ? calculatedMipLevels : 1,
+            SampleCount = SampleCount.OneSample
+        };
+
+        var texture = CreateTexture(textureCreateDescriptor);
+        var textureUpdateDescriptor = new TextureUpdateDescriptor
+        {
+            Offset = Vector3i.Zero,
+            Size = new Vector3i(image.Width, image.Height, 1),
+            UploadDimension = UploadDimension.Two,
+            UploadFormat = UploadFormat.RedGreenBlueAlpha,
+            UploadType = UploadType.UnsignedByte,
+            Level = 0,
+        };
+
+        if (image.DangerousTryGetSinglePixelMemory(out var imageMemory))
+        {
+            texture.Update(textureUpdateDescriptor, imageMemory.Pin());
+            if (generateMipmaps)
+            {
+                texture.GenerateMipmaps();
+            }
+        }
+
+        return texture;
+    }
+
+    public ITexture? CreateTextureCubeFromFile(string[] filePaths)
+    {
+        if (filePaths.Length != 6)
+        {
+            _logger.Error("{Category}: Unable to load skybox texture, 6 file paths must be provided", "App");
+            return null;
+        }
+
+        var slice = 0;
+        ITexture? skyboxTexture = null;
+        foreach (var skyboxFileName in filePaths)
+        {
+            using var image = Image.Load<Rgba32>(skyboxFileName);
+
+            if (slice == 0)
+            {
+                var skyboxTextureCreateDescriptor = new TextureCreateDescriptor
+                {
+                    ImageType = ImageType.TextureCube,
+                    Format = Format.R8G8B8A8UNorm,
+                    Label = "Skybox",
+                    Size = new Vector3i(image.Width, image.Height, 1),
+                    MipLevels = 10,
+                    SampleCount = SampleCount.OneSample
+                };
+                skyboxTexture = CreateTexture(skyboxTextureCreateDescriptor);
+            }
+
+            var skyboxTextureUpdateDescriptor = new TextureUpdateDescriptor
+            {
+                Offset = new Vector3i(0, 0, slice++),
+                Size = new Vector3i(image.Width, image.Height, 1),
+                UploadDimension = UploadDimension.Three,
+                UploadFormat = UploadFormat.RedGreenBlueAlpha,
+                UploadType = UploadType.UnsignedByte,
+                Level = 0,
+            };
+
+            if (image.DangerousTryGetSinglePixelMemory(out var imageMemory))
+            {
+                skyboxTexture!.Update(skyboxTextureUpdateDescriptor, imageMemory.Pin());
+            }
+        }
+
+        skyboxTexture?.GenerateMipmaps();
+
+        return skyboxTexture;
+    }
+
     public bool BindComputePipeline(IComputePipeline computePipeline)
     {
         if (!_computePipelineCache.TryGetValue(computePipeline, out var computePipelineDescriptor))
@@ -226,8 +301,6 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         GL.EnableWhen(
             GL.EnableType.PrimitiveRestart,
             graphicsPipelineDescriptor.InputAssembly.IsPrimitiveRestartEnabled);
-
-        _currentPrimitiveTopology = graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology;
 
         var rasterizationDescriptor = graphicsPipelineDescriptor.RasterizationDescriptor;
         GL.EnableWhen(GL.EnableType.DepthClamp, rasterizationDescriptor.IsDepthClampEnabled);
@@ -434,7 +507,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         GL.DepthMask(true);
         GL.StencilMask(true);
     }
-    
+
     public void InsertMemoryBarrier(BarrierMask mask)
     {
         GL.MemoryBarrier(mask.ToGL());

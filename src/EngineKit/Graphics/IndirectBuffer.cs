@@ -5,18 +5,8 @@ namespace EngineKit.Graphics;
 
 internal sealed class IndirectBuffer : Buffer<GpuIndirectElementData>, IIndirectBuffer
 {
-    internal IndirectBuffer(Label label, GpuIndirectElementData data)
-        : base(BufferTarget.IndirectDrawBuffer, label, data)
-    {
-    }
-
-    internal IndirectBuffer(Label label, GpuIndirectElementData[] data)
-        : base(BufferTarget.IndirectDrawBuffer, label, data)
-    {
-    }
-
-    internal IndirectBuffer(Label label, uint size)
-        : base(BufferTarget.IndirectDrawBuffer, label, size)
+    internal IndirectBuffer(Label label)
+        : base(BufferTarget.IndirectDrawBuffer, label)
     {
     }
 

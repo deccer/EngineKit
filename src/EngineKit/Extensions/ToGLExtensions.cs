@@ -6,6 +6,14 @@ namespace EngineKit.Extensions;
 
 public static class ToGLExtensions
 {
+    public static GL.BufferStorageMask ToGL(this StorageAllocationFlags storageAllocationFlags)
+    {
+        GL.BufferStorageMask result = 0u;
+        result |= (storageAllocationFlags & StorageAllocationFlags.Dynamic) == StorageAllocationFlags.Dynamic ? GL.BufferStorageMask.DynamicStorageBit : 0;
+        result |= (storageAllocationFlags & StorageAllocationFlags.Client) == StorageAllocationFlags.Client ? GL.BufferStorageMask.ClientStorageBit : 0;
+        return result;
+    }
+
     public static GL.DataType ToGL(this DataType dataType)
     {
         return dataType switch
@@ -296,6 +304,7 @@ public static class ToGLExtensions
 
     public static GL.MemoryBarrierMask ToGL(this BarrierMask barrierMask)
     {
+        // TODO(deccer) fix this thing, see BufferStorageFlags
         return barrierMask switch
         {
             BarrierMask.VertexAttribArray => GL.MemoryBarrierMask.VertexAttribArrayBarrierBit,
