@@ -12,16 +12,16 @@ layout (location = 0) out gl_PerVertex
 layout(location = 0) out vec3 v_position;
 layout(location = 1) out vec3 v_normal;
 layout(location = 2) out vec2 v_uv;
-layout(location = 3) out flat int v_object_id;
+layout(location = 3) out flat int v_model_mesh_instance_id;
 
 #include "Common.glsl"
 
 void main()
 {
-    v_object_id = gl_InstanceID + gl_BaseInstance;
-    GpuObject object = objectBuffer.Objects[v_object_id];
-    v_position = (object.World * vec4(i_position, 1.0)).xyz;
-    v_normal = normalize(inverse(transpose(mat3(object.World))) * i_normal);
+    v_model_mesh_instance_id = gl_DrawID;
+    GpuModelMeshInstance modelMeshInstance = modelMeshInstanceBuffer.Instances[v_model_mesh_instance_id];
+    v_position = (modelMeshInstance.World * vec4(i_position, 1.0)).xyz;
+    v_normal = normalize(inverse(transpose(mat3(modelMeshInstance.World))) * i_normal);
     v_uv = i_uv;
     gl_Position = ViewProj * vec4(v_position, 1.0);
 }

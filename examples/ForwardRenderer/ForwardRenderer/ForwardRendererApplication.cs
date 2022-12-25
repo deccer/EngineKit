@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
@@ -10,10 +11,25 @@ using ImGuiNET;
 using Microsoft.Extensions.Options;
 using OpenTK.Mathematics;
 using Serilog;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace ForwardRenderer;
+
+public struct ModelMesh
+{
+    public string MeshName;
+
+    public int VertexOffset;
+
+    public int VertexCount;
+
+    public int IndexOffset;
+
+    public int IndexCount;
+
+    public Matrix4 WorldMatrix;
+
+    public ulong TextureHandle;
+}
 
 internal sealed class ForwardRendererApplication : GraphicsApplication
 {
@@ -23,7 +39,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private readonly IImageLoader _imageLoader;
     private readonly IMeshLoader _meshLoader;
     private readonly ICamera _camera;
-    private readonly IList<GpuObject> _gpuObjects;
+    private readonly IList<ModelMeshInstance> _modelMeshInstances;
     private readonly IList<GpuMaterial> _gpuMaterials;
 
     private ITexture? _skullBaseColorTexture;
@@ -33,7 +49,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
     private GpuConstants _gpuConstants;
     private IUniformBuffer? _gpuConstantsBuffer;
-    private IShaderStorageBuffer? _gpuObjectsBuffer;
+    private IShaderStorageBuffer? _gpuModelMeshInstanceBuffer;
     private IShaderStorageBuffer? _gpuMaterialBuffer;
 
     private IVertexBuffer? _skullVertexBuffer;
@@ -41,6 +57,11 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
     private ISampler? _linearMipmapNearestSampler;
     private ISampler? _linearMipmapLinear;
+
+    private readonly IList<ModelMesh> _modelMeshes;
+    private IList<GpuModelMeshInstance> _gpuModelMeshInstances;
+    private readonly List<GpuIndirectElementData> _gpuIndirectElements;
+    private IIndirectBuffer _gpuIndirectElementDataBuffer;
 
     public ForwardRendererApplication(
         ILogger logger,
@@ -64,9 +85,13 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _camera = camera;
 
         _gpuConstants = new GpuConstants();
-        _gpuObjects = new List<GpuObject>();
         _gpuMaterials = new List<GpuMaterial>();
         _camera.Sensitivity = 0.25f;
+
+        _modelMeshes = new List<ModelMesh>();
+        _modelMeshInstances = new List<ModelMeshInstance>();
+        _gpuModelMeshInstances = new List<GpuModelMeshInstance>();
+        _gpuIndirectElements = new List<GpuIndirectElementData>();
     }
 
     protected override bool Load()
@@ -97,44 +122,73 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             return false;
         }
 
-        _gpuConstantsBuffer = GraphicsContext.CreateUniformBuffer("Camera", _gpuConstants);
+        _gpuConstantsBuffer = GraphicsContext.CreateUniformBuffer<GpuConstants>("Camera");
+        _gpuConstantsBuffer.AllocateStorage(_gpuConstants, StorageAllocationFlags.Dynamic);
 
-        _gpuObjects.Add(new GpuObject
+        _modelMeshInstances.Add(new ModelMeshInstance
         {
+            ModelMesh = _modelMeshes.First(),
             World = Matrix4.CreateTranslation(-5, 0, 0)
         });
-        _gpuObjects.Add(new GpuObject
+        _modelMeshInstances.Add(new ModelMeshInstance
         {
+            ModelMesh = _modelMeshes.First(),
             World = Matrix4.CreateTranslation(0, 0, 0)
         });
-        _gpuObjects.Add(new GpuObject
+        _modelMeshInstances.Add(new ModelMeshInstance
         {
+            ModelMesh = _modelMeshes.First(),
             World = Matrix4.CreateTranslation(+5, 0, 0)
         });
 
-        _gpuObjectsBuffer = GraphicsContext.CreateShaderStorageBuffer("Objects", _gpuObjects.ToArray());
+        _gpuModelMeshInstanceBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuModelMeshInstance>("ModelMeshInstances");
+        _gpuModelMeshInstanceBuffer.AllocateStorage(3 * Marshal.SizeOf<GpuModelMeshInstance>(), StorageAllocationFlags.Dynamic);
+        _gpuIndirectElementDataBuffer = GraphicsContext.CreateIndirectBuffer("MeshIndirectDrawElement");
+        _gpuIndirectElementDataBuffer.AllocateStorage(3 * Marshal.SizeOf<GpuIndirectElementData>(), StorageAllocationFlags.Dynamic);
 
         _gpuMaterials.Add(new GpuMaterial
         {
-            BaseColor = new Vector4(0.1f, 0.2f, 0.3f, 1.0f),
+            BaseColor = new Vector4(1.1f, 0.2f, 0.3f, 1.0f),
+            BaseColorTextureHandle = _skullBaseColorTexture.TextureHandle
         });
         _gpuMaterials.Add(new GpuMaterial
         {
-            BaseColor = new Vector4(0.2f, 0.3f, 0.4f, 1.0f),
+            BaseColor = new Vector4(0.2f, 0.3f, 1.5f, 1.0f),
+            BaseColorTextureHandle = _skullBaseColorTexture.TextureHandle
         });
         _gpuMaterials.Add(new GpuMaterial
         {
-            BaseColor = new Vector4(0.3f, 0.4f, 0.5f, 1.0f),
+            BaseColor = new Vector4(0.3f, 1.4f, 0.5f, 1.0f),
+            BaseColorTextureHandle = _skullBaseColorTexture.TextureHandle
         });
 
-        _gpuMaterialBuffer = GraphicsContext
-            .CreateShaderStorageBuffer<GpuMaterial>("Materials", _gpuMaterials.ToArray());
+        _gpuMaterialBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuMaterial>("Materials");
+        _gpuMaterialBuffer.AllocateStorage(_gpuMaterials.ToArray(), StorageAllocationFlags.Dynamic);
 
         return true;
     }
 
     protected override void Render()
     {
+        _gpuModelMeshInstances = _modelMeshInstances.Select(mm => new GpuModelMeshInstance { World = mm.World }).ToList();
+        _gpuModelMeshInstanceBuffer.Update(_gpuModelMeshInstances.ToArray(), 0);
+
+        _gpuIndirectElements.Clear();
+        foreach (var modelMeshInstance in _modelMeshInstances)
+        {
+            var gpuIndirectElement = new GpuIndirectElementData
+            {
+                IndexCount = (uint)modelMeshInstance.ModelMesh.IndexCount,
+                BaseInstance = 0,
+                BaseVertex = modelMeshInstance.ModelMesh.VertexOffset,
+                FirstIndex = (uint)modelMeshInstance.ModelMesh.IndexOffset,
+                InstanceCount = 1
+            };
+            _gpuIndirectElements.Add(gpuIndirectElement);
+        }
+
+        _gpuIndirectElementDataBuffer.Update(_gpuIndirectElements.ToArray(), 0);
+
         _gpuConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
         _gpuConstantsBuffer!.Update(_gpuConstants, 0);
 
@@ -144,11 +198,12 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _sceneGraphicsPipeline.BindIndexBuffer(_skullIndexBuffer!);
 
         _sceneGraphicsPipeline.BindUniformBuffer(_gpuConstantsBuffer, 0);
-        _sceneGraphicsPipeline.BindShaderStorageBuffer(_gpuObjectsBuffer!, 1);
+        _sceneGraphicsPipeline.BindShaderStorageBuffer(_gpuModelMeshInstanceBuffer!, 1);
         _sceneGraphicsPipeline.BindShaderStorageBuffer(_gpuMaterialBuffer!, 2);
         _sceneGraphicsPipeline.BindSampledTexture(_linearMipmapLinear!, _skullBaseColorTexture!, 0);
 
-        _sceneGraphicsPipeline.DrawElementsInstanced(_skullIndexBuffer!.Count, 0, _gpuObjects.Count);
+        _sceneGraphicsPipeline.MultiDrawElementsIndirect(_gpuIndirectElementDataBuffer, _gpuIndirectElements.Count);
+
         GraphicsContext.EndRender();
 
         RenderUi();
@@ -164,7 +219,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _sceneGraphicsPipeline?.Dispose();
         _gpuConstantsBuffer?.Dispose();
         _gpuMaterialBuffer?.Dispose();
-        _gpuObjectsBuffer?.Dispose();
+        _gpuModelMeshInstanceBuffer?.Dispose();
 
         base.Unload();
     }
@@ -275,18 +330,38 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private bool LoadMeshes()
     {
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        var skullMeshDates = _meshLoader.LoadModel(Path.Combine(baseDirectory, "Data/Props/Skull/SM_Skull_Optimized_point2.gltf")).ToArray();
-        _skullVertexBuffer = GraphicsContext.CreateVertexBuffer("SkullVertices", skullMeshDates, VertexType.PositionNormalUvTangent);
-        _skullIndexBuffer = GraphicsContext.CreateIndexBuffer("SkullIndices", skullMeshDates);
+        var meshDates = _meshLoader.LoadModel(Path.Combine(baseDirectory, "Data/Props/Skull/SM_Skull_Optimized_point2.gltf")).ToArray();
 
-        //var pbrScene = _meshLoader.LoadModel(Path.Combine(baseDirectory, "Data/Scenes/Pbr_Reference/scene.gltf")).ToArray();
+        var indexOffset = 0;
+        var vertexOffset = 0;
+        foreach (var meshData in meshDates)
+        {
+            meshData.IndexOffset = indexOffset;
+            meshData.VertexOffset = vertexOffset;
+
+            var obj = new ModelMesh
+            {
+                IndexCount = meshData.IndexCount,
+                IndexOffset = meshData.IndexOffset,
+                VertexCount = meshData.VertexCount,
+                VertexOffset = meshData.VertexOffset,
+                MeshName = meshData.MeshName
+            };
+            _modelMeshes.Add(obj);
+
+            indexOffset += meshData.IndexCount;
+            vertexOffset += meshData.VertexCount;
+        }
+
+        _skullVertexBuffer = GraphicsContext.CreateVertexBuffer("SkullVertices", meshDates, VertexType.PositionNormalUvTangent);
+        _skullIndexBuffer = GraphicsContext.CreateIndexBuffer("SkullIndices", meshDates);
 
         return true;
     }
 
     private bool LoadResources()
     {
-        _skullBaseColorTexture = LoadTexture("Data/Props/Skull/TD_Checker_Base_Color.png");
+        _skullBaseColorTexture = GraphicsContext.CreateTextureFromFile("Data/Props/Skull/TD_Checker_Base_Color.png", true);
         if (_skullBaseColorTexture == null)
         {
             return false;
@@ -302,46 +377,5 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             .Build("LinearMipmapLinear");
 
         return true;
-    }
-
-    private ITexture? LoadTexture(string filePath)
-    {
-        if (_imageLoader.LoadImage<Rgba32>(filePath) is not Image<Rgba32> image)
-        {
-            return null;
-        }
-
-        var textureCreateDescriptor = new TextureCreateDescriptor
-        {
-            Format = Format.R8G8B8A8UNorm,
-            Label = Path.GetFileNameWithoutExtension(filePath),
-            ArrayLayers = 0,
-            ImageType = ImageType.Texture2D,
-            MipLevels = 1 + (uint)MathF.Ceiling(MathF.Log2(MathF.Max(image.Width, image.Height))),
-            SampleCount = SampleCount.OneSample,
-            Size = new Vector3i(image.Width, image.Height, 1)
-        };
-        var texture = GraphicsContext.CreateTexture(textureCreateDescriptor);
-        var textureUpdateDescriptor = new TextureUpdateDescriptor
-        {
-            Level = 0,
-            Offset = Vector3i.Zero,
-            Size = textureCreateDescriptor.Size,
-            UploadDimension = UploadDimension.Two,
-            UploadFormat = UploadFormat.RedGreenBlueAlpha,
-            UploadType = UploadType.UnsignedByte
-        };
-
-        if (image.DangerousTryGetSinglePixelMemory(out var pixelData))
-        {
-            texture.Update(textureUpdateDescriptor, pixelData.Pin());
-            if (textureCreateDescriptor.MipLevels > 1)
-            {
-                texture.GenerateMipmaps();
-            }
-            image.Dispose();
-        }
-
-        return texture;
     }
 }

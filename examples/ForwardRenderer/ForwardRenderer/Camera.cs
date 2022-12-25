@@ -31,6 +31,12 @@ public sealed class Camera : ICamera
 
     public Matrix4 ProjectionMatrix { get; private set; }
 
+    public float FieldOfView { get; set; }
+
+    public float NearPlane { get; set; }
+
+    public float FarPlane { get; set; }
+
     public Vector3 Position
     {
         get => _position;
@@ -72,6 +78,9 @@ public sealed class Camera : ICamera
         _front = new Vector3(0, 0, -1);
         _cameraMode = cameraMode;
         _position = position;
+        FieldOfView = 60.0f;
+        NearPlane = 0.1f;
+        FarPlane = 1024f;
         UpdateCameraVectors();
     }
 
@@ -131,10 +140,10 @@ public sealed class Camera : ICamera
 
         ViewMatrix = Matrix4.LookAt(_position, _position + _front, _up);
         ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(
-            MathHelper.ToRadians(60),
+            MathHelper.ToRadians(FieldOfView),
             _applicationContext.ScaledFramebufferSize.X / (float)_applicationContext.ScaledFramebufferSize.Y,
-            0.1f,
-            2048f);
+            NearPlane,
+            FarPlane);
     }
 
     private void UpdateCameraVectorsForOrthogonal()
@@ -154,7 +163,7 @@ public sealed class Camera : ICamera
         ProjectionMatrix = Matrix4.CreateOrthographic(
             _applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y,
-            0.1f,
-            2048f);
+            NearPlane,
+            FarPlane);
     }
 }
