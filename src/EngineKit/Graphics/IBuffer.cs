@@ -10,13 +10,19 @@ public interface IBuffer : IDisposable
 
     int Count { get; }
 
-    void Resize(uint newSize);
+    void AllocateStorage(int sizeInBytes, StorageAllocationFlags storageAllocationFlags);
 
-    void Update(IntPtr dataPtr, uint size, int offset);
+    void AllocateStorage<TElement>(TElement element, StorageAllocationFlags storageAllocationFlags)
+        where TElement : unmanaged;
 
-    void Update<T>(T item, int offset)
+    void AllocateStorage<TElement>(TElement[] elements, StorageAllocationFlags storageAllocationFlags)
+        where TElement : unmanaged;
+
+    void Update(nint dataPtr, int offsetInBytes, int sizeInBytes);
+
+    void Update<T>(T item, int elementOffset)
         where T : unmanaged;
 
-    void Update<T>(T[] data, int offset)
+    void Update<T>(T[] data, int elementOffset)
         where T : unmanaged;
 }

@@ -1,22 +1,11 @@
-﻿using System;
-using EngineKit.Native.OpenGL;
+﻿using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
 
 internal sealed class VertexBuffer<TVertex> : Buffer<TVertex>, IVertexBuffer where TVertex: unmanaged
 {
-    internal VertexBuffer(Label label, TVertex data)
-        : base(BufferTarget.VertexBuffer, label, data)
-    {
-    }
-
-    internal VertexBuffer(Label label, TVertex[] data)
-        : base(BufferTarget.VertexBuffer, label, data)
-    {
-    }
-
-    internal VertexBuffer(Label label, uint size)
-        : base(BufferTarget.VertexBuffer, label, size)
+    internal VertexBuffer(Label label)
+        : base(BufferTarget.VertexBuffer, label)
     {
     }
 
@@ -26,7 +15,7 @@ internal sealed class VertexBuffer<TVertex> : Buffer<TVertex>, IVertexBuffer whe
             inputLayout.Id,
             bindingIndex,
             Id,
-            IntPtr.Zero,
+            nint.Zero,
             Stride);
     }
 
@@ -36,7 +25,7 @@ internal sealed class VertexBuffer<TVertex> : Buffer<TVertex>, IVertexBuffer whe
             inputLayout.Id,
             bindingIndex,
             Id,
-            new IntPtr(offset),
+            (nint)offset,
             Stride);
     }
 }

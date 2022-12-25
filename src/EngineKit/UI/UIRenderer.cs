@@ -66,9 +66,9 @@ internal sealed class UIRenderer : IUIRenderer
     private bool _frameBegun;
 
     private IVertexBuffer? _vertexBuffer;
-    private uint _vertexBufferSize;
+    private int _vertexBufferSize;
     private IIndexBuffer? _indexBuffer;
-    private uint _indexBufferSize;
+    private int _indexBufferSize;
 
     private ImGuiIOPtr _imGuiIo;
 
@@ -150,7 +150,8 @@ internal sealed class UIRenderer : IUIRenderer
             0.0f,
             -1.0f,
             1.0f);
-        _uniformBuffer = _graphicsContext.CreateUniformBuffer("ImGuiProjectionMatrix", mvp);
+        _uniformBuffer = _graphicsContext.CreateUniformBuffer<Matrix4>("ImGuiProjectionMatrix");
+        _uniformBuffer.AllocateStorage(mvp, StorageAllocationFlags.Dynamic);
 
         var style = ImGui.GetStyle();
         SetStyleDarker(style);
@@ -189,8 +190,10 @@ internal sealed class UIRenderer : IUIRenderer
         _vertexBufferSize = 64 * 1024;
         _indexBufferSize = 64 * 1024;
 
-        _vertexBuffer = _graphicsContext.CreateVertexBuffer<ImDrawVert>("ImGuiVertices", _vertexBufferSize);
-        _indexBuffer = _graphicsContext.CreateIndexBuffer<ushort>("ImGuiIndices", _indexBufferSize);
+        _vertexBuffer = _graphicsContext.CreateVertexBuffer<ImDrawVert>("ImGuiVertices");
+        _vertexBuffer.AllocateStorage(_vertexBufferSize, StorageAllocationFlags.Dynamic);
+        _indexBuffer = _graphicsContext.CreateIndexBuffer<ushort>("ImGuiIndices");
+        _indexBuffer.AllocateStorage(_indexBufferSize, StorageAllocationFlags.Dynamic);
 
         RecreateFontDeviceTexture();
     }
@@ -369,16 +372,16 @@ internal sealed class UIRenderer : IUIRenderer
             var vertexSize = commandList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>();
             if (vertexSize > _vertexBufferSize)
             {
-                var newSize = (uint)Math.Max(_vertexBufferSize * 1.5f, vertexSize);
-                _vertexBuffer!.Resize(newSize);
+                var newSize = (int)Math.Max(_vertexBufferSize * 1.5f, vertexSize);
+                _vertexBuffer!.AllocateStorage(newSize, StorageAllocationFlags.Dynamic);
                 _vertexBufferSize = newSize;
             }
 
             var indexSize = commandList.IdxBuffer.Size * sizeof(ushort);
             if (indexSize > _indexBufferSize)
             {
-                var newSize = (uint)Math.Max(_indexBufferSize * 1.5f, indexSize);
-                _indexBuffer!.Resize(newSize);
+                var newSize = (int)Math.Max(_indexBufferSize * 1.5f, indexSize);
+                _indexBuffer!.AllocateStorage(newSize, StorageAllocationFlags.Dynamic);
                 _indexBufferSize = newSize;
             }
         }
@@ -405,10 +408,12 @@ internal sealed class UIRenderer : IUIRenderer
 
             _vertexBuffer!.Update(
                 commandList.VtxBuffer.Data,
-                (uint)(commandList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>()), 0);
+                0,
+                commandList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>());
             _indexBuffer!.Update(
                 commandList.IdxBuffer.Data,
-                (uint)commandList.IdxBuffer.Size * sizeof(ushort), 0);
+                0,
+                commandList.IdxBuffer.Size * sizeof(ushort));
 
             var vertexOffset = 0;
             var indexOffset = 0;

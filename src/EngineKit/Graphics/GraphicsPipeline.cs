@@ -1,4 +1,3 @@
-using System;
 using EngineKit.Extensions;
 using EngineKit.Native.OpenGL;
 
@@ -84,7 +83,7 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
             elementCount,
             GL.IndexElementType.UnsignedInt,
-            (nint)offset);
+            offset);
     }
 
     public void DrawElementsInstanced(int elementCount, int elementOffset, int instanceCount)
@@ -93,11 +92,15 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
             elementCount,
             GL.IndexElementType.UnsignedInt,
-            (nint)elementOffset,
+            elementOffset,
             instanceCount);
     }
 
-    public void DrawElementsInstancedBaseVertex(int elementCount, int elementOffset, int instanceCount, int baseVertex)
+    public void DrawElementsInstancedBaseVertex(
+        int elementCount,
+        int elementOffset,
+        int instanceCount,
+        int baseVertex)
     {
         GL.DrawElementsInstancedBaseVertex(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
@@ -117,17 +120,17 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
         GL.DrawElementsIndirect(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
             GL.IndexElementType.UnsignedInt,
-            new nint(indirectElementIndex * indirectBuffer.Stride));
+            indirectElementIndex * indirectBuffer.Stride);
     }
 
-    public void MultiDrawElementsIndirect(IIndirectBuffer indirectBuffer)
+    public void MultiDrawElementsIndirect(IIndirectBuffer indirectBuffer, int primitiveCount)
     {
         indirectBuffer.Bind();
         GL.MultiDrawElementsIndirect(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
             GL.IndexElementType.UnsignedInt,
             nint.Zero,
-            indirectBuffer.Count,
+            primitiveCount,
             indirectBuffer.Stride);
     }
 }

@@ -12,48 +12,34 @@ public interface IGraphicsContext : IDisposable
 
     void BeginRenderToFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor);
 
-    void BlitFramebufferToSwapchain(int sourceWidth, int sourceHeight, int targetWidth, int targetHeight);
+    void BlitFramebufferToSwapchain(
+        int sourceWidth,
+        int sourceHeight,
+        int targetWidth,
+        int targetHeight);
 
-    IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(
-        Label label,
-        TShaderStorageData[] shaderStorageData) where TShaderStorageData : unmanaged;
-
-    IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(
-        Label label,
-        uint size) where TShaderStorageData : unmanaged;
-
-    IIndirectBuffer CreateIndirectBuffer(Label label,
-        GpuIndirectElementData[] indirectElementData);
-
-    IVertexBuffer CreateVertexBuffer<TVertex>(
-        Label label,
-        uint size) where TVertex : unmanaged;
-
-    IVertexBuffer CreateVertexBuffer<TVertex>(
-        Label label,
-        TVertex[] vertices) where TVertex : unmanaged;
-
-    IVertexBuffer CreateVertexBuffer(
-        Label label,
-        MeshData[] meshDates,
-        VertexType targetVertexType);
-
-    IIndexBuffer CreateIndexBuffer<TIndex>(
-        Label label,
-        uint size) where TIndex : unmanaged;
-
-    IIndexBuffer CreateIndexBuffer<TIndex>(
-        Label label,
-        TIndex[] indices) where TIndex : unmanaged;
+    IIndexBuffer CreateIndexBuffer<TIndex>(Label label)
+        where TIndex : unmanaged;
 
     IIndexBuffer CreateIndexBuffer(
         Label label,
         MeshData[] meshDates);
 
-    IUniformBuffer CreateUniformBuffer<TUniformData>(
+    IIndirectBuffer CreateIndirectBuffer(Label label);
+
+    IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(Label label)
+        where TShaderStorageData : unmanaged;
+
+    IUniformBuffer CreateUniformBuffer<TUniformData>(Label label)
+        where TUniformData: unmanaged;
+
+    IVertexBuffer CreateVertexBuffer<TVertex>(Label label)
+        where TVertex : unmanaged;
+
+    IVertexBuffer CreateVertexBuffer(
         Label label,
-        TUniformData uniformData)
-        where TUniformData : unmanaged;
+        MeshData[] meshDates,
+        VertexType targetVertexType);
 
     ISampler CreateSampler(SamplerDescriptor samplerDescriptor);
 
@@ -65,9 +51,17 @@ public interface IGraphicsContext : IDisposable
 
     ITexture CreateTexture(TextureCreateDescriptor textureCreateDescriptor);
 
-    ITexture CreateTexture2D(int width, int height, Format format, Label? label = null);
+    ITexture CreateTexture2D(
+        int width,
+        int height,
+        Format format,
+        Label? label = null);
+
+    ITexture? CreateTextureFromFile(string filePath, bool generateMipmaps = true);
+
+    ITexture? CreateTextureCubeFromFile(string[] filePaths);
 
     void EndRender();
 
-    public void InsertMemoryBarrier(BarrierMask mask);
+    void InsertMemoryBarrier(BarrierMask mask);
 }
