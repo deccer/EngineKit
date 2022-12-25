@@ -10,11 +10,6 @@
         <None Update="**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Remove="Data\Scenes\Pbr_Reference\scene.bin" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Data\Scenes\Pbr_Reference" />
     </ItemGroup>
 
 </Project>

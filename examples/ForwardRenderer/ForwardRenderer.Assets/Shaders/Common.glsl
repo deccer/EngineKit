@@ -3,12 +3,12 @@ layout(binding = 0, std140) uniform GpuConstants
     mat4 ViewProj;
 };
 
-struct GpuObject
+struct GpuModelMeshInstance
 {
     mat4 World;
 };
 
-layout(binding = 1, std430) readonly buffer ObjectBuffer
+layout(binding = 1, std430) readonly buffer ModelMeshInstanceBuffer
 {
-    GpuObject Objects[];
-} objectBuffer;
+    GpuModelMeshInstance Instances[];
+} modelMeshInstanceBuffer;
