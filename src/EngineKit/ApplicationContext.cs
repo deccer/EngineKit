@@ -9,4 +9,6 @@ internal sealed class ApplicationContext : IApplicationContext
     public OpenTK.Mathematics.Vector2i FramebufferSize { get; set; }
 
     public OpenTK.Mathematics.Vector2i ScaledFramebufferSize { get; set; }
+
+    public bool ShowResizeInLog { get; set; }
 }

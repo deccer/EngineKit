@@ -454,13 +454,30 @@ public class Application : IApplication
         int width,
         int height)
     {
+        var oldWindowSize = _applicationContext.WindowSize;
         _applicationContext.WindowSize = new Vector2i(width, height);
+        if (_applicationContext.ShowResizeInLog)
+        {
+            _logger.Debug("{Category}: Window resized from {OldWidth}x{OldHeight} to {Width}x{Height}", "App", oldWindowSize.X, oldWindowSize.Y, width, height);
+        }
         WindowResized();
     }
 
     private void OnFramebufferSize(nint windowHandle, int width, int height)
     {
+        var oldFramebufferSize = _applicationContext.FramebufferSize;
+        var oldScaledFramebufferSize = _applicationContext.ScaledFramebufferSize;
         _applicationContext.FramebufferSize = new Vector2i(width, height);
+
+        _applicationContext.ScaledFramebufferSize = new Vector2i(
+            (int)(width * _windowSettings.Value.ResolutionScale),
+            (int)(height * _windowSettings.Value.ResolutionScale));
+
+        if (_applicationContext.ShowResizeInLog)
+        {
+            _logger.Debug("{Category}: Framebuffer resized from {OldWidth}x{OldHeight} to {Width}x{Height}", "App", oldFramebufferSize.X, oldFramebufferSize.Y, width, height);
+            _logger.Debug("{Category}: ScaledFramebuffer resized from {OldWidth}x{OldHeight} to {Width}x{Height}", "App", oldScaledFramebufferSize.X, oldScaledFramebufferSize.Y, width, height);
+        }
         FramebufferResized();
     }
 
