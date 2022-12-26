@@ -169,7 +169,7 @@ public class Application : IApplication
         Glfw.WindowHint(Glfw.WindowInitHint.ScaleToMonitor, true);
         Glfw.WindowHint(Glfw.WindowInitHint.ClientApi, Glfw.ClientApi.OpenGL);
         Glfw.WindowHint(Glfw.WindowInitHint.IsResizeable, windowResizable);
-        Glfw.WindowHint(Glfw.WindowInitHint.IsDecorated, windowSettings.WindowMode != WindowMode.WindowedBorderless);
+        Glfw.WindowHint(Glfw.WindowInitHint.IsDecorated, windowSettings.WindowMode == WindowMode.Windowed);
         Glfw.WindowHint(Glfw.WindowInitHint.IsMaximized, !windowResizable);
         Glfw.WindowHint(Glfw.WindowInitHint.IsFloating, !windowResizable);
         Glfw.WindowHint(Glfw.WindowInitHint.IsFocused, true);
