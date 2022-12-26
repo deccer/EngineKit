@@ -438,7 +438,7 @@ public class Application : IApplication
         _inputProvider.MouseState.PreviousX = (float)currentCursorX;
         _inputProvider.MouseState.PreviousY = (float)currentCursorY;
 
-        _logger.Debug("{Category}: MouseMove: {MouseState}", "Glfw", _inputProvider.MouseState);
+        //_logger.Debug("{Category}: MouseMove: {MouseState}", "Glfw", _inputProvider.MouseState);
     }
 
     private void OnMouseEnterLeave(
