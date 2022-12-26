@@ -373,7 +373,11 @@ internal sealed class UIRenderer : IUIRenderer
             if (vertexSize > _vertexBufferSize)
             {
                 var newSize = (int)Math.Max(_vertexBufferSize * 1.5f, vertexSize);
-                _vertexBuffer!.AllocateStorage(newSize, StorageAllocationFlags.Dynamic);
+
+                _vertexBuffer?.Dispose();
+                _vertexBuffer = _graphicsContext.CreateVertexBuffer<ImDrawVert>("ImGuiVertices");
+                _vertexBuffer.AllocateStorage(newSize, StorageAllocationFlags.Dynamic);
+
                 _vertexBufferSize = newSize;
             }
 
@@ -381,7 +385,11 @@ internal sealed class UIRenderer : IUIRenderer
             if (indexSize > _indexBufferSize)
             {
                 var newSize = (int)Math.Max(_indexBufferSize * 1.5f, indexSize);
-                _indexBuffer!.AllocateStorage(newSize, StorageAllocationFlags.Dynamic);
+
+                _indexBuffer?.Dispose();
+                _indexBuffer = _graphicsContext.CreateIndexBuffer<ushort>("ImGuiIndices");
+                _indexBuffer.AllocateStorage(newSize, StorageAllocationFlags.Dynamic);
+
                 _indexBufferSize = newSize;
             }
         }
