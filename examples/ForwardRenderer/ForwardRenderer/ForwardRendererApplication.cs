@@ -79,6 +79,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     {
         _logger = logger;
         _applicationContext = applicationContext;
+        _applicationContext.ShowResizeInLog = true;
         _metrics = metrics;
         _imageLoader = imageLoader;
         _meshLoader = meshLoader;
@@ -207,6 +208,16 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         GraphicsContext.EndRender();
 
         RenderUi();
+    }
+
+    protected override void FramebufferResized()
+    {
+        base.FramebufferResized();
+        _swapchainRenderDescriptor = new SwapchainRenderDescriptorBuilder()
+            .ClearColor(Color4.DimGray)
+            .ClearDepth()
+            .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
+            .Build();
     }
 
     protected override void Unload()

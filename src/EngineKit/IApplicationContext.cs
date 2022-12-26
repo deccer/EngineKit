@@ -9,4 +9,6 @@ public interface IApplicationContext
     OpenTK.Mathematics.Vector2i FramebufferSize { get; set; }
 
     OpenTK.Mathematics.Vector2i ScaledFramebufferSize { get; set; }
+
+    bool ShowResizeInLog { get; set; }
 }
