@@ -512,4 +512,9 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
     {
         GL.MemoryBarrier(mask.ToGL());
     }
+
+    public void RemoveFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
+    {
+        _framebufferFactory.RemoveFramebuffer(framebufferRenderDescriptor);
+    }
 }

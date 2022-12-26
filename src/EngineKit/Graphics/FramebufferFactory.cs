@@ -33,6 +33,15 @@ internal sealed class FramebufferFactory : IFramebufferFactory
             : CreateFramebuffer(framebufferRenderDescriptor);
     }
 
+    public void RemoveFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
+    {
+        if (_framebufferCache.TryGetValue(framebufferRenderDescriptor, out var framebuffer))
+        {
+            GL.DeleteFramebuffer(framebuffer);
+            _framebufferCache.Remove(framebufferRenderDescriptor);
+        }
+    }
+
     private uint CreateFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
     {
         _logger.Debug("Creating Framebuffer");
