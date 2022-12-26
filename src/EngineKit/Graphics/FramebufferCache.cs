@@ -5,14 +5,14 @@ using Serilog;
 
 namespace EngineKit.Graphics;
 
-internal sealed class FramebufferFactory : IFramebufferFactory
+internal sealed class FramebufferCache : IFramebufferCache
 {
     private readonly ILogger _logger;
     private readonly IDictionary<FramebufferRenderDescriptor, uint> _framebufferCache;
 
-    public FramebufferFactory(ILogger logger)
+    public FramebufferCache(ILogger logger)
     {
-        _logger = logger.ForContext<FramebufferFactory>();
+        _logger = logger.ForContext<FramebufferCache>();
         _framebufferCache = new Dictionary<FramebufferRenderDescriptor, uint>(16);
     }
 

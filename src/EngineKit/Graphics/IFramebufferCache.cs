@@ -2,7 +2,7 @@ using System;
 
 namespace EngineKit.Graphics;
 
-internal interface IFramebufferFactory : IDisposable
+internal interface IFramebufferCache : IDisposable
 {
     uint GetOrCreateFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor);
 

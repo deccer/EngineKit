@@ -17,7 +17,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IMetrics, Metrics>();
         services.AddSingleton<IInputProvider, InputProvider>();
 
-        services.AddSingleton<IFramebufferFactory, FramebufferFactory>();
+        services.AddSingleton<IFramebufferCache, FramebufferCache>();
         services.AddSingleton<IGraphicsContext, GraphicsContext>();
         services.AddSingleton<ITextureLoader, TextureLoader>();
         services.AddSingleton<ITextureLibrary, TextureLibrary>();
