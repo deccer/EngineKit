@@ -28,6 +28,9 @@ public class Application : IApplication
     private Glfw.CursorPositionCallback? _cursorPositionCallback;
     private Glfw.WindowSizeCallback? _windowSizeCallback;
 
+    private static bool _isFirstFrame = true;
+    private bool _isCursorVisible;
+
     public Application(
         ILogger logger,
         IOptions<WindowSettings> windowSettings,
@@ -137,13 +140,25 @@ public class Application : IApplication
         _logger.Debug("{Category}: Unloaded", "App");
     }
 
+    protected void CenterMouseCursor()
+    {
+        Glfw.SetCursorPos(_windowHandle, _applicationContext.WindowSize.X / 2, _applicationContext.WindowSize.Y / 2);
+    }
+
+    protected bool IsCursorVisible()
+    {
+        return _isCursorVisible;
+    }
+
     protected void HideCursor()
     {
+        _isCursorVisible = false;
         Glfw.SetInputMode(_windowHandle, Glfw.InputMode.Cursor, Glfw.CursorHidden);
     }
 
     protected void ShowCursor()
     {
+        _isCursorVisible = true;
         Glfw.SetInputMode(_windowHandle, Glfw.InputMode.Cursor, Glfw.CursorNormal);
     }
 
@@ -277,7 +292,7 @@ public class Application : IApplication
 
         if (Glfw.IsRawMouseMotionSupported())
         {
-            Glfw.SetInputMode(_windowHandle, Glfw.InputMode.RawMouseMotion, 1);
+            Glfw.SetInputMode(_windowHandle, Glfw.InputMode.RawMouseMotion, Glfw.True);
         }
 
         Glfw.MakeContextCurrent(_windowHandle);
@@ -404,8 +419,6 @@ public class Application : IApplication
             */
     }
 
-    private static bool _isFirstFrame = true;
-
     private void OnMouseMove(
         nint windowHandle,
         double currentCursorX,
@@ -425,7 +438,7 @@ public class Application : IApplication
         _inputProvider.MouseState.PreviousX = (float)currentCursorX;
         _inputProvider.MouseState.PreviousY = (float)currentCursorY;
 
-        //_logger.Debug("{Category}: MouseMove: {MouseState}", "Glfw", _inputProvider.MouseState);
+        _logger.Debug("{Category}: MouseMove: {MouseState}", "Glfw", _inputProvider.MouseState);
     }
 
     private void OnMouseEnterLeave(
