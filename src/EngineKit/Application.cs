@@ -207,7 +207,7 @@ public class Application : IApplication
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.DebugContext, _contextSettings.Value.IsDebugContext);
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.Profile, Glfw.OpenGLProfile.Core);
 
-        // MESA overrides - useful for windows on intel igpu
+        // MESA overrides - useful for windows on intel iGPU
         var environmentVariables = Environment.GetEnvironmentVariables();
         if (environmentVariables.Contains("LIBGL_DEBUG"))
         {
