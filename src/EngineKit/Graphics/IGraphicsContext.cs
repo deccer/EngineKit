@@ -64,4 +64,6 @@ public interface IGraphicsContext : IDisposable
     void EndRender();
 
     void InsertMemoryBarrier(BarrierMask mask);
+
+    void RemoveFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor);
 }
