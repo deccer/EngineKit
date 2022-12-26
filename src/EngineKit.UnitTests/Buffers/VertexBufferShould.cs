@@ -41,7 +41,9 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         vertexBuffer.Stride.Should().Be(Marshal.SizeOf<VertexPositionNormalUvTangent>());
         vertexBuffer.Count.Should().Be(0);
         vertexBuffer.SizeInBytes.Should().Be(100);
+#if DEBUG
         _glfwOpenGLDummyWindow.ErrorMessages.Should().HaveCount(0);
+#endif
     }
 
 #if DEBUG
@@ -71,6 +73,8 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         vertexBuffer.Count.Should().Be(2);
         vertexBuffer.SizeInBytes.Should().Be(100);
         vertexBuffer.Stride.Should().Be(Marshal.SizeOf<VertexPositionNormalUvTangent>());
+#if DEBUG
         _glfwOpenGLDummyWindow.ErrorMessages.Should().HaveCount(0);
+#endif
     }
 }

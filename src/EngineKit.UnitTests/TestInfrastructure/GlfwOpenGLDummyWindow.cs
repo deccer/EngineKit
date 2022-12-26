@@ -11,7 +11,7 @@ namespace EngineKit.UnitTests.TestInfrastructure;
 public sealed class GlfwOpenGLDummyWindow : IDisposable
 {
     private readonly nint _windowHandle;
-    private GL.GLDebugProc _debugProcCallback;
+    private readonly GL.GLDebugProc _debugProcCallback;
 
     public IList<string> WarningMessages { get; }
 
@@ -23,7 +23,6 @@ public sealed class GlfwOpenGLDummyWindow : IDisposable
 
     public GlfwOpenGLDummyWindow()
     {
-        _debugProcCallback = DebugCallback;
         WarningMessages = new List<string>();
         ErrorMessages = new List<string>();
         InfoMessages = new List<string>();
@@ -35,11 +34,12 @@ public sealed class GlfwOpenGLDummyWindow : IDisposable
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.VersionMinor, 6);
         _windowHandle = Glfw.CreateWindow(100, 100, "OpenGLTests", nint.Zero, nint.Zero);
         Glfw.MakeContextCurrent(_windowHandle);
-
+#if DEBUG
         GL.DebugMessageCallback(_debugProcCallback, nint.Zero);
         GL.Enable(GL.EnableType.DebugOutput);
         GL.Enable(GL.EnableType.DebugOutputSynchronous);
-
+        _debugProcCallback = DebugCallback;
+#endif
         Thread.Sleep(500);
     }
 
