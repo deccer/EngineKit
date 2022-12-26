@@ -15,16 +15,16 @@ namespace EngineKit.Graphics;
 internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsContext
 {
     private readonly ILogger _logger;
-    private readonly IFramebufferFactory _framebufferFactory;
+    private readonly IFramebufferCache _framebufferCache;
     private readonly IDictionary<IPipeline, GraphicsPipelineDescriptor> _graphicsPipelineCache;
     private readonly IDictionary<IPipeline, ComputePipelineDescriptor> _computePipelineCache;
     private readonly IDictionary<int, IInputLayout> _inputLayoutCache;
     private uint? _currentFramebuffer;
 
-    public GraphicsContext(ILogger logger, IFramebufferFactory framebufferFactory)
+    public GraphicsContext(ILogger logger, IFramebufferCache framebufferCache)
     {
         _logger = logger.ForContext<GraphicsContext>();
-        _framebufferFactory = framebufferFactory;
+        _framebufferCache = framebufferCache;
         _graphicsPipelineCache = new Dictionary<IPipeline, GraphicsPipelineDescriptor>(16);
         _computePipelineCache = new Dictionary<IPipeline, ComputePipelineDescriptor>(16);
         _inputLayoutCache = new Dictionary<int, IInputLayout>(16);
@@ -32,7 +32,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
     public void Dispose()
     {
-        _framebufferFactory.Dispose();
+        _framebufferCache.Dispose();
     }
 
     public Result<IComputePipeline> CreateComputePipeline(ComputePipelineDescriptor computePipelineDescriptor)
@@ -413,7 +413,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
     public void BeginRenderToFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
     {
-        _currentFramebuffer = _framebufferFactory.GetOrCreateFramebuffer(framebufferRenderDescriptor);
+        _currentFramebuffer = _framebufferCache.GetOrCreateFramebuffer(framebufferRenderDescriptor);
         GL.BindFramebuffer(GL.FramebufferTarget.Framebuffer, _currentFramebuffer.Value);
         EnableAllMaskStates();
 
@@ -515,6 +515,6 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
     public void RemoveFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
     {
-        _framebufferFactory.RemoveFramebuffer(framebufferRenderDescriptor);
+        _framebufferCache.RemoveFramebuffer(framebufferRenderDescriptor);
     }
 }
