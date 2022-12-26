@@ -24,23 +24,6 @@ internal sealed class MaterialLibrary : IMaterialLibrary
         CreateDefaultMaterials();
     }
 
-    private void CreateDefaultMaterials()
-    {
-        var colors = typeof(Color4)
-            .GetFields()
-            .Where(field => field.IsStatic && field.IsPublic);
-
-        foreach (var color in colors)
-        {
-            var materialName = $"M_Default_{color.Name}";
-            var colorValue = (Color4?)color.GetValue(color);
-            _materials.Add(materialName, new Material(materialName)
-            {
-                BaseColor = colorValue ?? Color4.Fuchsia
-            });
-        }
-    }
-
     public Material GetRandomMaterial()
     {
         return _materials.Values.ElementAt(_random.Next(0, _materials.Values.Count));
@@ -154,6 +137,11 @@ internal sealed class MaterialLibrary : IMaterialLibrary
             .ToList();
     }
 
+    public IList<string> GetMaterialNames()
+    {
+        return _materials.Keys.ToList();
+    }
+
     public Material GetMaterialByName(string materialName)
     {
         return _materials.TryGetValue(materialName, out var material)
@@ -193,5 +181,22 @@ internal sealed class MaterialLibrary : IMaterialLibrary
                 ? new Vector4i(metalnessRoughnessTextureId!.ArrayIndex, metalnessRoughnessTextureId.ArraySlice, -1, -1)
                 : new Vector4i(-1, -1, -1, -1),
         };
+    }
+
+    private void CreateDefaultMaterials()
+    {
+        var colors = typeof(Color4)
+            .GetFields()
+            .Where(field => field.IsStatic && field.IsPublic);
+
+        foreach (var color in colors)
+        {
+            var materialName = $"M_Default_{color.Name}";
+            var colorValue = (Color4?)color.GetValue(color);
+            _materials.Add(materialName, new Material(materialName)
+            {
+                BaseColor = colorValue ?? Color4.Fuchsia
+            });
+        }
     }
 }
