@@ -11,6 +11,8 @@ public interface IMaterialLibrary
         IDictionary<string, TextureId> textureArrayIndices,
         out IDictionary<string, int> materialNameIndexMap);
 
+    IList<string> GetMaterialNames();
+
     Material GetMaterialByName(string materialName);
 
     Material GetRandomMaterial();
