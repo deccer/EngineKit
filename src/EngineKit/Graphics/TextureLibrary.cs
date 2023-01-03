@@ -102,16 +102,9 @@ internal sealed class TextureLibrary : ITextureLibrary
                 }
                 texture!.GenerateMipmaps();
 
-                if (!textureArrayIndices.TryGetValue(layer.ImageName, out var textureId))
+                if (!textureArrayIndices.ContainsKey(layer.ImageName))
                 {
                     textureArrayIndices.Add(layer.ImageName, new TextureId(textureArrayIndex, textureArraySlice));
-                }
-                else
-                {
-                    if (textureId.ArrayIndex != textureArrayIndex || textureId.ArraySlice != textureArraySlice)
-                    {
-                        _logger.Error("Noooooo");
-                    }
                 }
 
                 textureArraySlice++;

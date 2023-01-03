@@ -237,10 +237,10 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         }
 
         var slice = 0;
-        ITexture? skyboxTexture = null;
-        foreach (var skyboxFileName in filePaths)
+        ITexture? textureCube = null;
+        foreach (var filePath in filePaths)
         {
-            using var image = Image.Load<Rgba32>(skyboxFileName);
+            using var image = Image.Load<Rgba32>(filePath);
 
             if (slice == 0)
             {
@@ -253,7 +253,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
                     MipLevels = 10,
                     SampleCount = SampleCount.OneSample
                 };
-                skyboxTexture = CreateTexture(skyboxTextureCreateDescriptor);
+                textureCube = CreateTexture(skyboxTextureCreateDescriptor);
             }
 
             var skyboxTextureUpdateDescriptor = new TextureUpdateDescriptor
@@ -268,13 +268,13 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
             if (image.DangerousTryGetSinglePixelMemory(out var imageMemory))
             {
-                skyboxTexture!.Update(skyboxTextureUpdateDescriptor, imageMemory.Pin());
+                textureCube!.Update(skyboxTextureUpdateDescriptor, imageMemory.Pin());
             }
         }
 
-        skyboxTexture?.GenerateMipmaps();
+        textureCube?.GenerateMipmaps();
 
-        return skyboxTexture;
+        return textureCube;
     }
 
     public bool BindComputePipeline(IComputePipeline computePipeline)
