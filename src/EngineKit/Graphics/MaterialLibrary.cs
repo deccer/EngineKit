@@ -186,13 +186,17 @@ internal sealed class MaterialLibrary : IMaterialLibrary
     private void CreateDefaultMaterials()
     {
         var colors = typeof(Color4)
-            .GetFields()
-            .Where(field => field.IsStatic && field.IsPublic);
+            .GetProperties()
+            .Select(p => new
+            {
+                Name = p.Name,
+                Value = p.GetValue(null)
+            });
 
         foreach (var color in colors)
         {
             var materialName = $"M_Default_{color.Name}";
-            var colorValue = (Color4?)color.GetValue(color);
+            var colorValue = (Color4?)color.Value;
             _materials.Add(materialName, new Material(materialName)
             {
                 BaseColor = colorValue ?? Color4.Fuchsia
