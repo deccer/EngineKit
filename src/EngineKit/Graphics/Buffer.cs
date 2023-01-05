@@ -48,9 +48,9 @@ internal abstract class Buffer : IBuffer
         SizeInBytes = Marshal.SizeOf<TElement>() * Count;
     }
 
-    public void Update(nint dataPtr, int offsetInBytes, int sizeInBytes)
+    public unsafe void Update(nint dataPtr, int offsetInBytes, int sizeInBytes)
     {
-        GL.NamedBufferSubData(Id, offsetInBytes, sizeInBytes, dataPtr);
+        GL.NamedBufferSubData(Id, offsetInBytes, sizeInBytes, (void*)dataPtr);
     }
 
     public void Update<TElement>(TElement element, int elementOffset)
