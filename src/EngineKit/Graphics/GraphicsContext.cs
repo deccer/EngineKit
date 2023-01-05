@@ -19,6 +19,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
     private readonly IDictionary<IPipeline, GraphicsPipelineDescriptor> _graphicsPipelineCache;
     private readonly IDictionary<IPipeline, ComputePipelineDescriptor> _computePipelineCache;
     private readonly IDictionary<int, IInputLayout> _inputLayoutCache;
+    private readonly IList<string> _extensions;
     private uint? _currentFramebuffer;
 
     public GraphicsContext(ILogger logger, IFramebufferCache framebufferCache)
@@ -28,6 +29,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         _graphicsPipelineCache = new Dictionary<IPipeline, GraphicsPipelineDescriptor>(16);
         _computePipelineCache = new Dictionary<IPipeline, ComputePipelineDescriptor>(16);
         _inputLayoutCache = new Dictionary<int, IInputLayout>(16);
+        _extensions = new List<string>(512);
     }
 
     public void Dispose()
@@ -516,5 +518,19 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
     public void RemoveFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
     {
         _framebufferCache.RemoveFramebuffer(framebufferRenderDescriptor);
+    }
+
+    public bool IsExtensionSupported(string extensionName)
+    {
+        return _extensions.Contains(extensionName);
+    }
+
+    public void LoadExtensions()
+    {
+        var extensionCount = GL.GetInteger((uint)GL.GetName.NumExtensions);
+        for (var i = 0u; i < extensionCount; i++)
+        {
+            _extensions.Add(GL.GetString(GL.StringName.Extensions, i));
+        }
     }
 }
