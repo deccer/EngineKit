@@ -66,4 +66,8 @@ public interface IGraphicsContext : IDisposable
     void InsertMemoryBarrier(BarrierMask mask);
 
     void RemoveFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor);
+
+    bool IsExtensionSupported(string extensionName);
+
+    void LoadExtensions();
 }
