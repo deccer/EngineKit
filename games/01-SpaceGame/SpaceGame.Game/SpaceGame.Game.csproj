@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="EngineKit" Version="1.9.8" />
       <PackageReference Include="JoltPhysicsSharp" Version="1.2.6-beta" />
     </ItemGroup>
 
