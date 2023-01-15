@@ -19,4 +19,10 @@ public interface IMetrics
     int ShowFramesPerSecondInterval { get; set; }
 
     long CurrentTime { get; set; }
+
+    void CollectFrameSample();
+
+    int GetAverageFps();
+
+    int GetLow1PercentFps();
 }

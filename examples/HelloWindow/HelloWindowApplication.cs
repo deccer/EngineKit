@@ -1,3 +1,4 @@
+using System.Numerics;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
@@ -12,6 +13,7 @@ namespace HelloWindow;
 internal sealed class HelloWindowApplication : GraphicsApplication
 {
     private readonly ILogger _logger;
+    private readonly IMetrics _metrics;
 
     public HelloWindowApplication(
         ILogger logger,
@@ -25,6 +27,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider, graphicsContext, uiRenderer)
     {
         _logger = logger;
+        _metrics = metrics;
     }
 
     protected override bool Load()
@@ -44,7 +47,6 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         GL.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit);
 
         UIRenderer.BeginLayout();
-        ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode);
         if (ImGui.BeginMainMenuBar())
         {
             if (ImGui.BeginMenuBar())
@@ -58,6 +60,9 @@ internal sealed class HelloWindowApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
+                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
+                ImGui.TextUnformatted($"Fps: {_metrics.GetAverageFps()}");
+
                 ImGui.EndMenuBar();
             }
 
@@ -65,6 +70,8 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         }
         UIRenderer.ShowDemoWindow();
         UIRenderer.EndLayout();
+
+        GL.Finish();
     }
 
     protected override void Unload()

@@ -118,9 +118,11 @@ public class Application : IApplication
 
             if (_metrics.ShowFramesPerSecond && stopwatch.ElapsedMilliseconds >= nextUpdate)
             {
-                _logger.Debug("{Category}: FPS: {@FramesPerSecond} UPS: {@UpdatesPerSecond} UR: {@UpdateRate} SD: {SwapBufferDuration:F3}ms",
+                _metrics.CollectFrameSample();
+                _logger.Debug("{Category}: FPS: {@FramesPerSecond} FPS1%: {@FramesPerSecond1PLow} UPS: {@UpdatesPerSecond} UR: {@UpdateRate} SD: {SwapBufferDuration:F3}ms",
                     "App",
-                    _metrics.FramesPerSecond,
+                    _metrics.GetAverageFps(),
+                    _metrics.GetLow1PercentFps(),
                     _metrics.UpdatesPerSecond,
                     _metrics.UpdateRate,
                     _metrics.SwapBufferDuration);

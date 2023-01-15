@@ -11,6 +11,7 @@ using ImGuiNET;
 using Microsoft.Extensions.Options;
 using OpenTK.Mathematics;
 using Serilog;
+using Num = System.Numerics;
 
 namespace ForwardRenderer;
 
@@ -282,6 +283,10 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
+                ImGui.SetCursorPos(new Num.Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
+                ImGui.TextUnformatted($"Fps: {_metrics.GetAverageFps()}");
+
+
                 ImGui.EndMenuBar();
                 ImGui.EndMainMenuBar();
             }
@@ -289,7 +294,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             if (ImGui.Begin("Debug"))
             {
                 var sensitivity = _camera.Sensitivity;
-                ImGui.SliderFloat("Camera Sensitivity", ref sensitivity, 0.01f, 2.0f);
+                ImGui.SliderFloat("Camera Sensitivity", ref sensitivity, 0.01f, 1.0f);
                 _camera.Sensitivity = sensitivity;
 
                 ImGui.End();
