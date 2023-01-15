@@ -1,4 +1,4 @@
-﻿namespace ForwardRenderer;
+﻿namespace ForwardRendering;
 
 public enum CameraMode
 {

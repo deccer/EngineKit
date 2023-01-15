@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenTK.Mathematics;
 using Serilog;
 
-namespace ForwardRenderer;
+namespace ForwardRendering;
 
 internal static class Program
 {

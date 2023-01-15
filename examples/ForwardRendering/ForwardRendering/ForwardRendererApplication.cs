@@ -12,8 +12,10 @@ using Microsoft.Extensions.Options;
 using OpenTK.Mathematics;
 using Serilog;
 using Num = System.Numerics;
+using Vector3 = OpenTK.Mathematics.Vector3;
+using Vector4 = OpenTK.Mathematics.Vector4;
 
-namespace ForwardRenderer;
+namespace ForwardRendering;
 
 public struct ModelMesh
 {

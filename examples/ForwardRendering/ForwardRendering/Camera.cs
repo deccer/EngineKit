@@ -4,7 +4,7 @@ using EngineKit.Input;
 using OpenTK.Mathematics;
 using MathHelper = EngineKit.MathHelper;
 
-namespace ForwardRenderer;
+namespace ForwardRendering;
 
 public sealed class Camera : ICamera
 {

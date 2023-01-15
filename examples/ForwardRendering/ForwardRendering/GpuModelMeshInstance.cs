@@ -1,6 +1,6 @@
 using OpenTK.Mathematics;
 
-namespace ForwardRenderer;
+namespace ForwardRendering;
 
 public struct GpuModelMeshInstance
 {

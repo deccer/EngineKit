@@ -13,7 +13,7 @@ layout(location = 1) out vec3 o_normal;
 
 layout(binding = 0) uniform sampler2D s_base_color;
 
-#include <ForwardRenderer.GpuMaterial.virtual.glsl>
+#include <ForwardRendering.GpuMaterial.virtual.glsl>
 
 layout(binding = 2, std140) buffer MaterialBuffer
 {

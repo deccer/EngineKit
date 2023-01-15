@@ -10,7 +10,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\src\EngineKit\EngineKit.csproj" />
-        <ProjectReference Include="..\ForwardRenderer.Assets\ForwardRenderer.Assets.csproj" />
+        <ProjectReference Include="..\ForwardRendering.Assets\ForwardRendering.Assets.csproj" />
     </ItemGroup>
 
     <ItemGroup>
