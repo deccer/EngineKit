@@ -1,7 +1,8 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using SpaceGame.Game.Ecs.Components;
 
-namespace SpaceGame.Game.Ecs;
+namespace SpaceGame.Game.Ecs.Systems;
 
 public class UpdateCameraSystem : ISystem
 {

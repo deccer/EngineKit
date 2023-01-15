@@ -1,6 +1,6 @@
 using OpenTK.Mathematics;
 
-namespace SpaceGame.Game.Ecs;
+namespace SpaceGame.Game.Ecs.Components;
 
 public class MovableComponent : Component
 {

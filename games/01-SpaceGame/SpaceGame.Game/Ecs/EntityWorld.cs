@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SpaceGame.Game.Ecs.Components;
+using SpaceGame.Game.Ecs.Systems;
 using SpaceGame.Game.Physics;
 
 namespace SpaceGame.Game.Ecs;
@@ -10,6 +12,7 @@ public class EntityWorld : IEntityWorld
     private readonly IDictionary<Type, List<Component>> _componentsByType;
     private readonly IDictionary<int, Entity> _entities;
     private int _nextEntityId;
+    private int _rootEntity;
 
     private readonly MovementSystem _movementSystem;
     private readonly TransformSystem _transformSystem;
@@ -24,21 +27,25 @@ public class EntityWorld : IEntityWorld
         _movementSystem = new MovementSystem(this);
         _transformSystem = new TransformSystem(this, physicsWorld);
         _updateCameraSystem = new UpdateCameraSystem(this, camera);
+
+        _rootEntity = CreateEntity("Root");
     }
 
     public int CreateEntity(string name, int? parent = null)
     {
-        Entity? parentEntity = null;
+        var entity = new Entity(name)
+        {
+            Id = _nextEntityId++,
+            Level = parent.HasValue ? GetEntity(parent.Value).Level + 1 : 0
+        };
+
+        _entities.Add(entity.Id, entity);
+
         if (parent != null)
         {
-            parentEntity = GetEntity(parent.Value);
+            AddComponent(entity.Id, new ParentComponent(parent.Value));
         }
 
-        var entity = new Entity(name, parentEntity)
-        {
-            Id = _nextEntityId++
-        };
-        _entities.Add(entity.Id, entity);
         return entity.Id;
     }
 

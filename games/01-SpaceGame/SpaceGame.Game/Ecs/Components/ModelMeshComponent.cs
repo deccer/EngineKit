@@ -1,6 +1,6 @@
 using EngineKit.Graphics;
 
-namespace SpaceGame.Game.Ecs;
+namespace SpaceGame.Game.Ecs.Components;
 
 public class ModelMeshComponent : Component
 {

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using EngineKit.Graphics;
+using SpaceGame.Game.Ecs.Components;
 
-namespace SpaceGame.Game.Ecs;
+namespace SpaceGame.Game.Ecs.Systems;
 
 public class UpdateMeshSystem : ISystem
 {

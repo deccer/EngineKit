@@ -3,7 +3,7 @@ using System.Linq;
 using System.Numerics;
 using JoltPhysicsSharp;
 
-namespace SpaceGame.Game.Ecs;
+namespace SpaceGame.Game.Ecs.Components;
 
 public class PhysicsModelMeshShapeComponent : Component
 {

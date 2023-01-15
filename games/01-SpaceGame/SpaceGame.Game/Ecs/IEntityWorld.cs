@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SpaceGame.Game.Ecs.Components;
 
 namespace SpaceGame.Game.Ecs;
 

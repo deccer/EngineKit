@@ -14,6 +14,7 @@ using OpenTK.Mathematics;
 using Serilog;
 using SpaceGame.Game;
 using SpaceGame.Game.Ecs;
+using SpaceGame.Game.Ecs.Components;
 using SpaceGame.Game.Messages;
 using SpaceGame.Game.Physics;
 using Num = System.Numerics;
@@ -50,7 +51,7 @@ internal class ConflictGameApplication : GraphicsApplication
 
     private bool _mouseIsActive = false;
 
-    private readonly IPhysicsWorld? _physicsWorld;
+    private readonly IPhysicsWorld _physicsWorld;
 
     private int _playerShipEntity;
     private Body _playerShipBody;
@@ -71,7 +72,7 @@ internal class ConflictGameApplication : GraphicsApplication
         IRendererContext rendererContext,
         IModelLibrary modelLibrary,
         IMaterialLibrary materialLibrary,
-        IPhysicsWorld? physicsWorld)
+        IPhysicsWorld physicsWorld)
         : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider, graphicsContext, uiRenderer)
     {
         _logger = logger.ForContext<ConflictGameApplication>();
@@ -235,11 +236,11 @@ internal class ConflictGameApplication : GraphicsApplication
         _camera.ProcessMouseMovement();
 
         var playerShipPosition = new Vector3(0, 0, 10);
-        var physicsModelMeshShapeComponent = new PhysicsModelMeshShapeComponent(_modelLibrary.GetMeshDataByName("Cube.003"));
+        var physicsModelMeshShapeComponent = new PhysicsModelMeshShapeComponent(_modelLibrary.GetMeshDataByName("Cube.004"));
         _playerShipBody = _physicsWorld.CreateAndAddBody(physicsModelMeshShapeComponent.SphereShapeSettings, playerShipPosition);
 
         _playerShipEntity = _entityWorld.CreateEntity("Player");
-        _entityWorld.AddComponent(_playerShipEntity, new TransformComponent());
+        _entityWorld.AddComponent(_playerShipEntity, new TransformComponent(Matrix4.Identity));
         _entityWorld.AddComponent(_playerShipEntity, physicsModelMeshShapeComponent);
         _entityWorld.AddComponent(_playerShipEntity, new PhysicsBodyComponent(_playerShipBody));
         _entityWorld.AddComponent(_playerShipEntity, new UpdateCameraPositionComponent());
@@ -260,6 +261,9 @@ internal class ConflictGameApplication : GraphicsApplication
             RenderUi();
             GL.PopDebugGroup();
         }
+
+        // Marker for NSight Graphics (it doesn't pick up glXSwapBuffers)
+        GL.Finish();
     }
 
     protected override void HandleDebugger(out bool breakOnError)
@@ -328,6 +332,9 @@ internal class ConflictGameApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
+                ImGui.SetCursorPos(new Num.Vector2(400, 0));
+                ImGui.TextUnformatted($"FPS AVG: {_metrics.GetAverageFps()} | FPS 1PC: {_metrics.GetLow1PercentFps()}");
+
                 ImGui.EndMenuBar();
             }
 
@@ -385,7 +392,7 @@ internal class ConflictGameApplication : GraphicsApplication
             if (ImGui.Button("Create Asteroid field"))
             {
                 CreateAsteroidField();
-                _messageBus.PublishWait(new AddModelToScene(_modelLibrary.Models.OfType<Model>().First(m => m.Name == "Asteroid-Pack")));
+                _messageBus.PublishWait(new AddModelToScene(_modelLibrary.Models.First(m => m.Name == "Asteroid-Pack")));
             }
             RenderUiAssets();
 
@@ -398,7 +405,7 @@ internal class ConflictGameApplication : GraphicsApplication
 
     private void CreateAsteroidField(int? parentEntity = null)
     {
-        var asteroidPackModel = _modelLibrary.Models.OfType<Model>().FirstOrDefault(a => a.Name == "Asteroid-Pack");
+        var asteroidPackModel = _modelLibrary.Models.FirstOrDefault(a => a.Name == "Asteroid-Pack");
         if (asteroidPackModel == null)
         {
             return;
@@ -407,7 +414,10 @@ internal class ConflictGameApplication : GraphicsApplication
         var asteroidMeshes = asteroidPackModel.Meshes.OrderBy(m => new Guid()).ToArray();
 
         var asteroidField = _entityWorld.CreateEntity("asteroid-field", parentEntity);
-        _entityWorld.AddComponent(asteroidField, TransformComponent.CreateFromMatrix(Matrix4.Identity));
+        _entityWorld.AddComponent(asteroidField, new TransformComponent(Matrix4.Identity));
+
+        var childComponent = new ChildrenComponent();
+        _entityWorld.AddComponent(asteroidField, childComponent);
 
         var dimension = 192;
         var random = new Random();
@@ -440,7 +450,8 @@ internal class ConflictGameApplication : GraphicsApplication
             var physicsModelMeshShapeComponent = new PhysicsModelMeshShapeComponent(asteroidMesh);
             var body = _physicsWorld.CreateAndAddBody(physicsModelMeshShapeComponent.SphereShapeSettings, position);
 
-            _entityWorld.AddComponent(childEntity, TransformComponent.CreateFromMatrix(transform));
+            childComponent.AddChild(childEntity);
+            _entityWorld.AddComponent(childEntity, new TransformComponent(transform));
             _entityWorld.AddComponent(childEntity, new ModelMeshComponent { MeshData = asteroidMesh.MeshData });
             _entityWorld.AddComponent(childEntity, physicsModelMeshShapeComponent);
             _entityWorld.AddComponent(childEntity, new PhysicsBodyComponent(body));
@@ -450,13 +461,18 @@ internal class ConflictGameApplication : GraphicsApplication
     private void CreateEntityFromModel(Model model, int? parentEntity = null)
     {
         var entity = _entityWorld.CreateEntity(model.Meshes.First().MeshData.MeshName, parentEntity);
-        _entityWorld.AddComponent(entity, TransformComponent.CreateFromMatrix(Matrix4.Identity));
+        var localTransform = Matrix4.Identity;
+        if (parentEntity.HasValue)
+        {
+            localTransform = _entityWorld.GetComponent<TransformComponent>(parentEntity.Value).GlobalWorldMatrix;
+        }
+        _entityWorld.AddComponent(entity, new TransformComponent(localTransform));
 
         foreach (var modelMesh in model.Meshes)
         {
             var childEntity = _entityWorld.CreateEntity(modelMesh.MeshData.MeshName, entity);
 
-            _entityWorld.AddComponent(childEntity, TransformComponent.CreateFromMatrix(modelMesh.MeshData.Transform));
+            _entityWorld.AddComponent(childEntity, new TransformComponent(modelMesh.MeshData.Transform));
             _entityWorld.AddComponent(childEntity, new ModelMeshComponent { MeshData = modelMesh.MeshData });
         }
     }
@@ -465,7 +481,11 @@ internal class ConflictGameApplication : GraphicsApplication
     {
         var entity = _entityWorld.CreateEntity(modelMesh.MeshData.MeshName, parentEntity);
 
-        _entityWorld.AddComponent(entity, TransformComponent.CreateFromMatrix(modelMesh.MeshData.Transform));
+        var modelMeshTransform = modelMesh.MeshData.Transform;
+        _entityWorld.AddComponent(entity, new TransformComponent(
+            modelMeshTransform.ExtractTranslation(),
+            modelMeshTransform.ExtractRotation(),
+            modelMeshTransform.ExtractScale()));
         _entityWorld.AddComponent(entity, new ModelMeshComponent { MeshData = modelMesh.MeshData });
     }
 
@@ -515,20 +535,38 @@ internal class ConflictGameApplication : GraphicsApplication
 
     private void RenderUiSceneEntity(Entity entity)
     {
-        if (ImGui.TreeNode(entity.Name))
+        if (ImGui.TreeNode($"{entity.Name}##{entity.Id}"))
         {
             var transformComponent = entity.GetComponent<TransformComponent>();
             var position = new Num.Vector3(transformComponent.LocalPosition.X, transformComponent.LocalPosition.Y, transformComponent.LocalPosition.Z);
+            var rotation = new Num.Vector4(transformComponent.LocalRotation.X, transformComponent.LocalRotation.Y, transformComponent.LocalRotation.Z, transformComponent.LocalRotation.W);
+            var scale = new Num.Vector3(transformComponent.LocalScale.X, transformComponent.LocalScale.Y, transformComponent.LocalScale.Z);
 
             if (ImGui.DragFloat3("Position", ref position))
             {
                 transformComponent.LocalPosition = new Vector3(position.X, position.Y, position.Z);
             }
 
-            foreach (var child in entity.Children)
+            if (ImGui.DragFloat4("Rotation", ref rotation))
             {
-                RenderUiSceneEntity(entity);
+                transformComponent.LocalRotation = new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W);
             }
+
+            if (ImGui.DragFloat3("Scale", ref scale))
+            {
+                transformComponent.LocalScale = new Vector3(scale.X, scale.Y, scale.Z);
+            }
+
+            var childrenComponent = entity.GetComponent<ChildrenComponent>();
+            if (childrenComponent != null)
+            {
+                foreach (var child in childrenComponent.Children)
+                {
+                    var childEntity = _entityWorld.GetEntity(child);
+                    RenderUiSceneEntity(childEntity);
+                }
+            }
+
             ImGui.TreePop();
         }
     }

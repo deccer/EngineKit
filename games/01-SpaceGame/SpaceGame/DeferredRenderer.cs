@@ -13,6 +13,7 @@ using OpenTK.Mathematics;
 using Serilog;
 using SpaceGame.Game;
 using SpaceGame.Game.Ecs;
+using SpaceGame.Game.Ecs.Components;
 using SpaceGame.Game.Messages;
 using MathHelper = EngineKit.MathHelper;
 
@@ -737,8 +738,8 @@ internal sealed class DeferredRenderer : IRenderer
             MinFilter = Filter.Linear,
             MipmapFilter = Filter.Linear,
             MaxLod = 12,
-            AddressModeU = AddressMode.ClampToEdge,
-            AddressModeV = AddressMode.ClampToEdge,
+            AddressModeU = AddressMode.Repeat,
+            AddressModeV = AddressMode.Repeat,
         };
         _textureSampler = _graphicsContext.CreateSampler(textureSamplerDescriptor);
 

@@ -1,4 +1,4 @@
-using SpaceGame.Game.Ecs;
+using SpaceGame.Game.Ecs.Components;
 
 namespace SpaceGame.Game.Messages;
 

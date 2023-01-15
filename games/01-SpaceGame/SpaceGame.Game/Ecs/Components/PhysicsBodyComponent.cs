@@ -1,6 +1,6 @@
 using JoltPhysicsSharp;
 
-namespace SpaceGame.Game.Ecs;
+namespace SpaceGame.Game.Ecs.Components;
 
 public class PhysicsBodyComponent : Component
 {

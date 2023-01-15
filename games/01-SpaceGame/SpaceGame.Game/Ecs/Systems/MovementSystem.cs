@@ -1,4 +1,6 @@
-namespace SpaceGame.Game.Ecs;
+using SpaceGame.Game.Ecs.Components;
+
+namespace SpaceGame.Game.Ecs.Systems;
 
 public class MovementSystem : ISystem
 {

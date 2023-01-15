@@ -1,4 +1,4 @@
-namespace SpaceGame.Game.Ecs;
+namespace SpaceGame.Game.Ecs.Components;
 
 public abstract class Component
 {
