@@ -196,41 +196,28 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         }
         using var image = Image.Load<Rgba32>(filePath);
 
-        var calculatedMipLevels = (uint)(1 + MathF.Ceiling(MathF.Log2(MathF.Min(image.Width, image.Height))));
-        var textureCreateDescriptor = new TextureCreateDescriptor
-        {
-            ImageType = ImageType.Texture2D,
-            Format = Format.R8G8B8A8UNorm,
-            Label = Path.GetFileNameWithoutExtension(filePath),
-            Size = new Vector3i(image.Width, image.Height, 1),
-            MipLevels = generateMipmaps ? calculatedMipLevels : 1,
-            SampleCount = SampleCount.OneSample
-        };
-
-        var texture = CreateTexture(textureCreateDescriptor);
-        var textureUpdateDescriptor = new TextureUpdateDescriptor
-        {
-            Offset = Vector3i.Zero,
-            Size = new Vector3i(image.Width, image.Height, 1),
-            UploadDimension = UploadDimension.Two,
-            UploadFormat = UploadFormat.RedGreenBlueAlpha,
-            UploadType = UploadType.UnsignedByte,
-            Level = 0,
-        };
-
-        if (image.DangerousTryGetSinglePixelMemory(out var imageMemory))
-        {
-            texture.Update(textureUpdateDescriptor, imageMemory.Pin());
-            if (generateMipmaps)
-            {
-                texture.GenerateMipmaps();
-            }
-        }
-
-        return texture;
+        return CreateTextureFromImage(image, Path.GetFileNameWithoutExtension(filePath), generateMipmaps);
     }
 
-    public ITexture? CreateTextureCubeFromFile(string[] filePaths)
+    public ITexture? CreateTextureFromMemory(ReadOnlySpan<byte> pixelBytes, Label label, bool generateMipmaps = true)
+    {
+        if (pixelBytes.IsEmpty)
+        {
+            _logger.Error("{Category}: Unable to load image from memory. Provided pixelBytes are empty", "App");
+            return null;
+        }
+
+        using var image = Image.Load<Rgba32>(pixelBytes);
+        if (image == null)
+        {
+            _logger.Error("{Category}: Unable to load image from memory", "App");
+            return null;
+        }
+
+        return CreateTextureFromImage(image, label, generateMipmaps);
+    }
+
+    public ITexture? CreateTextureCubeFromFile(Label label, string[] filePaths)
     {
         if (filePaths.Length != 6)
         {
@@ -250,7 +237,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
                 {
                     ImageType = ImageType.TextureCube,
                     Format = Format.R8G8B8A8UNorm,
-                    Label = "Skybox",
+                    Label = label,
                     Size = new Vector3i(image.Width, image.Height, 1),
                     MipLevels = 10,
                     SampleCount = SampleCount.OneSample
@@ -532,5 +519,41 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         {
             _extensions.Add(GL.GetString(GL.StringName.Extensions, i));
         }
+    }
+
+    private ITexture CreateTextureFromImage(Image<Rgba32> image, Label label, bool generateMipmaps = true)
+    {
+        var calculatedMipLevels = (uint)(1 + MathF.Ceiling(MathF.Log2(MathF.Min(image.Width, image.Height))));
+        var textureCreateDescriptor = new TextureCreateDescriptor
+        {
+            ImageType = ImageType.Texture2D,
+            Format = Format.R8G8B8A8UNorm,
+            Label = label,
+            Size = new Vector3i(image.Width, image.Height, 1),
+            MipLevels = generateMipmaps ? calculatedMipLevels : 1,
+            SampleCount = SampleCount.OneSample
+        };
+
+        var texture = CreateTexture(textureCreateDescriptor);
+        var textureUpdateDescriptor = new TextureUpdateDescriptor
+        {
+            Offset = Vector3i.Zero,
+            Size = new Vector3i(image.Width, image.Height, 1),
+            UploadDimension = UploadDimension.Two,
+            UploadFormat = UploadFormat.RedGreenBlueAlpha,
+            UploadType = UploadType.UnsignedByte,
+            Level = 0,
+        };
+
+        if (image.DangerousTryGetSinglePixelMemory(out var imageMemory))
+        {
+            texture.Update(textureUpdateDescriptor, imageMemory.Pin());
+            if (generateMipmaps)
+            {
+                texture.GenerateMipmaps();
+            }
+        }
+
+        return texture;
     }
 }

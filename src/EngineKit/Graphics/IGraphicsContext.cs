@@ -1,4 +1,5 @@
 ﻿using System;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace EngineKit.Graphics;
 
@@ -59,7 +60,9 @@ public interface IGraphicsContext : IDisposable
 
     ITexture? CreateTextureFromFile(string filePath, bool generateMipmaps = true);
 
-    ITexture? CreateTextureCubeFromFile(string[] filePaths);
+    ITexture? CreateTextureFromMemory(ReadOnlySpan<byte> pixelBytes, Label label, bool generateMipmaps = true);
+
+    ITexture? CreateTextureCubeFromFile(Label label, string[] filePaths);
 
     void EndRender();
 
