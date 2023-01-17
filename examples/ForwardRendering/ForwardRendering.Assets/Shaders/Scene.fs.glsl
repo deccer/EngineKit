@@ -9,7 +9,6 @@ layout(location = 2) in vec2 v_uv;
 layout(location = 3) in flat int v_model_mesh_instance_id;
 
 layout(location = 0) out vec4 o_color;
-layout(location = 1) out vec3 o_normal;
 
 layout(binding = 0) uniform sampler2D s_base_color;
 
@@ -27,5 +26,4 @@ void main()
     color *= texture(s_base_color, v_uv).rgba;
 
     o_color = vec4(color.rgb, v_model_mesh_instance_id);
-    o_normal = normalize(v_normal);
 }
