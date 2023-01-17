@@ -38,6 +38,13 @@ public interface IGraphicsPipeline : IPipeline
         int instanceCount,
         int baseVertex);
 
+    void DrawElementsInstancedBaseVertexBaseInstance(
+        int elementCount,
+        int elementOffset,
+        int instanceCount,
+        int baseVertex,
+        int baseInstance);
+
     void MultiDrawElementsIndirect(IIndirectBuffer indirectBuffer, int primitiveCount);
 
 }

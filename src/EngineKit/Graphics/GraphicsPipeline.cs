@@ -111,6 +111,22 @@ private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
             baseVertex);
     }
 
+    public void DrawElementsInstancedBaseVertexBaseInstance(
+        int elementCount,
+        int elementOffset,
+        int instanceCount,
+        int baseVertex,
+        int baseInstance)
+    {
+        GL.DrawElementsInstancedBaseVertexBaseInstance(
+            _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
+            elementCount,
+            GL.IndexElementType.UnsignedInt,
+            elementOffset,
+            instanceCount,
+            baseVertex,
+            baseInstance);
+    }
 
     public void DrawElementsIndirect(
         IIndirectBuffer indirectBuffer,
