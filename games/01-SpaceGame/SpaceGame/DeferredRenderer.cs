@@ -779,7 +779,7 @@ internal sealed class DeferredRenderer : IRenderer
             $"Data/Sky/TC_{skyboxName}_Zp.png",
             $"Data/Sky/TC_{skyboxName}_Zn.png"
         };
-        _skyboxTexture = _graphicsContext.CreateTextureCubeFromFile(skyboxFileNames);
+        _skyboxTexture = _graphicsContext.CreateTextureCubeFromFile($"TC_{skyboxName}", skyboxFileNames);
         return _skyboxTexture != null;
     }
 
