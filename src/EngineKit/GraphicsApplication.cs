@@ -9,8 +9,11 @@ namespace EngineKit;
 public class GraphicsApplication : Application
 {
     private readonly ILogger _logger;
+
     private readonly IApplicationContext _applicationContext;
+
     private readonly IMetrics _metrics;
+
     protected IGraphicsContext GraphicsContext { get; }
     protected IUIRenderer UIRenderer { get; }
 
@@ -59,8 +62,8 @@ public class GraphicsApplication : Application
         GL.Disable(GL.EnableType.SampleCoverage);
         GL.Disable(GL.EnableType.SampleAlphaToCoverage);
         GL.Disable(GL.EnableType.PolygonOffsetFill);
-        //GL.Enable(GL.EnableType.FramebufferSrgb);
         GL.Disable(GL.EnableType.Multisample);
+        //GL.Enable(GL.EnableType.FramebufferSrgb);
 
         return true;
     }
