@@ -50,7 +50,9 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
         var members = fields.Concat(properties);
         foreach (var member in members)
         {
-            glsl.AppendLine($"    {ToGlslType(member.Type)} {member.Name};");
+            glsl.AppendLine(member.Name.EndsWith("Texture")
+                ? $"    uvec2 {member.Name};"
+                : $"    {ToGlslType(member.Type)} {member.Name};");
         }
         glsl.AppendLine("};");
 
