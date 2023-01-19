@@ -40,8 +40,8 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     private Model _deccerCubesModel;
 
-    private IVertexBuffer? _sceneVertexBuffer;
-    private IIndexBuffer? _sceneIndexBuffer;
+    private IVertexBuffer? _gpuVertexBuffer;
+    private IIndexBuffer? _gpuIndexBuffer;
 
     private SwapchainRenderDescriptor _swapchainRenderDescriptor;
 
@@ -147,19 +147,20 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         _gBufferGraphicsPipeline.BindUniformBuffer(_gpuCameraConstantsBuffer, 0);
         _gBufferGraphicsPipeline.BindShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
         _gBufferGraphicsPipeline.BindShaderStorageBuffer(_gpuMaterialBuffer, 2);
-        _gBufferGraphicsPipeline.BindVertexBuffer(_sceneVertexBuffer, 0, 0);
-        _gBufferGraphicsPipeline.BindIndexBuffer(_sceneIndexBuffer);
+        _gBufferGraphicsPipeline.BindVertexBuffer(_gpuVertexBuffer, 0, 0);
+        _gBufferGraphicsPipeline.BindIndexBuffer(_gpuIndexBuffer);
 
-        var index = 0;
-        foreach (var drawCommand in _drawCommands)
+        for (var i = 0; i < _drawCommands.Count; i++)
         {
+            var drawCommand = _drawCommands[i];
             _gBufferGraphicsPipeline.DrawElementsInstancedBaseVertexBaseInstance(
                 drawCommand.IndexCount,
                 drawCommand.IndexOffset,
                 1,
                 drawCommand.VertexOffset,
-                index++);
+                i);
         }
+
         GraphicsContext.EndRender();
         GL.PopDebugGroup();
 
@@ -196,7 +197,6 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                 ImGui.SetCursorPos(new Num.Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
                 ImGui.TextUnformatted($"Fps: {_metrics.GetAverageFps()}");
 
-
                 ImGui.EndMenuBar();
                 ImGui.EndMainMenuBar();
             }
@@ -207,9 +207,9 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                 ImGui.SliderFloat("Camera Sensitivity", ref sensitivity, 0.01f, 1.0f);
                 _camera.Sensitivity = sensitivity;
 
-                ImGui.Image((nint)_gBufferBaseColorTexture.Id, new Num.Vector2(320, 180));
-                ImGui.Image((nint)_gBufferNormalTexture.Id, new Num.Vector2(320, 180));
-                ImGui.Image((nint)_gBufferDepthTexture.Id, new Num.Vector2(320, 180));
+                ImGui.Image((nint)_gBufferBaseColorTexture.Id, new Num.Vector2(320, 180), new Num.Vector2(0, 1), new Num.Vector2(1, 0));
+                ImGui.Image((nint)_gBufferNormalTexture.Id, new Num.Vector2(320, 180), new Num.Vector2(0, 1), new Num.Vector2(1, 0));
+                ImGui.Image((nint)_gBufferDepthTexture.Id, new Num.Vector2(320, 180), new Num.Vector2(0, 1), new Num.Vector2(1, 0));
 
                 ImGui.End();
             }
@@ -243,7 +243,34 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             Close();
         }
 
-        _camera.ProcessKeyboard(Vector3.Zero, _metrics.DeltaTime);
+        var movement = Vector3.Zero;
+        var speedFactor = 10.0f;
+        if (IsKeyPressed(Glfw.Key.KeyW))
+        {
+            movement += _camera.Direction;
+        }
+        if (IsKeyPressed(Glfw.Key.KeyS))
+        {
+            movement -= _camera.Direction;
+        }
+        if (IsKeyPressed(Glfw.Key.KeyA))
+        {
+            movement += -_camera.Right;
+        }
+        if (IsKeyPressed(Glfw.Key.KeyD))
+        {
+            movement += _camera.Right;
+        }
+
+        movement = Vector3.Normalize(movement);
+        if (IsKeyPressed(Glfw.Key.KeyLeftShift))
+        {
+            movement *= speedFactor;
+        }
+        if (movement.Length > 0.0f)
+        {
+            _camera.ProcessKeyboard(movement, 1 / 60.0f);
+        }
     }
 
     protected override void WindowResized()
@@ -257,6 +284,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
         _drawCommands.Add(new DrawCommand { Name = "Cube", WorldMatrix = Matrix4.CreateTranslation(-4, 0, 0) });
         _drawCommands.Add(new DrawCommand { Name = "Cube.003", WorldMatrix = Matrix4.CreateTranslation(4, 0, 0) });
+        _drawCommands.Add(new DrawCommand { Name = "Cube.004", WorldMatrix = Matrix4.CreateTranslation(0, 4, 0) });
         _drawCommands.Add(new DrawCommand { Name = "Cube.001", WorldMatrix = Matrix4.CreateTranslation(0, 0, 0) });
 
         foreach (var drawCommand in _drawCommands)
@@ -279,8 +307,11 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                     }
                 }
 
-                var random = new Random();
-                _gpuMaterials.Add(new GpuMaterial { BaseColor = new Color4(random.NextSingle(), random.NextSingle(), random.NextSingle(), 1.0f), BaseColorTexture = texture.TextureHandle });
+                _gpuMaterials.Add(new GpuMaterial
+                {
+                    BaseColor = new Color4(0.1f, 0.1f, 0.1f, 1.0f),
+                    BaseColorTexture = texture.TextureHandle
+                });
                 _gpuMaterialsInUse.Add(meshData.MeshData.MaterialName);
             }
 
@@ -288,7 +319,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             _gpuModelMeshInstances.Add(new GpuModelMeshInstance
             {
                 WorldMatrix = drawCommand.WorldMatrix,
-                MaterialId = new Vector4i(materialIndex, -999, -999, -999)
+                MaterialId = new Vector4i(materialIndex, 0, 0, 0)
             });
 
             if (!meshDatas.Contains(meshData.MeshData))
@@ -315,15 +346,15 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             drawCommand.VertexOffset = meshData.VertexOffset;
         }
 
-        var meshDatasAsArray = meshDatas.ToArray();
-
         _gpuMaterialBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuMaterial>("SceneMaterials");
         _gpuMaterialBuffer.AllocateStorage(Marshal.SizeOf<GpuMaterial>() * _gpuMaterials.Count, StorageAllocationFlags.Dynamic);
         _gpuMaterialBuffer.Update(_gpuMaterials.ToArray(), 0);
 
-        _sceneVertexBuffer =
+        var meshDatasAsArray = meshDatas.ToArray();
+
+        _gpuVertexBuffer =
             GraphicsContext.CreateVertexBuffer("SceneVertices", meshDatasAsArray, VertexType.PositionNormalUvTangent);
-        _sceneIndexBuffer = GraphicsContext.CreateIndexBuffer("SceneIndices", meshDatasAsArray);
+        _gpuIndexBuffer = GraphicsContext.CreateIndexBuffer("SceneIndices", meshDatasAsArray);
     }
 
     private void DestroyResolutionDependentResources()
@@ -359,14 +390,14 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             .WithColorAttachment(_gBufferBaseColorTexture, true, Vector4.Zero)
             .WithColorAttachment(_gBufferNormalTexture, true, Vector4.One)
             .WithDepthAttachment(_gBufferDepthTexture, true)
-            .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
+            .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
             .Build("GBuffer");
 
         _finalTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "Final");
         _finalFramebufferRenderDescriptor = new FramebufferRenderDescriptorBuilder()
             .WithColorAttachment(_finalTexture, true, new Vector4(0.2f, 0.2f, 0.2f, 1.0f))
-            .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
+            .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
             .Build("Final");
     }
 
@@ -387,6 +418,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                 .AddAttribute(0, DataType.Float, 2, 24)
                 .AddAttribute(0, DataType.Float, 4, 32)
                 .Build("Scene"))
+            .EnableCulling(CullMode.Back)
             .Build("GBuffer-Pipeline");
         if (gBufferGraphicsPipelineResult.IsFailure)
         {
