@@ -12,7 +12,11 @@ public class VertexInputDescriptorBuilder
         _vertexInputBindingDescriptors = new List<VertexInputBindingDescriptor>();
     }
 
-    public VertexInputDescriptorBuilder AddAttribute(uint binding, DataType dataType, int componentCount, uint offset,
+    public VertexInputDescriptorBuilder AddAttribute(
+        uint binding,
+        DataType dataType,
+        int componentCount,
+        uint offset,
         bool isNormalized = false)
     {
         var location = (uint)_vertexInputBindingDescriptors.Count;
