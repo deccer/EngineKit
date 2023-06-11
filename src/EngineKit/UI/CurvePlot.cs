@@ -44,9 +44,7 @@ public class CurvePlot
         }
         else
         {
-            ImGui.PlotLines($"{value:##.##} {_label}", ref _graphValues[0], _sampleCount, _sampleOffset, "", 
-                scale_min: MinValue,
-                scale_max: MaxValue);
+            ImGui.PlotLines($"{value:##.##} {_label}", ref _graphValues[0], _sampleCount, _sampleOffset);
         }
     }
 
