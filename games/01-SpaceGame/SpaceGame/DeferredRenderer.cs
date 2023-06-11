@@ -9,7 +9,7 @@ using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Native.OpenGL;
 using ImGuiNET;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
 using SpaceGame.Game;
 using SpaceGame.Game.Ecs;
@@ -282,8 +282,8 @@ internal sealed class DeferredRenderer : IRenderer
             _instances.Add(new GpuInstanceData
             {
                 MaterialIndex = _materialNameIndexMap == null
-                    ? new Vector4i(-1, -1, -1, -1)
-                    : new Vector4i(_materialNameIndexMap.TryGetValue(modelMeshComponent.MeshData.MaterialName, out var index)
+                    ? new Int4(-1, -1, -1, -1)
+                    : new Int4(_materialNameIndexMap.TryGetValue(modelMeshComponent.MeshData.MaterialName, out var index)
                         ? index
                         : -1, -1, -1, -1),
                 /*
@@ -320,8 +320,8 @@ internal sealed class DeferredRenderer : IRenderer
         _gpuBaseInformation.WorldToViewMatrix = camera.ViewMatrix;
         _gpuBaseInformation.ViewToClipMatrix = camera.ProjectionMatrix;
 
-        _gpuBaseInformation.ClipToViewMatrix = Matrix4.Invert(camera.ProjectionMatrix);
-        _gpuBaseInformation.ViewToWorldMatrix = Matrix4.Invert(camera.ViewMatrix);
+        _gpuBaseInformation.ClipToViewMatrix = Matrix.Invert(camera.ProjectionMatrix);
+        _gpuBaseInformation.ViewToWorldMatrix = Matrix.Invert(camera.ViewMatrix);
         _gpuBaseInformation.CameraPosition = new Vector4(camera.Position, MathHelper.ToRadians(camera.FieldOfView));
         _gpuBaseInformation.CameraDirection = new Vector4(camera.Direction, camera.AspectRatio);
         _gpuBaseInformationBuffer!.Update(_gpuBaseInformation, 0);
@@ -366,16 +366,16 @@ internal sealed class DeferredRenderer : IRenderer
 
                 GL.PushDebugGroup("Render Shadowmap Directional Light");
                 {
-                    _gpuBaseInformation.WorldToViewMatrix = Matrix4.LookAt(directionalLightPosition, Vector3.Zero, Vector3.UnitY);
-                    _gpuBaseInformation.ViewToClipMatrix = Matrix4.CreateOrthographicOffCenter(
+                    _gpuBaseInformation.WorldToViewMatrix = Matrix.LookAtRH(directionalLightPosition, Vector3.Zero, Vector3.UnitY);
+                    _gpuBaseInformation.ViewToClipMatrix = Matrix.OrthoOffCenterRH(
                         -_lightMapOrthoWidth / 2,
                         _lightMapOrthoWidth / 2,
                         -_lightMapOrthoHeight / 2,
                     _lightMapOrthoHeight / 2,
                         -_lightMapOrthoNear,
                         _lightMapOrthoFar);
-                    _gpuBaseInformation.ViewToWorldMatrix = Matrix4.Identity; // unused
-                    _gpuBaseInformation.ClipToViewMatrix = Matrix4.Identity; // unused
+                    _gpuBaseInformation.ViewToWorldMatrix = Matrix.Identity; // unused
+                    _gpuBaseInformation.ClipToViewMatrix = Matrix.Identity; // unused
                     _gpuBaseInformationBuffer!.Update(_gpuBaseInformation, 0);
 
                     _graphicsContext.BindGraphicsPipeline(_directionalLightShadowGraphicsPipeline!);
@@ -392,9 +392,9 @@ internal sealed class DeferredRenderer : IRenderer
             }
 
             _gpuBaseInformation.ViewToClipMatrix = camera.ProjectionMatrix;
-            _gpuBaseInformation.ClipToViewMatrix = Matrix4.Invert(camera.ProjectionMatrix);
+            _gpuBaseInformation.ClipToViewMatrix = Matrix.Invert(camera.ProjectionMatrix);
             _gpuBaseInformation.WorldToViewMatrix = camera.ViewMatrix;
-            _gpuBaseInformation.ViewToWorldMatrix = Matrix4.Invert(camera.ViewMatrix);
+            _gpuBaseInformation.ViewToWorldMatrix = Matrix.Invert(camera.ViewMatrix);
             _gpuBaseInformationBuffer!.Update(_gpuBaseInformation, 0);
 
             RenderLightsDeferred(directionalLightPosition);
@@ -459,8 +459,8 @@ internal sealed class DeferredRenderer : IRenderer
 
             GL.PushDebugGroup("GlobalLights");
             {
-                var directionalLightWorldToViewMatrix = Matrix4.LookAt(directionalLightPosition, Vector3.Zero, Vector3.UnitY);
-                var directionalLightViewToClipMatrix = Matrix4.CreateOrthographicOffCenter(
+                var directionalLightWorldToViewMatrix = Matrix.LookAtRH(directionalLightPosition, Vector3.Zero, Vector3.UnitY);
+                var directionalLightViewToClipMatrix = Matrix.OrthoOffCenterRH(
                     -_lightMapOrthoWidth / 2,
                     _lightMapOrthoWidth / 2,
                     -_lightMapOrthoHeight / 2,
@@ -790,7 +790,7 @@ internal sealed class DeferredRenderer : IRenderer
             ImageType = ImageType.TextureCube,
             Format = Format.R16G16B16A16Float,
             Label = "ConvolvedSkybox",
-            Size = new Vector3i(1024, 1024, 1),
+            Size = new Int3(1024, 1024, 1),
             MipLevels = (uint)(1 + MathF.Ceiling(MathF.Log2(1024))),
             SampleCount = SampleCount.OneSample
         };

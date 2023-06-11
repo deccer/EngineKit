@@ -3,12 +3,11 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Text;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
-using Point = SixLabors.ImageSharp.Point;
 using Vector2 = System.Numerics.Vector2;
-using Vector3 = OpenTK.Mathematics.Vector3;
-using Vector4 = OpenTK.Mathematics.Vector4;
+using Vector3 = EngineKit.Mathematics.Vector3;
+using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace EngineKit.Graphics;
 
@@ -73,7 +72,7 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
 
         if (type == typeof(ulong))
         {
-            return "uint64_t";
+            return "uvec2";
         }
 
         if (type == typeof(float))
@@ -91,17 +90,17 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
             return "vec4";
         }
 
-        if (type == typeof(Vector2i))
+        if (type == typeof(Point))
         {
             return "ivec2";
         }
 
-        if (type == typeof(Vector3i))
+        if (type == typeof(Int3))
         {
             return "ivec3";
         }
 
-        if (type == typeof(Vector4i))
+        if (type == typeof(Int4))
         {
             return "ivec4";
         }
@@ -121,44 +120,14 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
             return "vec4";
         }
 
-        if (type == typeof(Matrix2))
-        {
-            return "mat2";
-        }
-
-        if (type == typeof(Matrix3))
+        if (type == typeof(Matrix3x3))
         {
             return "mat3";
         }
 
-        if (type == typeof(Matrix4) || type == typeof(Matrix4x4))
+        if (type == typeof(Matrix) || type == typeof(Matrix4x4))
         {
             return "mat4";
-        }
-
-        if (type == typeof(Matrix4x3))
-        {
-            return "mat4x3";
-        }
-
-        if (type == typeof(Matrix2d))
-        {
-            return "dmat2";
-        }
-
-        if (type == typeof(Matrix3d))
-        {
-            return "dmat3";
-        }
-
-        if (type == typeof(Matrix4d))
-        {
-            return "dmat4";
-        }
-
-        if (type == typeof(Matrix4x3d))
-        {
-            return "dmat4x3";
         }
 
         return "INVALID";

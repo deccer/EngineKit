@@ -1,5 +1,5 @@
 using System.Runtime.InteropServices;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
@@ -10,11 +10,11 @@ public struct GpuMaterial
 
     public Color4 Emissive;
 
-    public Vector4i BaseColorTextureId;
+    public Int4 BaseColorTextureId;
 
-    public Vector4i NormalTextureId;
+    public Int4 NormalTextureId;
 
-    public Vector4i SpecularTextureId;
+    public Int4 SpecularTextureId;
 
-    public Vector4i MetalnessRoughnessTextureId;
+    public Int4 MetalnessRoughnessTextureId;
 }

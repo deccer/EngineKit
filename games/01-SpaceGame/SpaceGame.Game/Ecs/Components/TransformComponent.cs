@@ -1,14 +1,18 @@
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace SpaceGame.Game.Ecs.Components;
 
 public class TransformComponent : Component
 {
-    public TransformComponent(Matrix4 modelMatrix)
+    public static TransformComponent CreateFromMatrix(Matrix worldMatrix)
     {
-        LocalPosition = modelMatrix.ExtractTranslation();
-        LocalRotation = modelMatrix.ExtractRotation();
-        LocalScale = modelMatrix.ExtractScale();
+        /*
+        scale.X = 1.0f / scale.X;
+        scale.Y = 1.0f / scale.Y;
+        scale.Z = 1.0f / scale.Z;
+        */
+        worldMatrix.Decompose(out var scale, out var rotation, out var translation);
+        return new TransformComponent(translation, rotation, scale);
     }
 
     public TransformComponent(Vector3 localPosition, Quaternion localRotation, Vector3 localScale)
@@ -38,12 +42,12 @@ public class TransformComponent : Component
 
     public Vector3 LocalScale;
 
-    public Matrix4 GlobalWorldMatrix;
+    public Matrix GlobalWorldMatrix;
 
-    public Matrix4 GetLocalMatrix()
+    public Matrix GetLocalMatrix()
     {
-        return Matrix4.CreateScale(LocalScale) *
-               Matrix4.CreateFromQuaternion(LocalRotation) *
-               Matrix4.CreateTranslation(LocalPosition);
+        return Matrix.Scaling(LocalScale) *
+               Matrix.RotationQuaternion(LocalRotation) *
+               Matrix.Translation(LocalPosition);
     }
 }

@@ -1,8 +1,8 @@
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace ForwardRendering;
 
 public struct GpuModelMeshInstance
 {
-    public Matrix4 World;
+    public Matrix World;
 }

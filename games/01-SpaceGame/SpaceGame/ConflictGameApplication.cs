@@ -10,7 +10,7 @@ using EngineKit.Native.OpenGL;
 using ImGuiNET;
 using JoltPhysicsSharp;
 using Microsoft.Extensions.Options;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
 using SpaceGame.Game;
 using SpaceGame.Game.Ecs;
@@ -21,8 +21,8 @@ using Num = System.Numerics;
 using Entity = SpaceGame.Game.Ecs.Entity;
 using IApplicationContext = EngineKit.IApplicationContext;
 using MathHelper = EngineKit.MathHelper;
-using Quaternion = OpenTK.Mathematics.Quaternion;
-using Vector3 = OpenTK.Mathematics.Vector3;
+using Quaternion = EngineKit.Mathematics.Quaternion;
+using Vector3 = EngineKit.Mathematics.Vector3;
 
 namespace SpaceGame;
 
@@ -160,7 +160,7 @@ internal class ConflictGameApplication : GraphicsApplication
             movement *= speedFactor;
         }
 
-        if (movement.Length > 0.0f)
+        if (movement.Length() > 0.0f)
         {
             //movement *= 0.999f;
             //_camera.ProcessKeyboard(movement, 1 / 60.0f);
@@ -240,7 +240,7 @@ internal class ConflictGameApplication : GraphicsApplication
         _playerShipBody = _physicsWorld.CreateAndAddBody(physicsModelMeshShapeComponent.SphereShapeSettings, playerShipPosition);
 
         _playerShipEntity = _entityWorld.CreateEntity("Player");
-        _entityWorld.AddComponent(_playerShipEntity, new TransformComponent(Matrix4.Identity));
+        _entityWorld.AddComponent(_playerShipEntity, TransformComponent.CreateFromMatrix(Matrix.Identity));
         _entityWorld.AddComponent(_playerShipEntity, physicsModelMeshShapeComponent);
         _entityWorld.AddComponent(_playerShipEntity, new PhysicsBodyComponent(_playerShipBody));
         _entityWorld.AddComponent(_playerShipEntity, new UpdateCameraPositionComponent());
@@ -414,7 +414,7 @@ internal class ConflictGameApplication : GraphicsApplication
         var asteroidMeshes = asteroidPackModel.Meshes.OrderBy(m => new Guid()).ToArray();
 
         var asteroidField = _entityWorld.CreateEntity("asteroid-field", parentEntity);
-        _entityWorld.AddComponent(asteroidField, new TransformComponent(Matrix4.Identity));
+        _entityWorld.AddComponent(asteroidField, TransformComponent.CreateFromMatrix(Matrix.Identity));
 
         var childComponent = new ChildrenComponent();
         _entityWorld.AddComponent(asteroidField, childComponent);
@@ -433,25 +433,25 @@ internal class ConflictGameApplication : GraphicsApplication
             var randomAxis = random.Next(0, 3);
             if (randomAxis == 1)
             {
-                rotation = Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(-180 + 360 * random.NextSingle()));
+                rotation = new Quaternion(Vector3.UnitY, MathHelper.ToRadians(-180 + 360 * random.NextSingle()));
             }
             else if (randomAxis == 2)
             {
-                rotation = Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.ToRadians(-180 + 360 * random.NextSingle()));
+                rotation = new Quaternion(Vector3.UnitX, MathHelper.ToRadians(-180 + 360 * random.NextSingle()));
             }
             else if (randomAxis == 3)
             {
-                rotation = Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.ToRadians(-180 + 360 * random.NextSingle()));
+                rotation = new Quaternion(Vector3.UnitZ, MathHelper.ToRadians(-180 + 360 * random.NextSingle()));
             }
 
-            var transform = Matrix4.CreateTranslation(position) *
-                            Matrix4.CreateFromQuaternion(rotation) *
-                            Matrix4.CreateScale(scale);
+            var transform = Matrix.Translation(position) *
+                            Matrix.RotationQuaternion(rotation) *
+                            Matrix.Scaling(scale);
             var physicsModelMeshShapeComponent = new PhysicsModelMeshShapeComponent(asteroidMesh);
             var body = _physicsWorld.CreateAndAddBody(physicsModelMeshShapeComponent.SphereShapeSettings, position);
 
             childComponent.AddChild(childEntity);
-            _entityWorld.AddComponent(childEntity, new TransformComponent(transform));
+            _entityWorld.AddComponent(childEntity, TransformComponent.CreateFromMatrix(transform));
             _entityWorld.AddComponent(childEntity, new ModelMeshComponent { MeshData = asteroidMesh.MeshData });
             _entityWorld.AddComponent(childEntity, physicsModelMeshShapeComponent);
             _entityWorld.AddComponent(childEntity, new PhysicsBodyComponent(body));
@@ -461,18 +461,18 @@ internal class ConflictGameApplication : GraphicsApplication
     private void CreateEntityFromModel(Model model, int? parentEntity = null)
     {
         var entity = _entityWorld.CreateEntity(model.Meshes.First().MeshData.MeshName, parentEntity);
-        var localTransform = Matrix4.Identity;
+        var localTransform = Matrix.Identity;
         if (parentEntity.HasValue)
         {
             localTransform = _entityWorld.GetComponent<TransformComponent>(parentEntity.Value).GlobalWorldMatrix;
         }
-        _entityWorld.AddComponent(entity, new TransformComponent(localTransform));
+        _entityWorld.AddComponent(entity, TransformComponent.CreateFromMatrix(localTransform));
 
         foreach (var modelMesh in model.Meshes)
         {
             var childEntity = _entityWorld.CreateEntity(modelMesh.MeshData.MeshName, entity);
 
-            _entityWorld.AddComponent(childEntity, new TransformComponent(modelMesh.MeshData.Transform));
+            _entityWorld.AddComponent(childEntity, TransformComponent.CreateFromMatrix(modelMesh.MeshData.Transform));
             _entityWorld.AddComponent(childEntity, new ModelMeshComponent { MeshData = modelMesh.MeshData });
         }
     }
@@ -482,10 +482,7 @@ internal class ConflictGameApplication : GraphicsApplication
         var entity = _entityWorld.CreateEntity(modelMesh.MeshData.MeshName, parentEntity);
 
         var modelMeshTransform = modelMesh.MeshData.Transform;
-        _entityWorld.AddComponent(entity, new TransformComponent(
-            modelMeshTransform.ExtractTranslation(),
-            modelMeshTransform.ExtractRotation(),
-            modelMeshTransform.ExtractScale()));
+        _entityWorld.AddComponent(entity, TransformComponent.CreateFromMatrix(modelMeshTransform));
         _entityWorld.AddComponent(entity, new ModelMeshComponent { MeshData = modelMesh.MeshData });
     }
 
@@ -584,13 +581,13 @@ internal class ConflictGameApplication : GraphicsApplication
                 _selectedMaterialName = materialName;
 
                 var material = _materialLibrary.GetMaterialByName(materialName);
-                var baseColor = new Num.Vector4(material.BaseColor.R, material.BaseColor.G, material.BaseColor.G, material.BaseColor.A);
+                var baseColor = new Num.Vector4(material.BaseColor.Red, material.BaseColor.Green, material.BaseColor.Blue, material.BaseColor.Alpha);
                 if (ImGui.ColorPicker4("Base Color", ref baseColor))
                 {
                     material.BaseColor = new Color4(baseColor.X, baseColor.Y, baseColor.Z, baseColor.W);
                 }
 
-                var emission = new Num.Vector4(material.Emissive.R, material.Emissive.G, material.Emissive.G, material.Emissive.A);
+                var emission = new Num.Vector4(material.Emissive.Red, material.Emissive.Green, material.Emissive.Blue, material.Emissive.Alpha);
                 if (ImGui.ColorPicker4("Emission", ref emission))
                 {
                     material.Emissive = new Color4(emission.X, emission.Y, emission.Z, emission.W);

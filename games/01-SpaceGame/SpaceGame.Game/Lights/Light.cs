@@ -1,5 +1,5 @@
 using System;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace SpaceGame.Game.Lights;
 

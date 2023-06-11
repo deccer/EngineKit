@@ -1,4 +1,4 @@
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
@@ -8,9 +8,9 @@ public record struct TextureUpdateDescriptor
 
     public int Level;
 
-    public Vector3i Offset;
+    public Int3 Offset;
 
-    public Vector3i Size;
+    public Int3 Size;
 
     public UploadFormat UploadFormat;
 

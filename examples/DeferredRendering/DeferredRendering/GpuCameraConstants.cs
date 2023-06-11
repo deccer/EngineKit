@@ -1,8 +1,8 @@
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace DeferredRendering;
 
 public struct GpuCameraConstants
 {
-    public Matrix4 ViewProjection;
+    public Matrix ViewProjection;
 }

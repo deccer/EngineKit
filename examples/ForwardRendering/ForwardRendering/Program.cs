@@ -3,7 +3,7 @@ using EngineKit.Extensions;
 using EngineKit.Input;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
 
 namespace ForwardRendering;

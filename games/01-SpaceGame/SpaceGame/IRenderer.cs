@@ -1,5 +1,5 @@
 using System;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using SpaceGame.Game;
 using SpaceGame.Game.Ecs;
 

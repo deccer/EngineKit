@@ -1,5 +1,5 @@
 using System;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 

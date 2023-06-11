@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
@@ -16,7 +16,7 @@ public sealed class FramebufferRenderDescriptorBuilder
 
     public FramebufferRenderDescriptorBuilder WithViewport(int width, int height)
     {
-        _framebufferRenderDescriptor.Viewport = new OpenTK.Mathematics.Vector4i(0, 0, width, height);
+        _framebufferRenderDescriptor.Viewport = new Int4(0, 0, width, height);
         return this;
     }
 

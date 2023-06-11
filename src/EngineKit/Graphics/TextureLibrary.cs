@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -69,7 +69,7 @@ internal sealed class TextureLibrary : ITextureLibrary
                         ImageType = ImageType.Texture2DArray,
                         Format = Format.R8G8B8A8UNorm,
                         Label = $"TA_{textureIndex.Key}_{imageWidth}x{imageHeight}x{textureIndex.Value.Count}",
-                        Size = new Vector3i(imageWidth, imageHeight, 1),
+                        Size = new Int3(imageWidth, imageHeight, 1),
                         ArrayLayers = (uint)textureIndex.Value.Count,
                         MipLevels = 1 + (uint)MathF.Ceiling(MathF.Log2(MathF.Max(imageWidth, imageHeight))),
                         SampleCount = SampleCount.OneSample
@@ -81,8 +81,8 @@ internal sealed class TextureLibrary : ITextureLibrary
                 var textureUploadDescriptor = new TextureUpdateDescriptor
                 {
                     Level = 0,
-                    Offset = new Vector3i(0, 0, textureArraySlice),
-                    Size = new Vector3i(imageWidth, imageHeight, 1),
+                    Offset = new Int3(0, 0, textureArraySlice),
+                    Size = new Int3(imageWidth, imageHeight, 1),
                     UploadDimension = UploadDimension.Three,
                     UploadFormat = UploadFormat.RedGreenBlueAlpha,
                     UploadType = UploadType.UnsignedByte

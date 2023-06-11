@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Native.OpenGL;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
 using SpaceGame.Game;
 using SpaceGame.Game.Ecs;
@@ -125,9 +125,9 @@ internal sealed class ForwardRenderer : IRenderer
     public bool RenderScene(ICamera camera, Vector3 directionalLightPosition)
     {
         _gpuBaseInformation.ViewToClipMatrix = camera.ProjectionMatrix;
-        _gpuBaseInformation.ClipToViewMatrix = Matrix4.Invert(camera.ProjectionMatrix);
+        _gpuBaseInformation.ClipToViewMatrix = Matrix.Invert(camera.ProjectionMatrix);
         _gpuBaseInformation.WorldToViewMatrix = camera.ViewMatrix;
-        _gpuBaseInformation.ViewToWorldMatrix = Matrix4.Invert(camera.ViewMatrix);
+        _gpuBaseInformation.ViewToWorldMatrix = Matrix.Invert(camera.ViewMatrix);
         _gpuBaseInformation.CameraPosition = new Vector4(camera.Position, 0.0f);
         _gpuBaseInformation.CameraDirection = new Vector4(camera.Direction, 0.0f);
 

@@ -1,18 +1,18 @@
 using System.Runtime.InteropServices;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace SpaceGame;
 
 [StructLayout(LayoutKind.Sequential, Pack = 16)]
 public struct GpuBaseInformation
 {
-    public Matrix4 ViewToClipMatrix;
+    public Matrix ViewToClipMatrix;
 
-    public Matrix4 ClipToViewMatrix;
+    public Matrix ClipToViewMatrix;
 
-    public Matrix4 WorldToViewMatrix;
+    public Matrix WorldToViewMatrix;
 
-    public Matrix4 ViewToWorldMatrix;
+    public Matrix ViewToWorldMatrix;
 
     public Vector4 CameraPosition;
 

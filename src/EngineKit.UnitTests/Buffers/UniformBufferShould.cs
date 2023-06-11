@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using EngineKit.Graphics;
 using EngineKit.UnitTests.TestInfrastructure;
 using FluentAssertions;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Xunit;
 
 namespace EngineKit.UnitTests.Buffers;
@@ -57,7 +57,7 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         // Act
         var globalMatrices = new GpuGlobalMatrices
         {
-            WorldToCameraMatrix = Matrix4.Identity
+            WorldToCameraMatrix = Matrix.Identity
         };
         uniformBuffer.Update(globalMatrices,  0);
 
@@ -95,7 +95,7 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         // Act
         var globalMatrices = new GpuGlobalMatrices
         {
-            WorldToCameraMatrix = Matrix4.Identity
+            WorldToCameraMatrix = Matrix.Identity
         };
         uniformBuffer.Update(globalMatrices,  0);
 

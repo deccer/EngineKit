@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTK.Mathematics;
-using Vector2 = OpenTK.Mathematics.Vector2;
-using Vector3 = OpenTK.Mathematics.Vector3;
-using Vector4 = OpenTK.Mathematics.Vector4;
+using EngineKit.Mathematics;
+using Vector2 = EngineKit.Mathematics.Vector2;
+using Vector3 = EngineKit.Mathematics.Vector3;
+using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace EngineKit.Graphics;
 
@@ -28,7 +28,7 @@ public sealed class MeshData
 
     public string MeshName { get; set; }
 
-    public Matrix4 Transform { get; set; }
+    public Matrix Transform { get; set; }
 
     public List<uint> Indices => _indices;
 
@@ -44,7 +44,7 @@ public sealed class MeshData
 
     public string? MaterialName { get; set; }
 
-    public OpenTK.Mathematics.Box3 BoundingBox { get; set; }
+    public BoundingBox BoundingBox { get; set; }
 
     public List<Vector3> Positions => _positions;
 
@@ -151,16 +151,16 @@ public sealed class MeshData
                 break;
             }
 
-            var triangle = Matrix3.Identity;
-            triangle.Row0 = _positions[i + 0];
-            triangle.Row1 = _positions[i + 1];
-            triangle.Row2 = _positions[i + 2];
+            var triangle = Matrix3x3.Identity;
+            triangle.Row1 = _positions[i + 0];
+            triangle.Row2 = _positions[i + 1];
+            triangle.Row3 = _positions[i + 2];
 
             var uv0 = _uvs[i + 1] - _uvs[i + 0];
             var uv1 = _uvs[i + 2] - _uvs[i + 0];
 
-            var q1 = triangle.Row1 - triangle.Row1;
-            var q2 = triangle.Row2 - triangle.Row1;
+            var q1 = triangle.Row2 - triangle.Row1;
+            var q2 = triangle.Row3 - triangle.Row1;
 
             var det = uv0.X * uv1.Y - uv1.X * uv0.Y;
             if (MathF.Abs(det) <= 0.000001f)

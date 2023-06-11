@@ -1,8 +1,8 @@
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace ForwardRendering;
 
 public struct GpuConstants
 {
-    public Matrix4 ViewProjection;
+    public Matrix ViewProjection;
 }

@@ -1,12 +1,12 @@
 using System.Runtime.InteropServices;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct GpuInstanceData
 {
-    public Matrix4 ModelToWorldMatrix;
+    public Matrix ModelToWorldMatrix;
 
-    public Vector4i MaterialIndex;
+    public Int4 MaterialIndex;
 }

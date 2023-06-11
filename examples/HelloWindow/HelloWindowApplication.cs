@@ -44,7 +44,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
 
     protected override void Render()
     {
-        GL.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit);
+        GL.Clear(GL.FramebufferBit.ColorBufferBit | GL.FramebufferBit.DepthBufferBit);
 
         UIRenderer.BeginLayout();
         if (ImGui.BeginMainMenuBar())

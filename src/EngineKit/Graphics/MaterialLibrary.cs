@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
 
 namespace EngineKit.Graphics;
@@ -21,7 +21,6 @@ internal sealed class MaterialLibrary : IMaterialLibrary
         _imageLibrary = imageLibrary;
         _materials = new Dictionary<string, Material>(256);
         _random = new Random();
-        CreateDefaultMaterials();
     }
 
     public Material GetRandomMaterial()
@@ -169,38 +168,17 @@ internal sealed class MaterialLibrary : IMaterialLibrary
             BaseColor = material.BaseColor,
             Emissive = material.Emissive,
             BaseColorTextureId = baseColorTextureIdExists
-                ? new Vector4i(baseColorTextureId!.ArrayIndex, baseColorTextureId.ArraySlice, -1, -1)
-                : new Vector4i(-1, -1, -1, -1),
+                ? new Int4(baseColorTextureId!.ArrayIndex, baseColorTextureId.ArraySlice, -1, -1)
+                : new Int4(-1, -1, -1, -1),
             NormalTextureId = normalTextureIdExists
-                ? new Vector4i(normalTextureId!.ArrayIndex, normalTextureId.ArraySlice, -1, -1)
-                : new Vector4i(-1, -1, -1, -1),
+                ? new Int4(normalTextureId!.ArrayIndex, normalTextureId.ArraySlice, -1, -1)
+                : new Int4(-1, -1, -1, -1),
             SpecularTextureId = specularTextureIdExists
-                ? new Vector4i(specularTextureId!.ArrayIndex, specularTextureId.ArraySlice, -1, -1)
-                : new Vector4i(-1, -1, -1, -1),
+                ? new Int4(specularTextureId!.ArrayIndex, specularTextureId.ArraySlice, -1, -1)
+                : new Int4(-1, -1, -1, -1),
             MetalnessRoughnessTextureId = metalnessRoughnessTextureIdExists
-                ? new Vector4i(metalnessRoughnessTextureId!.ArrayIndex, metalnessRoughnessTextureId.ArraySlice, -1, -1)
-                : new Vector4i(-1, -1, -1, -1),
+                ? new Int4(metalnessRoughnessTextureId!.ArrayIndex, metalnessRoughnessTextureId.ArraySlice, -1, -1)
+                : new Int4(-1, -1, -1, -1),
         };
-    }
-
-    private void CreateDefaultMaterials()
-    {
-        var colors = typeof(Color4)
-            .GetProperties()
-            .Select(p => new
-            {
-                Name = p.Name,
-                Value = p.GetValue(null)
-            });
-
-        foreach (var color in colors)
-        {
-            var materialName = $"M_Default_{color.Name}";
-            var colorValue = (Color4?)color.Value;
-            _materials.Add(materialName, new Material(materialName)
-            {
-                BaseColor = colorValue ?? Color4.Fuchsia
-            });
-        }
     }
 }

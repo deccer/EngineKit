@@ -1,4 +1,4 @@
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace ForwardRendering;
 
@@ -6,5 +6,5 @@ public struct ModelMeshInstance
 {
     public ModelMesh ModelMesh;
 
-    public Matrix4 World;
+    public Matrix World;
 }

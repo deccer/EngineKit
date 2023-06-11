@@ -1,4 +1,4 @@
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
@@ -19,13 +19,13 @@ public sealed class SwapchainRenderDescriptorBuilder
 
     public SwapchainRenderDescriptorBuilder WithViewport(int width, int height)
     {
-        _swapchainRenderDescriptor.Viewport = new Vector4i(0, 0, width, height);
+        _swapchainRenderDescriptor.Viewport = new Int4(0, 0, width, height);
         return this;
     }
 
     public SwapchainRenderDescriptorBuilder WithScissorRectangle(int left, int top, int width, int height)
     {
-        _swapchainRenderDescriptor.ScissorRect = new Vector4i(left, top, width, height);
+        _swapchainRenderDescriptor.ScissorRect = new Int4(left, top, width, height);
         return this;
     }
 
@@ -34,10 +34,10 @@ public sealed class SwapchainRenderDescriptorBuilder
         _swapchainRenderDescriptor.ClearColor = true;
         _swapchainRenderDescriptor.ClearColorValue = new ClearColorValue();
         _swapchainRenderDescriptor.ClearColorValue.ColorFloat = new float[4];
-        _swapchainRenderDescriptor.ClearColorValue.ColorFloat[0] = clearValue.R;
-        _swapchainRenderDescriptor.ClearColorValue.ColorFloat[1] = clearValue.G;
-        _swapchainRenderDescriptor.ClearColorValue.ColorFloat[2] = clearValue.B;
-        _swapchainRenderDescriptor.ClearColorValue.ColorFloat[3] = clearValue.A;
+        _swapchainRenderDescriptor.ClearColorValue.ColorFloat[0] = clearValue.Red;
+        _swapchainRenderDescriptor.ClearColorValue.ColorFloat[1] = clearValue.Green;
+        _swapchainRenderDescriptor.ClearColorValue.ColorFloat[2] = clearValue.Blue;
+        _swapchainRenderDescriptor.ClearColorValue.ColorFloat[3] = clearValue.Alpha;
         return this;
     }
 

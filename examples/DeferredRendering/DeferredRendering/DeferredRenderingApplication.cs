@@ -10,7 +10,7 @@ using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
 using Num = System.Numerics;
 
@@ -20,7 +20,7 @@ public class DrawCommand
 {
     public string Name { get; set; }
 
-    public Matrix4 WorldMatrix { get; set; }
+    public Matrix WorldMatrix { get; set; }
 
     public int IndexCount;
 
@@ -267,7 +267,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         {
             movement *= speedFactor;
         }
-        if (movement.Length > 0.0f)
+        if (movement.Length() > 0.0f)
         {
             _camera.ProcessKeyboard(movement, 1 / 60.0f);
         }
@@ -282,10 +282,10 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     {
         var meshDatas = new List<MeshData>();
 
-        _drawCommands.Add(new DrawCommand { Name = "Cube", WorldMatrix = Matrix4.CreateTranslation(-4, 0, 0) });
-        _drawCommands.Add(new DrawCommand { Name = "Cube.003", WorldMatrix = Matrix4.CreateTranslation(4, 0, 0) });
-        _drawCommands.Add(new DrawCommand { Name = "Cube.004", WorldMatrix = Matrix4.CreateTranslation(0, 4, 0) });
-        _drawCommands.Add(new DrawCommand { Name = "Cube.001", WorldMatrix = Matrix4.CreateTranslation(0, 0, 0) });
+        _drawCommands.Add(new DrawCommand { Name = "Cube", WorldMatrix = Matrix.Translation(-4, 0, 0) });
+        _drawCommands.Add(new DrawCommand { Name = "Cube.003", WorldMatrix = Matrix.Translation(4, 0, 0) });
+        _drawCommands.Add(new DrawCommand { Name = "Cube.004", WorldMatrix = Matrix.Translation(0, 4, 0) });
+        _drawCommands.Add(new DrawCommand { Name = "Cube.001", WorldMatrix = Matrix.Translation(0, 0, 0) });
 
         foreach (var drawCommand in _drawCommands)
         {
@@ -319,7 +319,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             _gpuModelMeshInstances.Add(new GpuModelMeshInstance
             {
                 WorldMatrix = drawCommand.WorldMatrix,
-                MaterialId = new Vector4i(materialIndex, 0, 0, 0)
+                MaterialId = new Int4(materialIndex, 0, 0, 0)
             });
 
             if (!meshDatas.Contains(meshData.MeshData))

@@ -1,4 +1,4 @@
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
@@ -8,7 +8,7 @@ public record struct TextureCreateDescriptor
 
     public Format Format;
 
-    public Vector3i Size;
+    public Int3 Size;
 
     public uint MipLevels;
 

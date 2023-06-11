@@ -1,4 +1,4 @@
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace DeferredRendering;
 
@@ -8,5 +8,5 @@ public struct GpuMaterial
 
     public ulong BaseColorTexture;
 
-    public Vector2i _padding;
+    public Point _padding;
 }

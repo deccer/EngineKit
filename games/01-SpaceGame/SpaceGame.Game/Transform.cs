@@ -1,7 +1,7 @@
-using OpenTK.Mathematics;
-using Quaternion = OpenTK.Mathematics.Quaternion;
-using Vector3 = OpenTK.Mathematics.Vector3;
-using Vector4 = OpenTK.Mathematics.Vector4;
+using EngineKit.Mathematics;
+using Quaternion = EngineKit.Mathematics.Quaternion;
+using Vector3 = EngineKit.Mathematics.Vector3;
+using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace SpaceGame.Game;
 
@@ -15,9 +15,9 @@ public class Transform
 
     public Quaternion LocalRotation = Quaternion.Identity;
 
-    public Matrix4 LocalToWorld;
+    public Matrix LocalToWorld;
 
-    public Matrix4 WorldToLocal;
+    public Matrix WorldToLocal;
 
     public Vector3 WorldPosition
     {
@@ -27,22 +27,22 @@ public class Transform
 
     public Quaternion WorldRotation
     {
-        get { return Quaternion.FromMatrix(new Matrix3(LocalToWorld)); }
+        get { return Quaternion.RotationMatrix(LocalToWorld); }
     }
 
     public Vector3 Forward
     {
-        get { return Vector3.TransformNormal(-Vector3.UnitZ, LocalToWorld); }
+        get { return Vector3.TransformDirection(-Vector3.UnitZ, LocalToWorld); }
     }
 
     public Vector3 Right
     {
-        get { return Vector3.TransformNormal(Vector3.UnitX, LocalToWorld); }
+        get { return Vector3.TransformDirection(Vector3.UnitX, LocalToWorld); }
     }
 
     public Vector3 Up
     {
-        get { return Vector3.TransformNormal(Vector3.UnitY, LocalToWorld); }
+        get { return Vector3.TransformDirection(Vector3.UnitY, LocalToWorld); }
     }
 
     public Transform(
@@ -64,19 +64,19 @@ public class Transform
         WorldToLocal.Invert();
     }
 
-    public Matrix4 GetTransformationMatrix()
+    public Matrix GetTransformationMatrix()
     {
-        Matrix4 matrix = default;
-        Matrix3.CreateFromQuaternion(in LocalRotation, out var rotationMatrix);
+        Matrix matrix = default;
+        Matrix3x3.RotationQuaternion(ref LocalRotation, out var rotationMatrix);
 
-        matrix.Row0 = new Vector4(rotationMatrix.Column0 * LocalScale.X, 0f);
-        matrix.Row1 = new Vector4(rotationMatrix.Column1 * LocalScale.Y, 0f);
-        matrix.Row2 = new Vector4(rotationMatrix.Column2 * LocalScale.Z, 0f);
-        matrix.Row3 = new Vector4(LocalPosition, 1f);
+        matrix.Row1 = new Vector4(rotationMatrix.Column1 * LocalScale.X, 0f);
+        matrix.Row2 = new Vector4(rotationMatrix.Column2 * LocalScale.Y, 0f);
+        matrix.Row3 = new Vector4(rotationMatrix.Column3 * LocalScale.Z, 0f);
+        matrix.Row4 = new Vector4(LocalPosition, 1f);
         if (_parent != null)
         {
             var parentMatrix = _parent.GetTransformationMatrix();
-            Matrix4.Mult(matrix, parentMatrix, out matrix);
+            matrix = Matrix.Multiply(matrix, parentMatrix);
         }
 
         return matrix;
@@ -84,12 +84,12 @@ public class Transform
 
     public Vector3 LocalDirectionToWorld(Vector3 localDir)
     {
-        return Vector3.TransformNormal(localDir, LocalToWorld);
+        return Vector3.TransformDirection(localDir, LocalToWorld);
     }
 
     public Vector3 WorldDirectionToLocal(Vector3 worldDir)
     {
-        return Vector3.TransformNormal(worldDir, WorldToLocal);
+        return Vector3.TransformDirection(worldDir, WorldToLocal);
     }
 
     public Vector3 LocalPositionToWorld(in Vector3 localPos)

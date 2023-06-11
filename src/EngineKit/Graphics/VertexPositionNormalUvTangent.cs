@@ -1,5 +1,5 @@
 using System.Runtime.InteropServices;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 

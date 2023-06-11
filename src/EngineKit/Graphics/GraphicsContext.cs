@@ -5,7 +5,7 @@ using System.Linq;
 using CSharpFunctionalExtensions;
 using EngineKit.Extensions;
 using EngineKit.Native.OpenGL;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -177,7 +177,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         var textureCreateDescriptor = new TextureCreateDescriptor
         {
             Format = format,
-            Size = new Vector3i(width, height, 1),
+            Size = new Int3(width, height, 1),
             Label = string.IsNullOrEmpty(label) ? $"T_{width}x{height}_{format}" : $"T_{width}x{height}_{format}_{label}",
             ArrayLayers = 0,
             MipLevels = 1,
@@ -238,7 +238,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
                     ImageType = ImageType.TextureCube,
                     Format = Format.R8G8B8A8UNorm,
                     Label = label,
-                    Size = new Vector3i(image.Width, image.Height, 1),
+                    Size = new Int3(image.Width, image.Height, 1),
                     MipLevels = 10,
                     SampleCount = SampleCount.OneSample
                 };
@@ -247,8 +247,8 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
             var skyboxTextureUpdateDescriptor = new TextureUpdateDescriptor
             {
-                Offset = new Vector3i(0, 0, slice++),
-                Size = new Vector3i(image.Width, image.Height, 1),
+                Offset = new Int3(0, 0, slice++),
+                Size = new Int3(image.Width, image.Height, 1),
                 UploadDimension = UploadDimension.Three,
                 UploadFormat = UploadFormat.RedGreenBlueAlpha,
                 UploadType = UploadType.UnsignedByte,
@@ -363,7 +363,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
     public void BeginRenderToSwapchain(SwapchainRenderDescriptor swapchainRenderDescriptor)
     {
         GL.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
-        GL.ClearBufferMask clearBufferMask = 0;
+        GL.FramebufferBit clearBufferMask = 0;
         if (swapchainRenderDescriptor.ClearColor)
         {
             GL.ClearColor(
@@ -371,19 +371,19 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
                 swapchainRenderDescriptor.ClearColorValue.ColorFloat[1],
                 swapchainRenderDescriptor.ClearColorValue.ColorFloat[2],
                 swapchainRenderDescriptor.ClearColorValue.ColorFloat[3]);
-            clearBufferMask |= GL.ClearBufferMask.ColorBufferBit;
+            clearBufferMask |= GL.FramebufferBit.ColorBufferBit;
         }
 
         if (swapchainRenderDescriptor.ClearDepth)
         {
             GL.ClearDepth(swapchainRenderDescriptor.ClearDepthValue);
-            clearBufferMask |= GL.ClearBufferMask.DepthBufferBit;
+            clearBufferMask |= GL.FramebufferBit.DepthBufferBit;
         }
 
         if (swapchainRenderDescriptor.ClearStencil)
         {
             GL.ClearStencil(swapchainRenderDescriptor.ClearStencilValue);
-            clearBufferMask |= GL.ClearBufferMask.StencilBufferBit;
+            clearBufferMask |= GL.FramebufferBit.StencilBufferBit;
         }
 
         if (clearBufferMask != 0)
@@ -486,7 +486,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
             0,
             targetWidth,
             targetHeight,
-            GL.ClearBufferMask.ColorBufferBit,
+            GL.FramebufferBit.ColorBufferBit,
             GL.BlitFramebufferFilter.Nearest);
     }
 
@@ -529,7 +529,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
             ImageType = ImageType.Texture2D,
             Format = Format.R8G8B8A8UNorm,
             Label = label,
-            Size = new Vector3i(image.Width, image.Height, 1),
+            Size = new Int3(image.Width, image.Height, 1),
             MipLevels = generateMipmaps ? calculatedMipLevels : 1,
             SampleCount = SampleCount.OneSample
         };
@@ -537,8 +537,8 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         var texture = CreateTexture(textureCreateDescriptor);
         var textureUpdateDescriptor = new TextureUpdateDescriptor
         {
-            Offset = Vector3i.Zero,
-            Size = new Vector3i(image.Width, image.Height, 1),
+            Offset = Int3.Zero,
+            Size = new Int3(image.Width, image.Height, 1),
             UploadDimension = UploadDimension.Two,
             UploadFormat = UploadFormat.RedGreenBlueAlpha,
             UploadType = UploadType.UnsignedByte,

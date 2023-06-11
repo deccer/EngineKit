@@ -1,6 +1,6 @@
 using System;
 using JoltPhysicsSharp;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace SpaceGame.Game.Physics;
 

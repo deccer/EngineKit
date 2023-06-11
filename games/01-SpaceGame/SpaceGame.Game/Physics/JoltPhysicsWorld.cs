@@ -2,7 +2,7 @@ using System.Diagnostics;
 using JoltPhysicsSharp;
 using Quaternion = System.Numerics.Quaternion;
 using Num = System.Numerics;
-using Vector3 = OpenTK.Mathematics.Vector3;
+using Vector3 = EngineKit.Mathematics.Vector3;
 
 namespace SpaceGame.Game.Physics;
 

@@ -6,7 +6,7 @@ using EngineKit.Input;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
 using ImGuiNET;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
 using Num = System.Numerics;
 
@@ -143,14 +143,14 @@ internal sealed class UIRenderer : IUIRenderer
             configureIo(_imGuiIo);
         }
 
-        var mvp = Matrix4.CreateOrthographicOffCenter(
+        var mvp = Matrix.OrthoOffCenterRH(
             0.0f,
             _imGuiIo.DisplaySize.X,
             _imGuiIo.DisplaySize.Y,
             0.0f,
             -1.0f,
             1.0f);
-        _uniformBuffer = _graphicsContext.CreateUniformBuffer<Matrix4>("ImGuiProjectionMatrix");
+        _uniformBuffer = _graphicsContext.CreateUniformBuffer<Matrix>("ImGuiProjectionMatrix");
         _uniformBuffer.AllocateStorage(mvp, StorageAllocationFlags.Dynamic);
 
         var style = ImGui.GetStyle();
@@ -170,7 +170,7 @@ internal sealed class UIRenderer : IUIRenderer
         _framebufferWidth = width;
         _framebufferHeight = height;
 
-        var mvp = Matrix4.CreateOrthographicOffCenter(
+        var mvp = Matrix.OrthoOffCenterRH(
             0.0f,
             _framebufferWidth,
             _framebufferHeight,
@@ -232,7 +232,7 @@ internal sealed class UIRenderer : IUIRenderer
 
         var createTextureDescriptor = new TextureCreateDescriptor
         {
-            Size = new Vector3i(width, height, 1),
+            Size = new Int3(width, height, 1),
             Format = Format.R8G8B8A8UNorm,
             ImageType = ImageType.Texture2D,
             Label = "ImGuiFontAtlas",
@@ -245,8 +245,8 @@ internal sealed class UIRenderer : IUIRenderer
         var updateTextureDescriptor = new TextureUpdateDescriptor
         {
             Level = 0,
-            Offset = Vector3i.Zero,
-            Size = new Vector3i(width, height, 1),
+            Offset = Int3.Zero,
+            Size = new Int3(width, height, 1),
             UploadDimension = UploadDimension.Two,
             UploadFormat = UploadFormat.BlueGreenRedAlpha,
             UploadType = UploadType.UnsignedByte

@@ -1,7 +1,7 @@
 ﻿using System;
 using EngineKit;
 using EngineKit.Input;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using MathHelper = EngineKit.MathHelper;
 
 namespace DeferredRendering;
@@ -27,9 +27,9 @@ public sealed class Camera : ICamera
 
     private CameraMode _cameraMode;
 
-    public Matrix4 ViewMatrix { get; private set; }
+    public Matrix ViewMatrix { get; private set; }
 
-    public Matrix4 ProjectionMatrix { get; private set; }
+    public Matrix ProjectionMatrix { get; private set; }
 
     public float FieldOfView { get; set; }
 
@@ -138,8 +138,8 @@ public sealed class Camera : ICamera
         _right = Vector3.Normalize(Vector3.Cross(_front, _worldUp));
         _up = Vector3.Normalize(Vector3.Cross(_right, _front));
 
-        ViewMatrix = Matrix4.LookAt(_position, _position + _front, _up);
-        ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(
+        ViewMatrix = Matrix.LookAtRH(_position, _position + _front, _up);
+        ProjectionMatrix = Matrix.PerspectiveRH(
             MathHelper.ToRadians(FieldOfView),
             _applicationContext.ScaledFramebufferSize.X / (float)_applicationContext.ScaledFramebufferSize.Y,
             NearPlane,
@@ -159,8 +159,8 @@ public sealed class Camera : ICamera
         _right = Vector3.Normalize(Vector3.Cross(_front, _worldUp));
         _up = Vector3.Normalize(Vector3.Cross(_right, _front));
 
-        ViewMatrix = Matrix4.LookAt(_position, _position + _front, _up);
-        ProjectionMatrix = Matrix4.CreateOrthographic(
+        ViewMatrix = Matrix.LookAtRH(_position, _position + _front, _up);
+        ProjectionMatrix = Matrix.OrthoRH(
             _applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y,
             NearPlane,

@@ -5,10 +5,11 @@ using EngineKit.Input;
 using EngineKit.Native.Glfw;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Color = EngineKit.Mathematics.Color;
 
 namespace ComputeConvolution;
 
@@ -141,7 +142,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
     {
         //TODO(deccer) hide SwapchainDescriptor in Application/also make sure to resize when window resize
         _swapchainRenderDescriptor = new SwapchainRenderDescriptorBuilder()
-            .ClearColor(Color4.DimGray)
+            .ClearColor(Color.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build();
@@ -194,7 +195,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             ImageType = ImageType.TextureCube,
             Format = Format.R16G16B16A16Float,
             Label = "ConvolvedSkybox",
-            Size = new Vector3i(1024, 1024, 1),
+            Size = new Int3(1024, 1024, 1),
             MipLevels = (uint)(1 + MathF.Ceiling(MathF.Log2(1024))),
             SampleCount = SampleCount.OneSample
         };
@@ -273,7 +274,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
                     ImageType = ImageType.TextureCube,
                     Format = Format.R8G8B8A8UNorm,
                     Label = $"Skybox_{skyboxName}",
-                    Size = new Vector3i(image.Width, image.Height, 1),
+                    Size = new Int3(image.Width, image.Height, 1),
                     MipLevels = 1,
                     SampleCount = SampleCount.OneSample
                 };
@@ -282,8 +283,8 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
 
             var skyboxTextureUpdateDescriptor = new TextureUpdateDescriptor
             {
-                Offset = new Vector3i(0, 0, slice++),
-                Size = new Vector3i(image.Width, image.Height, 1),
+                Offset = new Int3(0, 0, slice++),
+                Size = new Int3(image.Width, image.Height, 1),
                 UploadDimension = UploadDimension.Three,
                 UploadFormat = UploadFormat.RedGreenBlueAlpha,
                 UploadType = UploadType.UnsignedByte,

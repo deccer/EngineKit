@@ -9,11 +9,11 @@ using EngineKit.Input;
 using EngineKit.Native.Glfw;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 using Serilog;
 using Num = System.Numerics;
-using Vector3 = OpenTK.Mathematics.Vector3;
-using Vector4 = OpenTK.Mathematics.Vector4;
+using Vector3 = EngineKit.Mathematics.Vector3;
+using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace ForwardRendering;
 
@@ -29,7 +29,7 @@ public struct ModelMesh
 
     public int IndexCount;
 
-    public Matrix4 WorldMatrix;
+    public Matrix WorldMatrix;
 
     public ulong TextureHandle;
 }
@@ -132,17 +132,17 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _modelMeshInstances.Add(new ModelMeshInstance
         {
             ModelMesh = _modelMeshes.First(),
-            World = Matrix4.CreateTranslation(-5, 0, 0)
+            World = Matrix.Translation(-5, 0, 0)
         });
         _modelMeshInstances.Add(new ModelMeshInstance
         {
             ModelMesh = _modelMeshes.First(),
-            World = Matrix4.CreateTranslation(0, 0, 0)
+            World = Matrix.Translation(0, 0, 0)
         });
         _modelMeshInstances.Add(new ModelMeshInstance
         {
             ModelMesh = _modelMeshes.First(),
-            World = Matrix4.CreateTranslation(+5, 0, 0)
+            World = Matrix.Translation(+5, 0, 0)
         });
 
         _gpuModelMeshInstanceBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuModelMeshInstance>("ModelMeshInstances");
@@ -217,7 +217,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     {
         base.FramebufferResized();
         _swapchainRenderDescriptor = new SwapchainRenderDescriptorBuilder()
-            .ClearColor(Color4.DimGray)
+            .ClearColor(Color.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build();
@@ -309,7 +309,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private bool LoadRenderDescriptors()
     {
         _swapchainRenderDescriptor = new SwapchainRenderDescriptorBuilder()
-            .ClearColor(Color4.DimGray)
+            .ClearColor(Color.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build();

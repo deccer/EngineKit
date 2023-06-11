@@ -1,10 +1,10 @@
-using OpenTK.Mathematics;
+using EngineKit.Mathematics;
 
 namespace DeferredRendering;
 
 public struct GpuModelMeshInstance
 {
-    public Matrix4 WorldMatrix;
+    public Matrix WorldMatrix;
 
-    public Vector4i MaterialId;
+    public Int4 MaterialId;
 }

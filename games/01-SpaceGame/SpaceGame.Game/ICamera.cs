@@ -1,12 +1,12 @@
-﻿using OpenTK.Mathematics;
+﻿using EngineKit.Mathematics;
 
 namespace SpaceGame.Game;
 
 public interface ICamera
 {
-    Matrix4 ViewMatrix { get; }
+    Matrix ViewMatrix { get; }
 
-    Matrix4 ProjectionMatrix { get; }
+    Matrix ProjectionMatrix { get; }
 
     Vector3 Position { get; set; }
 
