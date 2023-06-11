@@ -281,7 +281,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     private void PrepareScene()
     {
-        var meshDatas = new List<MeshPrimitive>();
+        var meshPrimitives = new List<MeshPrimitive>();
 
         _drawCommands.Add(new DrawCommand { Name = "Cube", WorldMatrix = Matrix.Translation(-4, 0, 0) });
         _drawCommands.Add(new DrawCommand { Name = "Cube.003", WorldMatrix = Matrix.Translation(4, 0, 0) });
@@ -290,11 +290,11 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
         foreach (var drawCommand in _drawCommands)
         {
-            var meshData = _deccerCubesModel.ModelMeshes.FirstOrDefault(m => m.Name == drawCommand.Name);
+            var modelMesh = _deccerCubesModel.ModelMeshes.FirstOrDefault(m => m.Name == drawCommand.Name);
 
-            if (!_gpuMaterialsInUse.Contains(meshData.MeshData.MaterialName))
+            if (!_gpuMaterialsInUse.Contains(modelMesh.MeshData.MaterialName))
             {
-                var material = _materialLibrary.GetMaterialByName(meshData.MeshData.MaterialName);
+                var material = _materialLibrary.GetMaterialByName(modelMesh.MeshData.MaterialName);
                 if (!_textures.TryGetValue(material.BaseColorTextureDataName, out var texture))
                 {
                     texture = material.BaseColorEmbeddedImageData.HasValue
@@ -315,45 +315,45 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                     BaseColor = new Color4(0.1f, 0.1f, 0.1f, 1.0f),
                     BaseColorTexture = texture.TextureHandle
                 });
-                _gpuMaterialsInUse.Add(meshData.MeshData.MaterialName);
+                _gpuMaterialsInUse.Add(modelMesh.MeshData.MaterialName);
             }
 
-            var materialIndex = _gpuMaterialsInUse.IndexOf(meshData.MeshData.MaterialName);
+            var materialIndex = _gpuMaterialsInUse.IndexOf(modelMesh.MeshData.MaterialName);
             _gpuModelMeshInstances.Add(new GpuModelMeshInstance
             {
                 WorldMatrix = drawCommand.WorldMatrix,
                 MaterialId = new Int4(materialIndex, 0, 0, 0)
             });
 
-            if (!meshDatas.Contains(meshData.MeshData))
+            if (!meshPrimitives.Contains(modelMesh.MeshData))
             {
-                meshDatas.Add(meshData.MeshData);
+                meshPrimitives.Add(modelMesh.MeshData);
             }
         }
 
         var indexOffset = 0;
         var vertexOffset = 0;
-        foreach (var meshData in meshDatas)
+        foreach (var meshPrimitive in meshPrimitives)
         {
-            meshData.VertexOffset = vertexOffset;
-            meshData.IndexOffset = indexOffset;
-            vertexOffset += meshData.VertexCount;
-            indexOffset += meshData.IndexCount;
+            meshPrimitive.VertexOffset = vertexOffset;
+            meshPrimitive.IndexOffset = indexOffset;
+            vertexOffset += meshPrimitive.VertexCount;
+            indexOffset += meshPrimitive.IndexCount;
         }
 
         foreach (var drawCommand in _drawCommands)
         {
-            var meshData = meshDatas.FirstOrDefault(m => m.MeshName == drawCommand.Name);
-            drawCommand.IndexCount = meshData.IndexCount;
-            drawCommand.IndexOffset = meshData.IndexOffset;
-            drawCommand.VertexOffset = meshData.VertexOffset;
+            var meshPrimitive = meshPrimitives.FirstOrDefault(m => m.MeshName == drawCommand.Name);
+            drawCommand.IndexCount = meshPrimitive.IndexCount;
+            drawCommand.IndexOffset = meshPrimitive.IndexOffset;
+            drawCommand.VertexOffset = meshPrimitive.VertexOffset;
         }
 
         _gpuMaterialBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuMaterial>("SceneMaterials");
         _gpuMaterialBuffer.AllocateStorage(Marshal.SizeOf<GpuMaterial>() * _gpuMaterials.Count, StorageAllocationFlags.Dynamic);
         _gpuMaterialBuffer.Update(_gpuMaterials.ToArray(), 0);
 
-        var meshDatasAsArray = meshDatas.ToArray();
+        var meshDatasAsArray = meshPrimitives.ToArray();
 
         _gpuVertexBuffer =
             GraphicsContext.CreateVertexBuffer("SceneVertices", meshDatasAsArray, VertexType.PositionNormalUvTangent);
