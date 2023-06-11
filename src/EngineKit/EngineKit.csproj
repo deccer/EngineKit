@@ -21,22 +21,50 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CSharpFunctionalExtensions" Version="2.39.2" />
-        <PackageReference Include="ImGui.NET" Version="1.89.5.1" />
-        <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+        <PackageReference Include="CSharpFunctionalExtensions" Version="2.39.2"/>
+        <PackageReference Include="ImGui.NET" Version="1.89.5.1"/>
+        <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0"/>
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Serilog" Version="2.12.0" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
-        <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0026" />
+        <PackageReference Include="Serilog" Version="2.12.0"/>
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1"/>
+        <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0029"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!--
+        <Content Include="..\..\lib\glfw\glfw3.dll" Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))'">
+            <Link>glfw3.dll</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Visible>false</Visible>
+        </Content>
+        -->
+        <Content Include="..\..\lib\glfw\glfw3.dll">
+            <Pack>true</Pack>
+            <PackagePath>runtimes\win-x64\native\</PackagePath>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Visible>false</Visible>
+        </Content>
+        <Content Include="..\..\README.md">
+            <Pack>true</Pack>
+            <Visible>false</Visible>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
         <ItemGroup>
-            <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+            <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))"/>
         </ItemGroup>
     </Target>
 </Project>
