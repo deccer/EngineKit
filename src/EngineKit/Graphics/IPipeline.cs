@@ -4,6 +4,8 @@ namespace EngineKit.Graphics;
 
 public interface IPipeline : IDisposable
 {
+    Label Label { get; }
+
     void Bind();
 
     void BindImage(
@@ -12,7 +14,7 @@ public interface IPipeline : IDisposable
         int level,
         MemoryAccess memoryAccess,
         Format format);
-    
+
     void BindImage(
         ITexture texture,
         uint unit,
@@ -20,7 +22,7 @@ public interface IPipeline : IDisposable
         int layer,
         MemoryAccess memoryAccess,
         Format format);
-    
+
     void BindSampledTexture(
         ISampler sampler,
         ITexture texture,
@@ -31,13 +33,15 @@ public interface IPipeline : IDisposable
         uint textureId,
         uint bindingIndex);
 
+    void BindTexture(
+        ITexture texture,
+        uint bindingIndex);
+
     void BindUniformBuffer(
         IUniformBuffer buffer,
         uint bindingIndex);
 
     void BindShaderStorageBuffer(
-        IShaderStorageBuffer buffer,
+        IShaderStorageBuffer? buffer,
         uint bindingIndex);
-
-    void BindTexture(ITexture texture, uint bindingIndex);
 }

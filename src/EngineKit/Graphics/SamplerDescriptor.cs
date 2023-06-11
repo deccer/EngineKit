@@ -4,11 +4,9 @@ public struct SamplerDescriptor
 {
     public Label Label;
 
-    public Filter MinFilter;
+    public TextureInterpolationFilter InterpolationFilter;
 
-    public Filter MagFilter;
-
-    public Filter MipmapFilter;
+    public TextureMipmapFilter MipmapFilter;
 
     public float LodBias;
 
@@ -16,17 +14,17 @@ public struct SamplerDescriptor
 
     public float MaxLod;
 
-    public AddressMode AddressModeU;
+    public TextureAddressMode TextureAddressModeU;
 
-    public AddressMode AddressModeV;
+    public TextureAddressMode TextureAddressModeV;
 
-    public AddressMode AddressModeW;
+    public TextureAddressMode TextureAddressModeW;
 
-    public SampleCount Anisotropy;
+    public TextureSampleCount Anisotropy;
 
     public bool IsCompareEnabled;
 
-    public CompareOperation CompareOperation;
+    public CompareFunction CompareFunction;
 
-    public BorderColor BorderColor;
+    public TextureBorderColor TextureBorderColor;
 }

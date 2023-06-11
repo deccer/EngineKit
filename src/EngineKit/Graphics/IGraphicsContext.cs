@@ -1,5 +1,4 @@
 ﻿using System;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace EngineKit.Graphics;
 
@@ -9,9 +8,9 @@ public interface IGraphicsContext : IDisposable
 
     bool BindGraphicsPipeline(IGraphicsPipeline graphicsPipeline);
 
-    void BeginRenderToSwapchain(SwapchainRenderDescriptor swapchainRenderDescriptor);
+    void BeginRenderToSwapchain(SwapchainDescriptor swapchainDescriptor);
 
-    void BeginRenderToFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor);
+    void BeginRenderToFramebuffer(FramebufferDescriptor framebufferDescriptor);
 
     void BlitFramebufferToSwapchain(
         int sourceWidth,
@@ -24,7 +23,7 @@ public interface IGraphicsContext : IDisposable
 
     IIndexBuffer CreateIndexBuffer(
         Label label,
-        MeshData[] meshDates);
+        MeshPrimitive[] meshPrimitives);
 
     IIndirectBuffer CreateIndirectBuffer(Label label);
 
@@ -39,7 +38,7 @@ public interface IGraphicsContext : IDisposable
 
     IVertexBuffer CreateVertexBuffer(
         Label label,
-        MeshData[] meshDates,
+        MeshPrimitive[] meshPrimitives,
         VertexType targetVertexType);
 
     ISampler CreateSampler(SamplerDescriptor samplerDescriptor);
@@ -58,19 +57,52 @@ public interface IGraphicsContext : IDisposable
         Format format,
         Label? label = null);
 
-    ITexture? CreateTextureFromFile(string filePath, bool generateMipmaps = true);
+    ITexture? CreateTextureFromFile(
+        string filePath,
+        Format format,
+        bool generateMipmaps = true,
+        bool flipVertical = true,
+        bool flipHorizontal = false);
 
-    ITexture? CreateTextureFromMemory(ReadOnlySpan<byte> pixelBytes, Label label, bool generateMipmaps = true);
+    ITexture? CreateTextureFromMemory(ReadOnlySpan<byte> pixelBytes,
+        Format format,
+        Label label,
+        bool generateMipmaps = true,
+        bool flipVertical = true,
+        bool flipHorizontal = false);
 
-    ITexture? CreateTextureCubeFromFile(Label label, string[] filePaths);
+    ITexture? CreateTextureCubeFromFiles(
+        Label label,
+        string[] filePaths,
+        bool flipVertical = true,
+        bool flipHorizontal = false);
+
+    void CopyTexture(
+        ITexture sourceTexture,
+        int sourceOffsetX,
+        int sourceOffsetY,
+        int sourceWidth,
+        int sourceHeight,
+        ITexture targetTexture,
+        int targetOffsetX,
+        int targetOffsetY,
+        int targetWidth,
+        int targetHeight,
+        FramebufferBit framebufferBit,
+        BlitFramebufferFilter interpolationFilter);
+    
+    IMeshPool CreateMeshPool(Label label, int vertexBufferCapacity, int indexBufferCapacity);
+    
+    IMaterialPool CreateMaterialPool(Label label, int materialBufferCapacity, ISamplerLibrary samplerLibrary);
 
     void EndRender();
 
     void InsertMemoryBarrier(BarrierMask mask);
 
-    void RemoveFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor);
+    uint CreateFramebuffer(FramebufferDescriptor framebufferDescriptor);
 
-    bool IsExtensionSupported(string extensionName);
+    void RemoveFramebuffer(FramebufferDescriptor framebufferDescriptor);
 
-    void LoadExtensions();
+    void Finish();
+    FramebufferDescriptor CreateSingleFramebufferDescriptorFromTexture(ITexture texture);
 }

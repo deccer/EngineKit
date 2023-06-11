@@ -32,7 +32,7 @@ public class IndexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         uint bufferId = indexBuffer;
         bufferId.Should().BeGreaterThan(0);
         indexBuffer.Stride.Should().Be(Marshal.SizeOf<uint>());
-        indexBuffer.Count.Should().Be(0);
+        indexBuffer.Count.Should().Be(25);
         indexBuffer.SizeInBytes.Should().Be(100);
     }
 
@@ -56,7 +56,7 @@ public class IndexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         indexBuffer.Update(indices,  0);
 
         // Assert
-        indexBuffer.Count.Should().Be(2);
+        indexBuffer.Count.Should().Be(25);
         indexBuffer.SizeInBytes.Should().Be(100);
     }
 }

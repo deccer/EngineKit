@@ -12,7 +12,9 @@ internal sealed class InputLayout : IInputLayout
     {
         _id = GL.CreateVertexArray();
 
-        var label = "VAO_";
+        var label = string.IsNullOrEmpty(vertexInputDescriptor.Label)
+            ? $"InputLayout-{vertexInputDescriptor.Label}-"
+            : "InputLayout-";
         foreach (var vertexBinding in vertexInputDescriptor.VertexBindingDescriptors)
         {
             GL.EnableVertexArrayAttrib(_id, vertexBinding.Location);
@@ -55,6 +57,7 @@ internal sealed class InputLayout : IInputLayout
                     break;
             }
         }
+
         GL.ObjectLabel(GL.ObjectIdentifier.VertexArray, _id, label);
     }
 

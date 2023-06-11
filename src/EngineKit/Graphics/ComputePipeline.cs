@@ -1,15 +1,18 @@
 using System;
+using EngineKit.Graphics.Shaders;
 using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
 
 internal sealed class ComputePipeline : Pipeline, IComputePipeline
 {
-    internal ComputePipeline(ComputePipelineDescriptor computePipelineDescriptor)
+    private readonly ComputePipelineDescriptor _computePipelineDescriptor;
+
+    internal ComputePipeline(ComputePipelineDescriptor computePipelineDescriptor, ShaderProgram shaderProgram)
     {
-        ShaderProgram = new ShaderProgram(
-            computePipelineDescriptor.ComputeShaderSource,
-            computePipelineDescriptor.PipelineProgramLabel);
+        _computePipelineDescriptor = computePipelineDescriptor;
+        ShaderProgram = shaderProgram ?? throw new ArgumentNullException(nameof(shaderProgram));
+        Label = computePipelineDescriptor.PipelineProgramLabel;
     }
 
     public void Dispatch(uint numGroupX, uint numGroupY, uint numGroupZ)
@@ -20,6 +23,11 @@ internal sealed class ComputePipeline : Pipeline, IComputePipeline
     public void DispatchIndirect(IIndirectBuffer indirectBuffer, int indirectElementIndex)
     {
         indirectBuffer.Bind();
-        GL.DispatchIndirect(new IntPtr(indirectElementIndex * indirectBuffer.Stride));
+        GL.DispatchIndirect(new nint(indirectElementIndex * indirectBuffer.Stride));
+    }
+
+    public void Uniform(int location, float value)
+    {
+        GL.ProgramUniform((int)ShaderProgram.ComputeShader.Id, location, value);
     }
 }

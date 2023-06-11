@@ -139,7 +139,7 @@ public sealed class Camera : ICamera
         _up = Vector3.Normalize(Vector3.Cross(_right, _front));
 
         ViewMatrix = Matrix.LookAtRH(_position, _position + _front, _up);
-        ProjectionMatrix = Matrix.PerspectiveRH(
+        ProjectionMatrix = Matrix.PerspectiveFovRH(
             MathHelper.ToRadians(FieldOfView),
             _applicationContext.ScaledFramebufferSize.X / (float)_applicationContext.ScaledFramebufferSize.Y,
             NearPlane,

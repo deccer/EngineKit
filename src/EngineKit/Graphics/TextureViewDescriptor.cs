@@ -15,4 +15,6 @@ public record struct TextureViewDescriptor
     public uint NumLayers;
 
     public string? Label;
+
+    public SwizzleMapping SwizzleMapping;
 }

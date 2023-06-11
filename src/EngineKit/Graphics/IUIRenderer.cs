@@ -13,4 +13,6 @@ public interface IUIRenderer : IUIRendererLoader, IDisposable
     void ShowDemoWindow();
 
     void Update(float deltaSeconds);
+
+    bool AddFont(string name, string filePath, float fontSize);
 }

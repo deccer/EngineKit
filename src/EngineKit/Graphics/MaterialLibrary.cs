@@ -8,19 +8,18 @@ namespace EngineKit.Graphics;
 
 internal sealed class MaterialLibrary : IMaterialLibrary
 {
+    private readonly ISamplerLibrary _samplerLibrary;
     private readonly ILogger _logger;
-    private readonly IImageLibrary _imageLibrary;
     private readonly IDictionary<string, Material> _materials;
     private readonly Random _random;
 
-    public MaterialLibrary(
-        ILogger logger,
-        IImageLibrary imageLibrary)
+    public MaterialLibrary(ILogger logger, ISamplerLibrary samplerLibrary)
     {
+        _samplerLibrary = samplerLibrary;
         _logger = logger.ForContext<MaterialLibrary>();
-        _imageLibrary = imageLibrary;
         _materials = new Dictionary<string, Material>(256);
         _random = new Random();
+        CreateSystemMaterials();
     }
 
     public Material GetRandomMaterial()
@@ -33,107 +32,32 @@ internal sealed class MaterialLibrary : IMaterialLibrary
         return _materials.ContainsKey(materialName);
     }
 
-    public void AddMaterial(string name, Material material)
+    public void AddMaterial(Material material)
     {
-        if (string.IsNullOrEmpty(name))
+        if (string.IsNullOrEmpty(material.Name))
         {
             return;
         }
 
-        //TODO(deccer) error handling re data names can be null etc
-        if (_materials.ContainsKey(name))
+        if (_materials.ContainsKey(material.Name))
         {
-            _logger.Debug("{Category}: Material {MaterialName} exists already", nameof(MaterialLibrary), name);
+            _logger.Debug("{Category}: Material {MaterialName} exists already", nameof(MaterialLibrary), material.Name);
             return;
         }
 
-        if (!string.IsNullOrEmpty(material.BaseColorTextureDataName))
-        {
-            if (material.BaseColorEmbeddedImageData.HasValue)
-            {
-                var imageSpan = material.BaseColorEmbeddedImageData.Value.Span;
-                _imageLibrary.AddImage(material.BaseColorTextureDataName, imageSpan);
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(material.BaseColorTextureFilePath))
-                {
-                    _imageLibrary.AddImage(material.BaseColorTextureDataName, material.BaseColorTextureFilePath);
-                }
-            }
-        }
+        _materials.Add(material.Name, material);
 
-        if (!string.IsNullOrEmpty(material.NormalTextureDataName))
-        {
-            if (material.NormalEmbeddedImageData.HasValue)
-            {
-                var imageSpan = material.NormalEmbeddedImageData.Value.Span;
-                _imageLibrary.AddImage(material.NormalTextureDataName, imageSpan);
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(material.NormalTextureFilePath))
-                {
-                    _imageLibrary.AddImage(material.NormalTextureDataName, material.NormalTextureFilePath);
-                }
-            }
-        }
-
-        if (!string.IsNullOrEmpty(material.SpecularTextureDataName))
-        {
-            if (material.SpecularEmbeddedImageData.HasValue)
-            {
-                var imageSpan = material.SpecularEmbeddedImageData.Value.Span;
-                _imageLibrary.AddImage(material.SpecularTextureDataName, imageSpan);
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(material.SpecularTextureFilePath))
-                {
-                    _imageLibrary.AddImage(material.SpecularTextureDataName, material.SpecularTextureFilePath);
-                }
-            }
-        }
-
-        if (!string.IsNullOrEmpty(material.MetalnessRoughnessTextureDataName))
-        {
-            if (material.MetalnessRoughnessEmbeddedImageData.HasValue)
-            {
-                var imageSpan = material.MetalnessRoughnessEmbeddedImageData.Value.Span;
-                _imageLibrary.AddImage(material.MetalnessRoughnessTextureDataName, imageSpan);
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(material.MetalnessRoughnessTextureFilePath))
-                {
-                    _imageLibrary.AddImage(material.MetalnessRoughnessTextureDataName, material.MetalnessRoughnessTextureFilePath);
-                }
-            }
-        }
-
-        _materials.Add(name, material);
+        _samplerLibrary.AddSamplerIfNotExists(material.BaseColorTextureSamplerInformation);
+        _samplerLibrary.AddSamplerIfNotExists(material.NormalTextureSamplerInformation);
+        _samplerLibrary.AddSamplerIfNotExists(material.MetalnessRoughnessTextureSamplerInformation);
+        _samplerLibrary.AddSamplerIfNotExists(material.SpecularTextureSamplerInformation);
+        _samplerLibrary.AddSamplerIfNotExists(material.OcclusionTextureSamplerInformation);
+        _samplerLibrary.AddSamplerIfNotExists(material.EmissiveTextureSamplerInformation);
     }
 
-    public IList<GpuMaterial> GetMaterialBufferData(
-        string[] visibleMaterialNames,
-        IDictionary<string, TextureId> textureArrayIndices,
-        out IDictionary<string, int> materialNameIndexMap)
+    public void RemoveMaterial(string name)
     {
-        var materials = _materials
-            .Where(material => visibleMaterialNames.Contains(material.Key))
-            .ToList();
-
-        var materialNames = materials
-            .Select(m => m.Key)
-            .Distinct()
-            .ToList();
-        materialNameIndexMap = visibleMaterialNames.ToDictionary(
-            visibleMaterialName => visibleMaterialName,
-            visibleMaterialName => materialNames.IndexOf(visibleMaterialName));
-
-        return materials
-            .Select(material => ToGpuMaterial(material.Value, textureArrayIndices))
-            .ToList();
+        _materials.Remove(name);
     }
 
     public IList<string> GetMaterialNames()
@@ -145,40 +69,19 @@ internal sealed class MaterialLibrary : IMaterialLibrary
     {
         return _materials.TryGetValue(materialName, out var material)
             ? material
-            : _materials["M_Default_White"];
+            : _materials["M_NotFound"];
     }
 
-    private static GpuMaterial ToGpuMaterial(Material material, IDictionary<string, TextureId> textureArrayIndices)
+    private void CreateSystemMaterials()
     {
-        //TODO(deccer) get rid of that guid.newguid bs
-        var baseColorTextureIdExists =
-            textureArrayIndices.TryGetValue(material.BaseColorTextureDataName ?? Guid.NewGuid().ToString(), out var baseColorTextureId);
-
-        var normalTextureIdExists =
-            textureArrayIndices.TryGetValue(material.NormalTextureDataName ?? Guid.NewGuid().ToString(), out var normalTextureId);
-
-        var specularTextureIdExists =
-            textureArrayIndices.TryGetValue(material.SpecularTextureDataName ?? Guid.NewGuid().ToString(), out var specularTextureId);
-
-        var metalnessRoughnessTextureIdExists =
-            textureArrayIndices.TryGetValue(material.MetalnessRoughnessTextureDataName ?? Guid.NewGuid().ToString(), out var metalnessRoughnessTextureId);
-
-        return new GpuMaterial
+        var notFoundMaterial = new Material("M_NotFound")
         {
-            BaseColor = material.BaseColor,
-            Emissive = material.Emissive,
-            BaseColorTextureId = baseColorTextureIdExists
-                ? new Int4(baseColorTextureId!.ArrayIndex, baseColorTextureId.ArraySlice, -1, -1)
-                : new Int4(-1, -1, -1, -1),
-            NormalTextureId = normalTextureIdExists
-                ? new Int4(normalTextureId!.ArrayIndex, normalTextureId.ArraySlice, -1, -1)
-                : new Int4(-1, -1, -1, -1),
-            SpecularTextureId = specularTextureIdExists
-                ? new Int4(specularTextureId!.ArrayIndex, specularTextureId.ArraySlice, -1, -1)
-                : new Int4(-1, -1, -1, -1),
-            MetalnessRoughnessTextureId = metalnessRoughnessTextureIdExists
-                ? new Int4(metalnessRoughnessTextureId!.ArrayIndex, metalnessRoughnessTextureId.ArraySlice, -1, -1)
-                : new Int4(-1, -1, -1, -1),
+            BaseColor = Color.Firebrick,
+            BaseColorTextureDataName = "NotFound.BaseColor",
+            BaseColorTextureFilePath = "Data/Default/T_Red_D.png",
+            EmissiveColor = Color.Firebrick
         };
+
+        _materials.Add(notFoundMaterial.Name, notFoundMaterial);
     }
 }

@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using CSharpFunctionalExtensions;
 using EngineKit.Extensions;
-using EngineKit.Native.OpenGL;
+using EngineKit.Graphics.Shaders;
 using EngineKit.Mathematics;
+using EngineKit.Native.OpenGL;
 using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -15,21 +18,32 @@ namespace EngineKit.Graphics;
 internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsContext
 {
     private readonly ILogger _logger;
+    private readonly IShaderProgramFactory _shaderProgramFactory;
     private readonly IFramebufferCache _framebufferCache;
+    private readonly ILimits _limits;
+    private readonly IImageLoader _imageLoader;
     private readonly IDictionary<IPipeline, GraphicsPipelineDescriptor> _graphicsPipelineCache;
     private readonly IDictionary<IPipeline, ComputePipelineDescriptor> _computePipelineCache;
     private readonly IDictionary<int, IInputLayout> _inputLayoutCache;
-    private readonly IList<string> _extensions;
     private uint? _currentFramebuffer;
+    private bool _srgbWasDisabled;
+    private Viewport _currentViewport;
 
-    public GraphicsContext(ILogger logger, IFramebufferCache framebufferCache)
+    public GraphicsContext(
+        ILogger logger,
+        IShaderProgramFactory shaderProgramFactory,
+        IFramebufferCache framebufferCache,
+        ILimits limits,
+        IImageLoader imageLoader)
     {
         _logger = logger.ForContext<GraphicsContext>();
+        _shaderProgramFactory = shaderProgramFactory;
         _framebufferCache = framebufferCache;
+        _limits = limits;
+        _imageLoader = imageLoader;
         _graphicsPipelineCache = new Dictionary<IPipeline, GraphicsPipelineDescriptor>(16);
         _computePipelineCache = new Dictionary<IPipeline, ComputePipelineDescriptor>(16);
         _inputLayoutCache = new Dictionary<int, IInputLayout>(16);
-        _extensions = new List<string>(512);
     }
 
     public void Dispose()
@@ -37,15 +51,65 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         _framebufferCache.Dispose();
     }
 
+    public void CopyTexture(
+        ITexture sourceTexture,
+        int sourceOffsetX,
+        int sourceOffsetY,
+        int sourceWidth,
+        int sourceHeight,
+        ITexture targetTexture,
+        int targetOffsetX,
+        int targetOffsetY,
+        int targetWidth,
+        int targetHeight,
+        FramebufferBit framebufferBit,
+        BlitFramebufferFilter interpolationFilter)
+    {
+        var sourceFramebufferDescriptor = CreateSingleFramebufferDescriptorFromTexture(sourceTexture);
+        var sourceFramebuffer = _framebufferCache.GetOrCreateFramebuffer(sourceFramebufferDescriptor);
+        var targetFramebufferDescriptor = CreateSingleFramebufferDescriptorFromTexture(targetTexture);
+        var targetFramebuffer = _framebufferCache.GetOrCreateFramebuffer(targetFramebufferDescriptor);
+
+        GL.BlitNamedFramebuffer(
+            sourceFramebuffer,
+            targetFramebuffer,
+            sourceOffsetX,
+            sourceOffsetY,
+            sourceWidth,
+            sourceHeight,
+            targetOffsetX,
+            targetOffsetY,
+            targetWidth,
+            targetHeight, 
+            framebufferBit.ToGL(),
+            interpolationFilter.ToGL());
+        
+        RemoveFramebuffer(sourceFramebufferDescriptor);
+        RemoveFramebuffer(targetFramebufferDescriptor);
+    }
+
+    public IMeshPool CreateMeshPool(Label label, int vertexBufferCapacity, int indexBufferCapacity)
+    {
+        return new MeshPool(label, this, vertexBufferCapacity, indexBufferCapacity);
+    }
+
+    public IMaterialPool CreateMaterialPool(Label label, int materialBufferCapacity, ISamplerLibrary samplerLibrary)
+    {
+        return new MaterialPool(_logger, label, this, samplerLibrary, materialBufferCapacity);
+    }
+
     public Result<IComputePipeline> CreateComputePipeline(ComputePipelineDescriptor computePipelineDescriptor)
     {
-        var computePipeline = new ComputePipeline(computePipelineDescriptor);
-        var compileShaderResult = computePipeline.LinkPrograms();
-        if (compileShaderResult.IsFailure)
+        var computeShaderProgram = _shaderProgramFactory.CreateShaderProgram(
+            computePipelineDescriptor.PipelineProgramLabel,
+            computePipelineDescriptor.ComputeShaderSource);
+        var computeShaderProgramLinkResult = computeShaderProgram.Link();
+        if (computeShaderProgramLinkResult.IsFailure)
         {
-            return Result.Failure<IComputePipeline>(compileShaderResult.Error);
+            return Result.Failure<IComputePipeline>(computeShaderProgramLinkResult.Error);
         }
 
+        var computePipeline = new ComputePipeline(computePipelineDescriptor, computeShaderProgram);
         _computePipelineCache[computePipeline] = computePipelineDescriptor;
 
         return Result.Success<IComputePipeline>(computePipeline);
@@ -70,29 +134,32 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
             _inputLayoutCache.Add(vertexInputHashCode, inputLayout);
         }
 
-        var graphicsPipeline = new GraphicsPipeline(graphicsPipelineDescriptor);
+        var graphicsShaderProgram = _shaderProgramFactory.CreateShaderProgram(
+            graphicsPipelineDescriptor.PipelineProgramLabel,
+            graphicsPipelineDescriptor.VertexShaderSource,
+            graphicsPipelineDescriptor.FragmentShaderSource);
+        var graphicsShaderProgramLinkResult = graphicsShaderProgram.Link();
+        if (graphicsShaderProgramLinkResult.IsFailure)
+        {
+            return Result.Failure<IGraphicsPipeline>(graphicsShaderProgramLinkResult.Error);
+        }
+
+        var graphicsPipeline = new GraphicsPipeline(graphicsPipelineDescriptor, graphicsShaderProgram);
 
         /*
          * TODO(deccer) this is not cool, it needs to be set in a way that i dont have to use an internal, but also
          * dont want to expose InputLayout to the consuming side
          */
         graphicsPipeline.CurrentInputLayout = inputLayout;
-
-        var compileShaderResult = graphicsPipeline.LinkPrograms();
-        if (compileShaderResult.IsFailure)
-        {
-            return Result.Failure<IGraphicsPipeline>(compileShaderResult.Error);
-        }
-
         _graphicsPipelineCache[graphicsPipeline] = graphicsPipelineDescriptor;
 
         return Result.Success<IGraphicsPipeline>(graphicsPipeline);
     }
 
-    public IIndexBuffer CreateIndexBuffer(Label label, MeshData[] meshDates)
+    public IIndexBuffer CreateIndexBuffer(Label label, MeshPrimitive[] meshPrimitives)
     {
-        var indices = meshDates
-            .SelectMany(meshData => meshData.Indices)
+        var indices = meshPrimitives
+            .SelectMany(meshPrimitive => meshPrimitive.Indices)
             .ToArray();
         var indexBuffer = new IndexBuffer<uint>(label);
         indexBuffer.AllocateStorage(indices, StorageAllocationFlags.None);
@@ -130,29 +197,38 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
     public IVertexBuffer CreateVertexBuffer(
         Label label,
-        MeshData[] meshDates,
+        MeshPrimitive[] meshPrimitives,
         VertexType targetVertexType)
     {
-        //TODO(deccer) return vertexbuffers depending on targetVertexType
+        //TODO(deccer) return vertex buffers depending on targetVertexType
         var bufferData = new List<VertexPositionNormalUvTangent>(1_024_000);
-        foreach (var meshData in meshDates)
+        foreach (var meshPrimitive in meshPrimitives)
         {
-            if (!meshData.RealTangents.Any())
+            if (!meshPrimitive.RealTangents.Any())
             {
-                meshData.CalculateTangents();
+                meshPrimitive.CalculateTangents();
             }
 
-            for (var i = 0; i < meshData.Positions.Count; ++i)
+            for (var i = 0; i < meshPrimitive.Positions.Count; ++i)
             {
                 bufferData.Add(new VertexPositionNormalUvTangent(
-                    meshData.Positions[i],
-                    meshData.Normals[i],
-                    meshData.Uvs[i],
-                    meshData.RealTangents[i]));
+                    meshPrimitive.Positions[i],
+                    meshPrimitive.Normals[i],
+                    meshPrimitive.Uvs[i],
+                    meshPrimitive.RealTangents[i]));
             }
         }
 
-        var vertexBuffer = new VertexBuffer<VertexPositionNormalUvTangent>(label);
+        IVertexBuffer vertexBuffer;
+        switch (targetVertexType)
+        {
+            case VertexType.PositionNormalUvTangent:
+                vertexBuffer = new VertexBuffer<VertexPositionNormalUvTangent>(label);
+                break;
+            default:
+                throw new InvalidEnumArgumentException(nameof(targetVertexType));
+        }
+
         vertexBuffer.AllocateStorage(bufferData.ToArray(), StorageAllocationFlags.None);
         return vertexBuffer;
     }
@@ -178,28 +254,45 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         {
             Format = format,
             Size = new Int3(width, height, 1),
-            Label = string.IsNullOrEmpty(label) ? $"T_{width}x{height}_{format}" : $"T_{width}x{height}_{format}_{label}",
+            Label = string.IsNullOrEmpty(label) ? $"Texture-{width}x{height}-{format}" : $"Texture-{width}x{height}-{format}-{label}",
             ArrayLayers = 0,
             MipLevels = 1,
             ImageType = ImageType.Texture2D,
-            SampleCount = SampleCount.OneSample
+            TextureSampleCount = TextureSampleCount.OneSample
         };
         return CreateTexture(textureCreateDescriptor);
     }
 
-    public ITexture? CreateTextureFromFile(string filePath, bool generateMipmaps = true)
+    public ITexture? CreateTextureFromFile(
+        string filePath,
+        Format format,
+        bool generateMipmaps = true,
+        bool flipVertical = true,
+        bool flipHorizontal = false)
     {
         if (!File.Exists(filePath))
         {
            _logger.Error("{Category}: Unable to load image from file '{FilePath}'", "App", filePath);
             return null;
         }
-        using var image = Image.Load<Rgba32>(filePath);
 
-        return CreateTextureFromImage(image, Path.GetFileNameWithoutExtension(filePath), generateMipmaps);
+        using var image = _imageLoader.LoadImageFromFile<Rgba32>(filePath, flipVertical, flipHorizontal) as Image<Rgba32>;
+        if (image == null)
+        {
+            _logger.Error("{Category}: Unable to load image from file '{FilePath}'", "App", filePath);
+            return null;
+        }
+
+        return CreateTextureFromImage(image, Path.GetFileNameWithoutExtension(filePath), format, generateMipmaps);
     }
 
-    public ITexture? CreateTextureFromMemory(ReadOnlySpan<byte> pixelBytes, Label label, bool generateMipmaps = true)
+    public ITexture? CreateTextureFromMemory(
+        ReadOnlySpan<byte> pixelBytes,
+        Format format,
+        Label label,
+        bool generateMipmaps = true,
+        bool flipVertical = true,
+        bool flipHorizontal = false)
     {
         if (pixelBytes.IsEmpty)
         {
@@ -207,17 +300,21 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
             return null;
         }
 
-        using var image = Image.Load<Rgba32>(pixelBytes);
+        using var image = _imageLoader.LoadImageFromMemory<Rgba32>(pixelBytes, flipVertical, flipHorizontal) as Image<Rgba32>;
         if (image == null)
         {
             _logger.Error("{Category}: Unable to load image from memory", "App");
             return null;
         }
 
-        return CreateTextureFromImage(image, label, generateMipmaps);
+        return CreateTextureFromImage(image, label, format, generateMipmaps);
     }
 
-    public ITexture? CreateTextureCubeFromFile(Label label, string[] filePaths)
+    public ITexture? CreateTextureCubeFromFiles(
+        Label label,
+        string[] filePaths,
+        bool flipVertical = true,
+        bool flipHorizontal = false)
     {
         if (filePaths.Length != 6)
         {
@@ -229,18 +326,25 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         ITexture? textureCube = null;
         foreach (var filePath in filePaths)
         {
-            using var image = Image.Load<Rgba32>(filePath);
-
+            using var image = _imageLoader.LoadImageFromFile<Rgba32>(filePath, flipVertical, flipHorizontal) as Image<Rgba32>;
+            if (image == null)
+            {
+                _logger.Error("{Category}: Unable to load skybox texture part {FilePath}", "App", filePath);
+                continue;
+            }
             if (slice == 0)
             {
+                var format = Format.R16G16B16A16Float;
                 var skyboxTextureCreateDescriptor = new TextureCreateDescriptor
                 {
                     ImageType = ImageType.TextureCube,
-                    Format = Format.R8G8B8A8UNorm,
-                    Label = label,
+                    Format = format,
+                    Label = string.IsNullOrEmpty(label)
+                        ? $"Texture-{image.Width}x{image.Height}-{format}"
+                        : $"Texture-{image.Width}x{image.Height}-{format}-{label}",
                     Size = new Int3(image.Width, image.Height, 1),
                     MipLevels = 10,
-                    SampleCount = SampleCount.OneSample
+                    TextureSampleCount = TextureSampleCount.OneSample
                 };
                 textureCube = CreateTexture(skyboxTextureCreateDescriptor);
             }
@@ -264,6 +368,30 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         textureCube?.GenerateMipmaps();
 
         return textureCube;
+    }
+    
+    public FramebufferDescriptor CreateSingleFramebufferDescriptorFromTexture(ITexture texture)
+    {
+        var framebufferDescriptor = new FramebufferDescriptor();
+        if (texture.TextureCreateDescriptor.Format.IsColorFormat())
+        {
+            framebufferDescriptor.ColorAttachments = new[]
+            {
+                new FramebufferRenderAttachment(texture, ClearValue.Zero, false)
+            };
+        }
+        else if (texture.TextureCreateDescriptor.Format.IsDepthFormat())
+        {
+            framebufferDescriptor.DepthAttachment = new FramebufferRenderAttachment(texture, ClearValue.Zero, false);
+        }
+        else if (texture.TextureCreateDescriptor.Format.IsStencilFormat())
+        {
+            framebufferDescriptor.StencilAttachment = new FramebufferRenderAttachment(texture, ClearValue.Zero, false);
+        }
+
+        framebufferDescriptor.Label = $"Framebuffer-Single-{texture.TextureCreateDescriptor.Size.X}x{texture.TextureCreateDescriptor.Size.Y}x{texture.TextureCreateDescriptor.Format}-{GetHashCode()}";
+
+        return framebufferDescriptor;
     }
 
     public bool BindComputePipeline(IComputePipeline computePipeline)
@@ -325,7 +453,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         var depthStencilDescriptor = graphicsPipelineDescriptor.DepthStencilDescriptor;
         GL.EnableWhen(GL.EnableType.DepthTest, depthStencilDescriptor.IsDepthTestEnabled);
         GL.DepthMask(depthStencilDescriptor.IsDepthWriteEnabled);
-        GL.DepthFunc(depthStencilDescriptor.DepthCompareOperation.ToGL());
+        GL.DepthFunc(depthStencilDescriptor.DepthCompareFunction.ToGL());
 
         var colorBlendDescriptor = graphicsPipelineDescriptor.ColorBlendDescriptor;
         GL.EnableWhen(GL.EnableType.Blend, colorBlendDescriptor.ColorBlendAttachmentDescriptors.Any(blendAttachmentDescriptor => blendAttachmentDescriptor.IsBlendEnabled));
@@ -341,14 +469,14 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
             GL.BlendFuncSeparatei(
                 i,
-                colorBlendAttachment.SourceColorBlendFactor.ToGL(),
-                colorBlendAttachment.DestinationColorBlendFactor.ToGL(),
-                colorBlendAttachment.SourceAlphaBlendFactor.ToGL(),
-                colorBlendAttachment.DestinationAlphaBlendFactor.ToGL());
+                colorBlendAttachment.SourceColorBlend.ToGL(),
+                colorBlendAttachment.DestinationColorBlend.ToGL(),
+                colorBlendAttachment.SourceAlphaBlend.ToGL(),
+                colorBlendAttachment.DestinationAlphaBlend.ToGL());
             GL.BlendEquationSeparatei(
                 i,
-                colorBlendAttachment.ColorBlendOperation.ToGL(),
-                colorBlendAttachment.AlphaBlendOperation.ToGL());
+                colorBlendAttachment.ColorBlendFunction.ToGL(),
+                colorBlendAttachment.AlphaBlendFunction.ToGL());
             GL.ColorMaski(
                 i,
                 (colorBlendAttachment.ColorWriteMask & ColorMask.Red) != ColorMask.None,
@@ -360,58 +488,77 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         return true;
     }
 
-    public void BeginRenderToSwapchain(SwapchainRenderDescriptor swapchainRenderDescriptor)
+    public void BeginRenderToSwapchain(SwapchainDescriptor swapchainDescriptor)
     {
+        ClearResourceBindings();
+
         GL.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
-        GL.FramebufferBit clearBufferMask = 0;
-        if (swapchainRenderDescriptor.ClearColor)
+        GL.FramebufferBit framebufferBit = 0;
+        if (swapchainDescriptor.ClearColor)
         {
             GL.ClearColor(
-                swapchainRenderDescriptor.ClearColorValue.ColorFloat[0],
-                swapchainRenderDescriptor.ClearColorValue.ColorFloat[1],
-                swapchainRenderDescriptor.ClearColorValue.ColorFloat[2],
-                swapchainRenderDescriptor.ClearColorValue.ColorFloat[3]);
-            clearBufferMask |= GL.FramebufferBit.ColorBufferBit;
+                swapchainDescriptor.ClearColorValue.ColorFloat[0],
+                swapchainDescriptor.ClearColorValue.ColorFloat[1],
+                swapchainDescriptor.ClearColorValue.ColorFloat[2],
+                swapchainDescriptor.ClearColorValue.ColorFloat[3]);
+            framebufferBit |= GL.FramebufferBit.ColorBufferBit;
         }
 
-        if (swapchainRenderDescriptor.ClearDepth)
+        if (swapchainDescriptor.ClearDepth)
         {
-            GL.ClearDepth(swapchainRenderDescriptor.ClearDepthValue);
-            clearBufferMask |= GL.FramebufferBit.DepthBufferBit;
+            GL.ClearDepth(swapchainDescriptor.ClearDepthValue);
+            framebufferBit |= GL.FramebufferBit.DepthBufferBit;
         }
 
-        if (swapchainRenderDescriptor.ClearStencil)
+        if (swapchainDescriptor.ClearStencil)
         {
-            GL.ClearStencil(swapchainRenderDescriptor.ClearStencilValue);
-            clearBufferMask |= GL.FramebufferBit.StencilBufferBit;
+            GL.ClearStencil(swapchainDescriptor.ClearStencilValue);
+            framebufferBit |= GL.FramebufferBit.StencilBufferBit;
         }
 
-        if (clearBufferMask != 0)
+        if (framebufferBit != 0)
         {
             EnableAllMaskStates();
-            GL.Clear(clearBufferMask);
+            GL.Clear(framebufferBit);
         }
 
-        if (swapchainRenderDescriptor.ScissorRect.HasValue)
+        if (swapchainDescriptor.ScissorRect.HasValue)
         {
-            GL.Scissor(swapchainRenderDescriptor.ScissorRect.Value);
+            GL.Scissor(swapchainDescriptor.ScissorRect.Value);
         }
 
-        GL.Viewport(swapchainRenderDescriptor.Viewport);
+        if (!swapchainDescriptor.EnableSrgb)
+        {
+            GL.Disable(GL.EnableType.FramebufferSrgb);
+            _srgbWasDisabled = true;
+        }
+
+        if (_currentViewport != swapchainDescriptor.Viewport)
+        {
+            GL.Viewport(swapchainDescriptor.Viewport);
+            _currentViewport = swapchainDescriptor.Viewport;
+        }
     }
 
-    public void BeginRenderToFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
+    public void BeginRenderToFramebuffer(FramebufferDescriptor framebufferDescriptor)
     {
-        _currentFramebuffer = _framebufferCache.GetOrCreateFramebuffer(framebufferRenderDescriptor);
+        ClearResourceBindings();
+
+        _currentFramebuffer = _framebufferCache.GetOrCreateFramebuffer(framebufferDescriptor);
         GL.BindFramebuffer(GL.FramebufferTarget.Framebuffer, _currentFramebuffer.Value);
+        if (!framebufferDescriptor.HasSrgbEnabledAttachment())
+        {
+            GL.Disable(GL.EnableType.FramebufferSrgb);
+        }
+
         EnableAllMaskStates();
 
-        for (var i = 0; i < framebufferRenderDescriptor.ColorAttachments.Length; i++)
+        for (var i = 0; i < framebufferDescriptor.ColorAttachments.Length; i++)
         {
-            var colorAttachment = framebufferRenderDescriptor.ColorAttachments[i];
+            var colorAttachment = framebufferDescriptor.ColorAttachments[i];
             if (colorAttachment.Clear)
             {
-                var format = colorAttachment.Texture.Format;
+                var format = colorAttachment.Texture.TextureCreateDescriptor.Format;
                 var formatBaseType = format.ToFormatBaseType();
                 switch (formatBaseType)
                 {
@@ -440,28 +587,66 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
             }
         }
 
-        if (framebufferRenderDescriptor.DepthAttachment.HasValue &&
-            framebufferRenderDescriptor.DepthAttachment.Value.Clear)
+        if (framebufferDescriptor.DepthAttachment.HasValue &&
+            framebufferDescriptor.DepthAttachment.Value.Clear &&
+            framebufferDescriptor.StencilAttachment.HasValue &&
+            framebufferDescriptor.StencilAttachment.Value.Clear)
+        {
+            GL.ClearNamedFramebuffer(
+                _currentFramebuffer.Value,
+                GL.Buffer.DepthStencil,
+                0,
+                framebufferDescriptor.DepthAttachment.Value.ClearValue.DepthStencil.Depth,
+                framebufferDescriptor.StencilAttachment.Value.ClearValue.DepthStencil.Stencil);
+        }
+        else if (framebufferDescriptor.DepthAttachment.HasValue &&
+                 framebufferDescriptor.DepthAttachment.Value.Clear)
         {
             GL.ClearNamedFramebuffer(
                 _currentFramebuffer.Value,
                 GL.Buffer.Depth,
                 0,
-                framebufferRenderDescriptor.DepthAttachment.Value.ClearValue.DepthStencil.Depth);
+                framebufferDescriptor.DepthAttachment.Value.ClearValue.DepthStencil.Depth);
+        }
+        else if (framebufferDescriptor.StencilAttachment.HasValue &&
+                 framebufferDescriptor.StencilAttachment.Value.Clear)
+        {
+            GL.ClearNamedFramebuffer(
+                _currentFramebuffer.Value,
+                GL.Buffer.Stencil,
+                0,
+                framebufferDescriptor.StencilAttachment.Value.ClearValue.DepthStencil.Depth);
         }
 
-        // TODO(deccer) clear stencil
-        // TODO(deccer) depth & stencil
-        GL.Viewport(framebufferRenderDescriptor.Viewport);
-        /*
-        GL.DepthRange(
-            framebufferRenderDescriptor.Viewport.MinDepth,
-            framebufferRenderDescriptor.Viewport.MaxDepth);
-            */
+        if (_currentViewport != framebufferDescriptor.Viewport)
+        {
+            GL.Viewport(framebufferDescriptor.Viewport);
+            _currentViewport = framebufferDescriptor.Viewport;
+        }
+        
+        if (MathF.Abs(_currentViewport.MinDepth - framebufferDescriptor.Viewport.MinDepth) > 0.0001f ||
+            MathF.Abs(_currentViewport.MaxDepth - framebufferDescriptor.Viewport.MaxDepth) > 0.0001f)
+        {
+            GL.DepthRange(
+                framebufferDescriptor.Viewport.MinDepth,
+                framebufferDescriptor.Viewport.MaxDepth);
+        }
+        
+        GL.ClipControl(GL.ClipControlOrigin.LowerLeft, GL.ClipControlDepth.NegativeOneToOne);
+        
+        if (!framebufferDescriptor.HasSrgbEnabledAttachment())
+        {
+            GL.Disable(GL.EnableType.FramebufferSrgb);
+            _srgbWasDisabled = true;
+        }
     }
 
     public void EndRender()
     {
+        if (_srgbWasDisabled)
+        {
+            GL.Enable(GL.EnableType.FramebufferSrgb);
+        }
     }
 
     public void BlitFramebufferToSwapchain(
@@ -490,6 +675,26 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
             GL.BlitFramebufferFilter.Nearest);
     }
 
+    public void InsertMemoryBarrier(BarrierMask mask)
+    {
+        GL.MemoryBarrier(mask.ToGL());
+    }
+
+    public uint CreateFramebuffer(FramebufferDescriptor framebufferDescriptor)
+    {
+        return _framebufferCache.GetOrCreateFramebuffer(framebufferDescriptor);
+    }
+
+    public void RemoveFramebuffer(FramebufferDescriptor framebufferDescriptor)
+    {
+        _framebufferCache.RemoveFramebuffer(framebufferDescriptor);
+    }
+
+    public void Finish()
+    {
+        GL.Finish();
+    }
+
     private static void EnableAllMaskStates()
     {
         GL.ColorMask(true, true, true, true);
@@ -497,41 +702,42 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         GL.StencilMask(true);
     }
 
-    public void InsertMemoryBarrier(BarrierMask mask)
+    [Conditional("DEBUG")]
+    private void ClearResourceBindings()
     {
-        GL.MemoryBarrier(mask.ToGL());
-    }
-
-    public void RemoveFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
-    {
-        _framebufferCache.RemoveFramebuffer(framebufferRenderDescriptor);
-    }
-
-    public bool IsExtensionSupported(string extensionName)
-    {
-        return _extensions.Contains(extensionName);
-    }
-
-    public void LoadExtensions()
-    {
-        var extensionCount = GL.GetInteger((uint)GL.GetName.NumExtensions);
-        for (var i = 0u; i < extensionCount; i++)
+        for (var i = 0u; i < _limits.MaxImageUnits; i++)
         {
-            _extensions.Add(GL.GetString(GL.StringName.Extensions, i));
+            GL.BindImageTexture(i, 0, 0, true, 0, GL.MemoryAccess.ReadWrite, GL.SizedInternalFormat.Rgba32f);
+        }
+
+        for (var i = 0u; i < _limits.MaxShaderStorageBlocks; i++)
+        {
+            GL.BindBufferRange(GL.BufferTarget.ShaderStorageBuffer, i, 0, 0, 0);
+        }
+
+        for (var i = 0u; i < _limits.MaxUniformBlocks; i++)
+        {
+            GL.BindBufferRange(GL.BufferTarget.UniformBuffer, i, 0, 0, 0);
+        }
+
+        for (var i = 0u; i < _limits.MaxCombinedTextureImageUnits; i++)
+        {
+            GL.BindTextureUnit(i, 0);
+            GL.BindSampler(i, 0);
         }
     }
 
-    private ITexture CreateTextureFromImage(Image<Rgba32> image, Label label, bool generateMipmaps = true)
+    private ITexture CreateTextureFromImage(Image<Rgba32> image, Label label, Format format, bool generateMipmaps = true)
     {
         var calculatedMipLevels = (uint)(1 + MathF.Ceiling(MathF.Log2(MathF.Min(image.Width, image.Height))));
         var textureCreateDescriptor = new TextureCreateDescriptor
         {
             ImageType = ImageType.Texture2D,
-            Format = Format.R8G8B8A8UNorm,
+            Format = format,
             Label = label,
             Size = new Int3(image.Width, image.Height, 1),
             MipLevels = generateMipmaps ? calculatedMipLevels : 1,
-            SampleCount = SampleCount.OneSample
+            TextureSampleCount = TextureSampleCount.OneSample
         };
 
         var texture = CreateTexture(textureCreateDescriptor);

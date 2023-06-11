@@ -43,18 +43,18 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     private IVertexBuffer? _gpuVertexBuffer;
     private IIndexBuffer? _gpuIndexBuffer;
 
-    private SwapchainRenderDescriptor _swapchainRenderDescriptor;
+    private SwapchainDescriptor _swapchainDescriptor;
 
     private ISampler? _pointSampler;
 
     private IGraphicsPipeline? _gBufferGraphicsPipeline;
-    private FramebufferRenderDescriptor _gBufferFramebufferRenderDescriptor;
+    private FramebufferDescriptor _gBufferFramebufferDescriptor;
     private ITexture? _gBufferBaseColorTexture;
     private ITexture? _gBufferNormalTexture;
     private ITexture? _gBufferDepthTexture;
 
     private IGraphicsPipeline? _finalGraphicsPipeline;
-    private FramebufferRenderDescriptor _finalFramebufferRenderDescriptor;
+    private FramebufferDescriptor _finalFramebufferDescriptor;
     private ITexture? _finalTexture;
 
     private GpuCameraConstants _gpuCameraConstants;
@@ -76,13 +76,14 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
         IMetrics metrics,
+        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer,
         ICamera camera,
         IMeshLoader meshLoader,
         IMaterialLibrary materialLibrary)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider, graphicsContext,
+        : base(logger, windowSettings, contextSettings, applicationContext, metrics, limits, inputProvider, graphicsContext,
             uiRenderer)
     {
         _logger = logger;
@@ -135,14 +136,14 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render()
+    protected override void Render(float deltaTime)
     {
         GL.PushDebugGroup("Geometry-Pass");
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
         _gpuCameraConstantsBuffer.Update(_gpuCameraConstants, 0);
         _gpuModelMeshInstanceBuffer.Update(_gpuModelMeshInstances.ToArray(), 0);
 
-        GraphicsContext.BeginRenderToFramebuffer(_gBufferFramebufferRenderDescriptor);
+        GraphicsContext.BeginRenderToFramebuffer(_gBufferFramebufferDescriptor);
         GraphicsContext.BindGraphicsPipeline(_gBufferGraphicsPipeline);
         _gBufferGraphicsPipeline.BindUniformBuffer(_gpuCameraConstantsBuffer, 0);
         _gBufferGraphicsPipeline.BindShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
@@ -165,7 +166,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         GL.PopDebugGroup();
 
         GL.PushDebugGroup("Resolve-Pass");
-        GraphicsContext.BeginRenderToFramebuffer(_finalFramebufferRenderDescriptor);
+        GraphicsContext.BeginRenderToFramebuffer(_finalFramebufferDescriptor);
         GraphicsContext.BindGraphicsPipeline(_finalGraphicsPipeline);
         _finalGraphicsPipeline.BindSampledTexture(_pointSampler, _gBufferBaseColorTexture, 0);
         _finalGraphicsPipeline.DrawArrays(3, 0);
@@ -173,7 +174,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         GL.PopDebugGroup();
 
         GL.PushDebugGroup("UI-Pass");
-        GraphicsContext.BeginRenderToSwapchain(_swapchainRenderDescriptor);
+        GraphicsContext.BeginRenderToSwapchain(_swapchainDescriptor);
         GraphicsContext.BlitFramebufferToSwapchain(
             _applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y,
@@ -195,7 +196,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                 }
 
                 ImGui.SetCursorPos(new Num.Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
-                ImGui.TextUnformatted($"Fps: {_metrics.GetAverageFps()}");
+                ImGui.TextUnformatted($"Fps: {_metrics.AverageFrameTime}");
 
                 ImGui.EndMenuBar();
                 ImGui.EndMainMenuBar();
@@ -229,9 +230,9 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update()
+    protected override void Update(float deltaTime)
     {
-        base.Update();
+        base.Update(deltaTime);
 
         if (IsMousePressed(Glfw.MouseButton.ButtonRight))
         {
@@ -280,7 +281,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     private void PrepareScene()
     {
-        var meshDatas = new List<MeshData>();
+        var meshDatas = new List<MeshPrimitive>();
 
         _drawCommands.Add(new DrawCommand { Name = "Cube", WorldMatrix = Matrix.Translation(-4, 0, 0) });
         _drawCommands.Add(new DrawCommand { Name = "Cube.003", WorldMatrix = Matrix.Translation(4, 0, 0) });
@@ -297,9 +298,11 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                 if (!_textures.TryGetValue(material.BaseColorTextureDataName, out var texture))
                 {
                     texture = material.BaseColorEmbeddedImageData.HasValue
-                        ? GraphicsContext.CreateTextureFromMemory(material.BaseColorEmbeddedImageData.Value.Span,
+                        ? GraphicsContext.CreateTextureFromMemory(
+                            material.BaseColorEmbeddedImageData.Value.Span,
+                            Format.R8G8B8A8Srgb,
                             material.BaseColorTextureDataName, true)
-                        : GraphicsContext.CreateTextureFromFile(material.BaseColorTextureFilePath, true);
+                        : GraphicsContext.CreateTextureFromFile(material.BaseColorTextureFilePath, Format.R8G8B8A8Srgb, true);
                     if (texture != null)
                     {
                         texture.MakeResident();
@@ -362,18 +365,18 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         _gBufferBaseColorTexture?.Dispose();
         _gBufferNormalTexture?.Dispose();
         _gBufferDepthTexture?.Dispose();
-        GraphicsContext.RemoveFramebuffer(_gBufferFramebufferRenderDescriptor);
+        GraphicsContext.RemoveFramebuffer(_gBufferFramebufferDescriptor);
 
         _finalTexture?.Dispose();
-        GraphicsContext.RemoveFramebuffer(_finalFramebufferRenderDescriptor);
+        GraphicsContext.RemoveFramebuffer(_finalFramebufferDescriptor);
     }
 
     private void CreateSamplers()
     {
         _pointSampler = new SamplerBuilder(GraphicsContext)
-            .WithMinificationFilter(Filter.Nearest, Filter.Nearest)
-            .WithMagnificationFilter(Filter.Nearest)
-            .WithAddressMode(AddressMode.ClampToEdge)
+            .WithInterpolationFilter(TextureInterpolationFilter.Nearest)
+            .WithMipmapFilter(TextureMipmapFilter.Nearest)
+            .WithAddressMode(TextureAddressMode.ClampToEdge)
             .Build("PointSampler");
     }
 
@@ -386,7 +389,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         _gBufferDepthTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y, Format.D32UNorm, "Depth");
 
-        _gBufferFramebufferRenderDescriptor = new FramebufferRenderDescriptorBuilder()
+        _gBufferFramebufferDescriptor = new FramebufferDescriptorBuilder()
             .WithColorAttachment(_gBufferBaseColorTexture, true, Vector4.Zero)
             .WithColorAttachment(_gBufferNormalTexture, true, Vector4.One)
             .WithDepthAttachment(_gBufferDepthTexture, true)
@@ -395,7 +398,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
         _finalTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "Final");
-        _finalFramebufferRenderDescriptor = new FramebufferRenderDescriptorBuilder()
+        _finalFramebufferDescriptor = new FramebufferDescriptorBuilder()
             .WithColorAttachment(_finalTexture, true, new Vector4(0.2f, 0.2f, 0.2f, 1.0f))
             .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
             .Build("Final");
@@ -403,7 +406,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     private void CreateSwapchainDescriptor()
     {
-        _swapchainRenderDescriptor = new SwapchainRenderDescriptorBuilder()
+        _swapchainDescriptor = new SwapchainDescriptorBuilder()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build();
     }
@@ -450,7 +453,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     {
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         var modelMeshes = _meshLoader
-            .LoadModel(Path.Combine(baseDirectory, modelFilePath))
+            .LoadMeshPrimitivesFromFile(Path.Combine(baseDirectory, modelFilePath))
             .Select(meshData => new ModelMesh(meshData.MeshName, meshData))
             .ToArray();
 

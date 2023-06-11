@@ -4,7 +4,7 @@ using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
 
-public class TextureView : IDisposable
+public class TextureView : IHasTextureId, IDisposable 
 {
     private readonly uint _id;
 
@@ -19,10 +19,16 @@ public class TextureView : IDisposable
             textureViewDescriptor.ImageType.ToGL(),
             texture.Id,
             textureViewDescriptor.Format.ToGL(),
-            textureViewDescriptor.MinLayer,
-            textureViewDescriptor.NumLayers,
             textureViewDescriptor.MinLevel,
-            textureViewDescriptor.NumLevels);
+            textureViewDescriptor.NumLevels,
+            textureViewDescriptor.MinLayer,
+            textureViewDescriptor.NumLayers
+        );
+        
+        GL.TextureParameter(_id, GL.TextureParameterName.TextureSwizzleR, textureViewDescriptor.SwizzleMapping.Red.ToGL());
+        GL.TextureParameter(_id, GL.TextureParameterName.TextureSwizzleG, textureViewDescriptor.SwizzleMapping.Green.ToGL());
+        GL.TextureParameter(_id, GL.TextureParameterName.TextureSwizzleB, textureViewDescriptor.SwizzleMapping.Blue.ToGL());
+        GL.TextureParameter(_id, GL.TextureParameterName.TextureSwizzleA, textureViewDescriptor.SwizzleMapping.Alpha.ToGL());
 
         if (!string.IsNullOrEmpty(textureViewDescriptor.Label))
         {

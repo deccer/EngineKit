@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
+using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
-using EngineKit.Mathematics;
 using Serilog;
 using Num = System.Numerics;
 using Vector3 = EngineKit.Mathematics.Vector3;
@@ -46,7 +46,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private readonly IList<GpuMaterial> _gpuMaterials;
 
     private ITexture? _skullBaseColorTexture;
-    private SwapchainRenderDescriptor _swapchainRenderDescriptor;
+    private SwapchainDescriptor _swapchainDescriptor;
 
     private IGraphicsPipeline? _sceneGraphicsPipeline;
 
@@ -72,13 +72,14 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
         IMetrics metrics,
+        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer,
         IImageLoader imageLoader,
         IMeshLoader meshLoader,
         ICamera camera)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider, graphicsContext, uiRenderer)
+        : base(logger, windowSettings, contextSettings, applicationContext, metrics, limits, inputProvider, graphicsContext, uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;
@@ -172,7 +173,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render()
+    protected override void Render(float deltaTime)
     {
         _gpuModelMeshInstances = _modelMeshInstances.Select(mm => new GpuModelMeshInstance { World = mm.World }).ToList();
         _gpuModelMeshInstanceBuffer.Update(_gpuModelMeshInstances.ToArray(), 0);
@@ -196,7 +197,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _gpuConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
         _gpuConstantsBuffer!.Update(_gpuConstants, 0);
 
-        GraphicsContext.BeginRenderToSwapchain(_swapchainRenderDescriptor);
+        GraphicsContext.BeginRenderToSwapchain(_swapchainDescriptor);
         GraphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline!);
         _sceneGraphicsPipeline!.BindVertexBuffer(_skullVertexBuffer!, 0, 0);
         _sceneGraphicsPipeline.BindIndexBuffer(_skullIndexBuffer!);
@@ -216,7 +217,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     protected override void FramebufferResized()
     {
         base.FramebufferResized();
-        _swapchainRenderDescriptor = new SwapchainRenderDescriptorBuilder()
+        _swapchainDescriptor = new SwapchainDescriptorBuilder()
             .ClearColor(Color.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
@@ -238,15 +239,15 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update()
+    protected override void Update(float deltaTime)
     {
-        base.Update();
+        base.Update(deltaTime);
 
         if (IsMousePressed(Glfw.MouseButton.ButtonRight))
         {
             _camera.ProcessMouseMovement();
         }
-        _camera.ProcessKeyboard(Vector3.Zero, _metrics.DeltaTime);
+        _camera.ProcessKeyboard(Vector3.Zero, deltaTime);
 
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
@@ -286,7 +287,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
                 }
 
                 ImGui.SetCursorPos(new Num.Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
-                ImGui.TextUnformatted($"Fps: {_metrics.GetAverageFps()}");
+                ImGui.TextUnformatted($"Fps: {_metrics.AverageFrameTime}");
 
 
                 ImGui.EndMenuBar();
@@ -308,7 +309,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
     private bool LoadRenderDescriptors()
     {
-        _swapchainRenderDescriptor = new SwapchainRenderDescriptorBuilder()
+        _swapchainDescriptor = new SwapchainDescriptorBuilder()
             .ClearColor(Color.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
@@ -348,7 +349,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private bool LoadMeshes()
     {
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        var meshDates = _meshLoader.LoadModel(Path.Combine(baseDirectory, "Data/Props/Skull/SM_Skull_Optimized_point2.gltf")).ToArray();
+        var meshDates = _meshLoader.LoadMeshPrimitivesFromFile(Path.Combine(baseDirectory, "Data/Props/Skull/SM_Skull_Optimized_point2.gltf")).ToArray();
 
         var indexOffset = 0;
         var vertexOffset = 0;
@@ -379,19 +380,21 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
     private bool LoadResources()
     {
-        _skullBaseColorTexture = GraphicsContext.CreateTextureFromFile("Data/Props/Skull/TD_Checker_Base_Color.png", true);
+        _skullBaseColorTexture = GraphicsContext.CreateTextureFromFile("Data/Props/Skull/TD_Checker_Base_Color.png", Format.R8G8B8A8Srgb, true, false, false);
         if (_skullBaseColorTexture == null)
         {
             return false;
         }
 
         _linearMipmapNearestSampler = GraphicsContext.CreateSamplerBuilder()
-            .WithMagnificationFilter()
-            .WithMinificationFilter(Filter.Linear, Filter.Nearest)
-            .WithAddressMode(AddressMode.Repeat)
+            .WithInterpolationFilter(TextureInterpolationFilter.Linear)
+            .WithMipmapFilter(TextureMipmapFilter.LinearMipmapNearest)
+            .WithAddressMode(TextureAddressMode.Repeat)
             .Build("LinearMipmapNearest");
 
         _linearMipmapLinear = GraphicsContext.CreateSamplerBuilder()
+            .WithInterpolationFilter(TextureInterpolationFilter.Linear)
+            .WithMipmapFilter(TextureMipmapFilter.LinearMipmapLinear)
             .Build("LinearMipmapLinear");
 
         return true;

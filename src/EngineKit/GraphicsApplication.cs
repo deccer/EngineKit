@@ -6,13 +6,11 @@ using Serilog;
 
 namespace EngineKit;
 
-public class GraphicsApplication : Application
+public abstract class GraphicsApplication : Application
 {
     private readonly ILogger _logger;
 
     private readonly IApplicationContext _applicationContext;
-
-    private readonly IMetrics _metrics;
 
     protected IGraphicsContext GraphicsContext { get; }
     protected IUIRenderer UIRenderer { get; }
@@ -23,14 +21,14 @@ public class GraphicsApplication : Application
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
         IMetrics metrics,
+        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider)
+        : base(logger, windowSettings, contextSettings, applicationContext, limits, metrics, inputProvider)
     {
         _logger = logger;
         _applicationContext = applicationContext;
-        _metrics = metrics;
         GraphicsContext = graphicsContext;
         UIRenderer = uiRenderer;
     }
@@ -63,8 +61,8 @@ public class GraphicsApplication : Application
         GL.Disable(GL.EnableType.SampleAlphaToCoverage);
         GL.Disable(GL.EnableType.PolygonOffsetFill);
         GL.Disable(GL.EnableType.Multisample);
-        //GL.Enable(GL.EnableType.FramebufferSrgb);
-
+        GL.Enable(GL.EnableType.FramebufferSrgb);
+        
         return true;
     }
 
@@ -75,8 +73,8 @@ public class GraphicsApplication : Application
         base.Unload();
     }
 
-    protected override void Update()
+    protected override void Update(float deltaTime)
     {
-        UIRenderer.Update(_metrics.DeltaTime);
+        UIRenderer.Update(deltaTime);
     }
 }

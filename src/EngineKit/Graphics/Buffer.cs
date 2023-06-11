@@ -30,6 +30,7 @@ internal abstract class Buffer : IBuffer
     {
         GL.NamedBufferStorage(Id, sizeInBytes, nint.Zero, storageAllocationFlags.ToGL());
         SizeInBytes = sizeInBytes;
+        Count = SizeInBytes / Stride;
     }
 
     public void AllocateStorage<TElement>(TElement element, StorageAllocationFlags storageAllocationFlags)
@@ -50,21 +51,31 @@ internal abstract class Buffer : IBuffer
 
     public unsafe void Update(nint dataPtr, int offsetInBytes, int sizeInBytes)
     {
+        if (offsetInBytes + sizeInBytes > SizeInBytes)
+        {
+            throw new ArgumentOutOfRangeException(nameof(offsetInBytes));
+        }
         GL.NamedBufferSubData(Id, offsetInBytes, sizeInBytes, (void*)dataPtr);
     }
 
-    public void Update<TElement>(TElement element, int elementOffset)
+    public void Update<TElement>(TElement element, int elementOffset = 0)
         where TElement : unmanaged
     {
+        if ((elementOffset * Stride) + Stride > SizeInBytes)
+        {
+            throw new ArgumentOutOfRangeException(nameof(elementOffset));
+        }
         GL.NamedBufferSubData(Id, elementOffset * Stride, element);
-        Count = 1;
     }
 
-    public void Update<TElement>(TElement[] data, int elementOffset)
+    public void Update<TElement>(TElement[] data, int elementOffset = 0)
         where TElement : unmanaged
     {
+        if ((elementOffset * Stride) + data.Length * Stride > SizeInBytes)
+        {
+            throw new ArgumentOutOfRangeException(nameof(elementOffset));
+        }
         GL.NamedBufferSubData(Id, elementOffset * Stride, data);
-        Count = data.Length;
     }
 
     public static implicit operator uint(Buffer buffer)
@@ -78,10 +89,10 @@ internal class Buffer<TElement> : Buffer
 {
     protected Buffer(BufferTarget bufferTarget, Label? label = null)
     {
-        var innerLabel = $"{GetBufferNamePrefix(bufferTarget)}_{typeof(TElement).Name}";
+        var innerLabel = $"{GetBufferNamePrefix(bufferTarget)}-{typeof(TElement).Name}";
         if (!string.IsNullOrEmpty(label))
         {
-            innerLabel += $"_{label}";
+            innerLabel += $"-{label}";
         }
 
         GL.ObjectLabel(GL.ObjectIdentifier.Buffer, Id, innerLabel);
@@ -92,11 +103,11 @@ internal class Buffer<TElement> : Buffer
     {
         return bufferTarget switch
         {
-            BufferTarget.VertexBuffer => "Buffer_VB",
-            BufferTarget.IndexBuffer => "Buffer_IB",
-            BufferTarget.ShaderStorageBuffer => "Buffer_SS",
-            BufferTarget.UniformBuffer => "Buffer_UB",
-            BufferTarget.IndirectDrawBuffer => "Buffer_ID",
+            BufferTarget.VertexBuffer => "Buffer-Vertices",
+            BufferTarget.IndexBuffer => "Buffer-Indices",
+            BufferTarget.ShaderStorageBuffer => "Buffer-ShaderStorage",
+            BufferTarget.UniformBuffer => "Buffer-Uniforms",
+            BufferTarget.IndirectDrawBuffer => "Buffer-Indirect",
             _ => throw new ArgumentOutOfRangeException(nameof(bufferTarget), bufferTarget, null)
         };
     }

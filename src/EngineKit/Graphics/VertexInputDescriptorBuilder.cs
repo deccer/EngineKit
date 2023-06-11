@@ -20,12 +20,32 @@ public class VertexInputDescriptorBuilder
         bool isNormalized = false)
     {
         var location = (uint)_vertexInputBindingDescriptors.Count;
-        _vertexInputBindingDescriptors.Add(new VertexInputBindingDescriptor(location, binding, dataType, componentCount,  offset, isNormalized));
+        _vertexInputBindingDescriptors.Add(new VertexInputBindingDescriptor(location, binding, dataType, componentCount, offset, isNormalized));
         return this;
     }
+
+    /*
+    public VertexInputDescriptorBuilder AddAttribute(
+        uint binding,
+        Format format,
+        uint offset)
+    {
+        var location = (uint)_vertexInputBindingDescriptors.Count;
+        var (dataType, componentCount, isNormalized) = FormatToDataTypeAndComponentCount(format);
+        _vertexInputBindingDescriptors.Add(new VertexInputBindingDescriptor(location, binding, dataType, componentCount, offset, isNormalized));
+        return this;
+    }
+    */
 
     public VertexInputDescriptor Build(Label label)
     {
         return new VertexInputDescriptor(_vertexInputBindingDescriptors.ToArray(), label);
     }
+
+    /*
+    private (DataType DataType, int ComponentType, bool IsNormalized) FormatToDataTypeAndComponentCount(Format format)
+    {
+        var dataType = format.ToDataType();
+    }
+    */
 }

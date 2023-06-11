@@ -35,10 +35,10 @@ public sealed class GlfwOpenGLDummyWindow : IDisposable
         _windowHandle = Glfw.CreateWindow(100, 100, "OpenGLTests", nint.Zero, nint.Zero);
         Glfw.MakeContextCurrent(_windowHandle);
 #if DEBUG
+        _debugProcCallback = DebugCallback;
         GL.DebugMessageCallback(_debugProcCallback, nint.Zero);
         GL.Enable(GL.EnableType.DebugOutput);
         GL.Enable(GL.EnableType.DebugOutputSynchronous);
-        _debugProcCallback = DebugCallback;
 #endif
         Thread.Sleep(500);
     }

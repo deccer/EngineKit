@@ -29,12 +29,12 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
 #if !DEBUG
         Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 #endif
-        var uniformBuffer = new UniformBuffer<GpuGlobalMatrices>("Label");
+        var uniformBuffer = new UniformBuffer<GpuMaterial>("Label");
 
         // Assert
         uint bufferId = uniformBuffer;
         bufferId.Should().BeGreaterThan(0);
-        uniformBuffer.Stride.Should().Be(Marshal.SizeOf<GpuGlobalMatrices>());
+        uniformBuffer.Stride.Should().Be(Marshal.SizeOf<GpuMaterial>());
         uniformBuffer.Count.Should().Be(0);
         uniformBuffer.SizeInBytes.Should().Be(0);
     }
@@ -51,19 +51,19 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 #endif
 
-        var uniformBuffer = new UniformBuffer<GpuGlobalMatrices>("Label");
-        uniformBuffer.AllocateStorage(Marshal.SizeOf<GpuGlobalMatrices>(), StorageAllocationFlags.None);
+        var uniformBuffer = new UniformBuffer<GpuMaterial>("Label");
+        uniformBuffer.AllocateStorage(Marshal.SizeOf<GpuMaterial>(), StorageAllocationFlags.None);
 
         // Act
-        var globalMatrices = new GpuGlobalMatrices
+        var globalMatrices = new GpuMaterial
         {
-            WorldToCameraMatrix = Matrix.Identity
+            BaseColorFactor = Color.Red.ToVector4()
         };
         uniformBuffer.Update(globalMatrices,  0);
 
         // Assert
         uniformBuffer.Count.Should().Be(1);
-        uniformBuffer.Stride.Should().Be(Marshal.SizeOf<GpuGlobalMatrices>());
+        uniformBuffer.Stride.Should().Be(Marshal.SizeOf<GpuMaterial>());
         uniformBuffer.SizeInBytes.Should().Be(uniformBuffer.Stride);
     }
 
@@ -89,18 +89,18 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 #endif
 
-        var uniformBuffer = new UniformBuffer<GpuGlobalMatrices>("Label");
-        uniformBuffer.AllocateStorage(initialElementCount * Marshal.SizeOf<GpuGlobalMatrices>(), StorageAllocationFlags.Dynamic);
+        var uniformBuffer = new UniformBuffer<GpuMaterial>("Label");
+        uniformBuffer.AllocateStorage(initialElementCount * Marshal.SizeOf<GpuMaterial>(), StorageAllocationFlags.Dynamic);
 
         // Act
-        var globalMatrices = new GpuGlobalMatrices
+        var globalMatrices = new GpuMaterial
         {
-            WorldToCameraMatrix = Matrix.Identity
+            BaseColorFactor = Color.Red.ToVector4()
         };
         uniformBuffer.Update(globalMatrices,  0);
 
         // Assert
-        uniformBuffer.Count.Should().Be(1);
+        uniformBuffer.Count.Should().Be(initialElementCount);
         uniformBuffer.SizeInBytes.Should().Be(initialElementCount * uniformBuffer.Stride);
     }
 }

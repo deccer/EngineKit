@@ -1,5 +1,6 @@
 using System.Linq;
 using EngineKit.Graphics;
+using EngineKit.Graphics.Shaders;
 using FluentAssertions;
 using Xunit;
 
@@ -12,9 +13,11 @@ public class ShaderIncludesShould
     public ShaderIncludesShould()
     {
         _shaderParser = new ShaderParser(
-            new CompositeShaderIncludeHandler(
+            new IShaderIncludeHandler[]
+            {
                 new FileShaderIncludeHandler(),
-                new VirtualFileShaderIncludeHandler()));
+                new VirtualFileShaderIncludeHandler()
+            });
     }
 
     [Fact]
@@ -25,10 +28,6 @@ public class ShaderIncludesShould
 
     [Theory]
     [InlineData("EngineKit.Graphics." + nameof(GpuMaterial))]
-    [InlineData("EngineKit.Graphics." + nameof(GpuEnvironment))]
-    [InlineData("EngineKit.Graphics." + nameof(GpuInstanceData))]
-    [InlineData("EngineKit.Graphics." + nameof(GpuGlobalMatrices))]
-    [InlineData("EngineKit.Graphics." + nameof(GpuLight))]
     public void ShouldReplaceIncludeWithContent(string virtualShader)
     {
         // Arrange

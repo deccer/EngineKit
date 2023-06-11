@@ -2,27 +2,7 @@ namespace EngineKit;
 
 public interface IMetrics
 {
-    uint FrameCounter { get; set; }
-
-    uint FramesPerSecond { get; set; }
-
-    uint UpdatesPerSecond { get; set; }
-
-    float UpdateRate { get; set; }
-
-    double SwapBufferDuration { get; set; }
-
-    float DeltaTime { get; set; }
-
-    bool ShowFramesPerSecond { get; set; }
-
-    int ShowFramesPerSecondInterval { get; set; }
-
-    long CurrentTime { get; set; }
-
-    void CollectFrameSample();
-
-    int GetAverageFps();
-
-    int GetLow1PercentFps();
+    double AverageFrameTime { get; set; }
+    
+    long FrameCounter { get; set; }
 }

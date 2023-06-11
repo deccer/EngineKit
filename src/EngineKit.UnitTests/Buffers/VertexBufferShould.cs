@@ -39,7 +39,7 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         uint bufferId = vertexBuffer;
         bufferId.Should().BeGreaterThan(0);
         vertexBuffer.Stride.Should().Be(Marshal.SizeOf<VertexPositionNormalUvTangent>());
-        vertexBuffer.Count.Should().Be(0);
+        vertexBuffer.Count.Should().Be(2);
         vertexBuffer.SizeInBytes.Should().Be(100);
 #if DEBUG
         _glfwOpenGLDummyWindow.ErrorMessages.Should().HaveCount(0);

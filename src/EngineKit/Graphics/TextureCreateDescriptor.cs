@@ -14,7 +14,7 @@ public record struct TextureCreateDescriptor
 
     public uint ArrayLayers;
 
-    public SampleCount SampleCount;
+    public TextureSampleCount TextureSampleCount;
 
     public string? Label;
 }

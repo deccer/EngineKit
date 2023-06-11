@@ -4,12 +4,9 @@ namespace EngineKit.Graphics;
 
 public interface IMaterialLibrary
 {
-    void AddMaterial(string name, Material material);
+    void AddMaterial(Material material);
 
-    IList<GpuMaterial> GetMaterialBufferData(
-        string[] visibleMaterialNames,
-        IDictionary<string, TextureId> textureArrayIndices,
-        out IDictionary<string, int> materialNameIndexMap);
+    void RemoveMaterial(string name);
 
     IList<string> GetMaterialNames();
 

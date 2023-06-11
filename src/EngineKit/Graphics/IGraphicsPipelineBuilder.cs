@@ -18,7 +18,7 @@ public interface IGraphicsPipelineBuilder
         PrimitiveTopology primitiveTopology,
         bool isPrimitiveRestartEnabled = false);
 
-    Result<IGraphicsPipeline> Build(string label);
+    Result<IGraphicsPipeline> Build(Label label);
 
     IGraphicsPipelineBuilder DisableCulling();
 
@@ -28,7 +28,7 @@ public interface IGraphicsPipelineBuilder
 
     IGraphicsPipelineBuilder WithFaceWinding(FaceWinding faceWinding);
 
-    IGraphicsPipelineBuilder EnableDepthTest(CompareOperation compareOperation = CompareOperation.Less);
+    IGraphicsPipelineBuilder EnableDepthTest(CompareFunction compareFunction = CompareFunction.Less);
 
     IGraphicsPipelineBuilder EnableDepthWrite();
 

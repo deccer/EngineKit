@@ -17,14 +17,15 @@ public class ApplicationShould
         var windowSettings = Substitute.For<IOptions<WindowSettings>>();
         var contextSettings = Substitute.For<IOptions<ContextSettings>>();
         var applicationContext = Substitute.For<IApplicationContext>();
+        var limits = Substitute.For<ILimits>();
         var metrics = Substitute.For<IMetrics>();
         var inputProvider = Substitute.For<IInputProvider>();
 
-        _sut = new Application(
-            logger,
+        _sut = Substitute.ForPartsOf<Application>(logger,
             windowSettings,
             contextSettings,
             applicationContext,
+            limits,
             metrics,
             inputProvider);
     }

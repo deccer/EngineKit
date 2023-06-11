@@ -7,4 +7,6 @@ public interface IComputePipeline : IPipeline
     void DispatchIndirect(
         IIndirectBuffer indirectBuffer,
         int indirectElementIndex);
+
+    void Uniform(int location, float value);
 }

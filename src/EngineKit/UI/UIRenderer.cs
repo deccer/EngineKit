@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using EngineKit.Graphics;
 using EngineKit.Input;
+using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
 using ImGuiNET;
-using EngineKit.Mathematics;
 using Serilog;
 using Num = System.Numerics;
 
@@ -86,6 +88,8 @@ internal sealed class UIRenderer : IUIRenderer
     private readonly List<char> _pressedChars;
     private readonly Num.Vector2 _scaleFactor = Num.Vector2.One;
 
+    private readonly IDictionary<string, ImFontPtr> _fonts;
+
     public UIRenderer(
         ILogger logger,
         IGraphicsContext graphicsContext,
@@ -95,12 +99,50 @@ internal sealed class UIRenderer : IUIRenderer
         _graphicsContext = graphicsContext;
         _inputProvider = inputProvider;
         _pressedChars = new List<char>();
+        _fonts = new Dictionary<string, ImFontPtr>(16);
     }
 
-    public bool Load(int width, int height, Action<ImGuiIOPtr>? configureIo = null)
+    public bool AddFont(string name, string filePath, float fontSize)
+    {
+        if (_fonts.ContainsKey(name))
+        {
+            return false;
+        }
+
+        if (!File.Exists(filePath))
+        {
+            //TODO(deccer) add logging
+            //_logger.Error("");
+            return false;
+        }
+
+        var fontPtr = _imGuiIo.Fonts.AddFontFromFileTTF(filePath, fontSize);
+        RecreateFontDeviceTexture();
+        _fonts.Add(name, fontPtr);
+
+        return true;
+    }
+
+    public bool Load(int width, int height)
     {
         _framebufferWidth = width;
         _framebufferHeight = height;
+
+        var imGuiContext = ImGui.CreateContext();
+        ImGui.SetCurrentContext(imGuiContext);
+
+        _imGuiIo = ImGui.GetIO();
+        _imGuiIo.DisplaySize = new Num.Vector2(_framebufferWidth, _framebufferHeight);
+        _imGuiIo.DisplayFramebufferScale = new Num.Vector2(1.0f, 1.0f);
+        _imGuiIo.ConfigFlags = ImGuiConfigFlags.DockingEnable;
+        _imGuiIo.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.HasSetMousePos |
+                                 ImGuiBackendFlags.HasMouseCursors;
+        if (!AddFont("RobotoCondensed-Regular", "Fonts/RobotoCondensed-Regular.ttf", 18))
+        {
+            return false;
+        }
+
+        AddIconFont(15.0f);
 
         var imGuiGraphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromStrings(ImGuiVertexShader, ImGuiFragmentShader)
@@ -113,7 +155,7 @@ internal sealed class UIRenderer : IUIRenderer
             .EnableBlending(ColorBlendAttachmentDescriptor.PreMultiplied)
             .DisableDepthTest()
             .DisableDepthWrite()
-            .Build("ImGuiPipeline");
+            .Build("ImGuiPass");
         if (imGuiGraphicsPipelineResult.IsFailure)
         {
             _logger.Error(
@@ -124,24 +166,6 @@ internal sealed class UIRenderer : IUIRenderer
         }
 
         _imGuiGraphicsPipeline = imGuiGraphicsPipelineResult.Value;
-
-        var imGuiContext = ImGui.CreateContext();
-        ImGui.SetCurrentContext(imGuiContext);
-
-        _imGuiIo = ImGui.GetIO();
-        _imGuiIo.DisplaySize = new Num.Vector2(_framebufferWidth, _framebufferHeight);
-        _imGuiIo.DisplayFramebufferScale = new Num.Vector2(1.0f, 1.0f);
-        _imGuiIo.ConfigFlags = ImGuiConfigFlags.DockingEnable;
-        _imGuiIo.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.HasSetMousePos |
-                                 ImGuiBackendFlags.HasMouseCursors;
-        if (configureIo == null)
-        {
-            _imGuiIo.Fonts.AddFontFromFileTTF("Fonts/RobotoCondensed-Regular.ttf", 18);
-        }
-        else
-        {
-            configureIo(_imGuiIo);
-        }
 
         var mvp = Matrix.OrthoOffCenterRH(
             0.0f,
@@ -154,9 +178,11 @@ internal sealed class UIRenderer : IUIRenderer
         _uniformBuffer.AllocateStorage(mvp, StorageAllocationFlags.Dynamic);
 
         var style = ImGui.GetStyle();
-        SetStyleDarker(style);
+        //SetStyleDarker(style);
         //SetStylePurple(style);
+        SetStyleBlack(style);
         style.Colors[(int)ImGuiCol.DockingEmptyBg] = Num.Vector4.Zero;
+        style.WindowMenuButtonPosition = ImGuiDir.None;
 
         CreateDeviceResources();
         SetKeyMappings();
@@ -180,9 +206,38 @@ internal sealed class UIRenderer : IUIRenderer
         _uniformBuffer?.Update(mvp, 0);
     }
 
+    private unsafe void AddIconFont(float fontSize)
+    {
+        var fonts = _imGuiIo.Fonts;
+        var fontRanges = new ushort[]{ MaterialDesignIcons.Min, MaterialDesignIcons.Max, 0 };
+        var fontRangesPtr = GCHandle.Alloc(fontRanges, GCHandleType.Pinned);
+        {
+            ImFontConfigPtr config = ImGuiNative.ImFontConfig_ImFontConfig();
+            config.MergeMode = true;
+            config.PixelSnapH = true;
+            config.GlyphMinAdvanceX = 4.0f;
+            config.GlyphOffset.Y = 1.0f;
+            config.OversampleH = 1;
+            config.OversampleV = 1;
+            config.SizePixels = fontSize;
+            config.GlyphRanges = fontRangesPtr.AddrOfPinnedObject();
+
+            var fontPtr = GCHandle.Alloc(MaterialDesignIcons.MaterialDesign_compressed_data, GCHandleType.Pinned);
+            fonts.AddFontFromMemoryCompressedTTF(fontPtr.AddrOfPinnedObject(), 361568 / 4, fontSize, config);
+            fontPtr.Free();
+        }
+
+        fonts.Build();
+        fontRangesPtr.Free();
+    }
+
     private void DestroyDeviceObjects()
     {
-        Dispose();
+        _fontSampler?.Dispose();
+        _fontTexture?.Dispose();
+        _indexBuffer?.Dispose();
+        _vertexBuffer?.Dispose();
+        _uniformBuffer?.Dispose();
     }
 
     private void CreateDeviceResources()
@@ -196,6 +251,22 @@ internal sealed class UIRenderer : IUIRenderer
         _indexBuffer.AllocateStorage(_indexBufferSize, StorageAllocationFlags.Dynamic);
 
         RecreateFontDeviceTexture();
+
+        var samplerDescriptor = new SamplerDescriptor
+        {
+            Label = "ImGui",
+            Anisotropy = TextureSampleCount.SixteenSamples,
+            CompareFunction = CompareFunction.Always,
+            IsCompareEnabled = false,
+            LodBias = 0.0f,
+            MinLod = -1000.0f,
+            MaxLod = 1000.0f,
+            InterpolationFilter = TextureInterpolationFilter.Linear,
+            MipmapFilter = TextureMipmapFilter.Linear,
+            TextureAddressModeU = TextureAddressMode.ClampToBorder,
+            TextureAddressModeV = TextureAddressMode.ClampToBorder
+        };
+        _fontSampler = _graphicsContext.CreateSampler(samplerDescriptor);
     }
 
     public void BeginLayout()
@@ -211,7 +282,9 @@ internal sealed class UIRenderer : IUIRenderer
         {
             _frameBegun = false;
             ImGui.Render();
+            GL.Disable(GL.EnableType.FramebufferSrgb);
             RenderDrawData(ImGui.GetDrawData());
+            GL.Enable(GL.EnableType.FramebufferSrgb);
         }
     }
 
@@ -228,8 +301,9 @@ internal sealed class UIRenderer : IUIRenderer
 
     private void RecreateFontDeviceTexture()
     {
-        _imGuiIo.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height, out var bytesPerPixel);
+        _imGuiIo.Fonts.GetTexDataAsRGBA32(out nint pixels, out var width, out var height, out var bytesPerPixel);
 
+        _fontTexture?.Dispose();
         var createTextureDescriptor = new TextureCreateDescriptor
         {
             Size = new Int3(width, height, 1),
@@ -238,7 +312,7 @@ internal sealed class UIRenderer : IUIRenderer
             Label = "ImGuiFontAtlas",
             ArrayLayers = 0,
             MipLevels = 1,
-            SampleCount = SampleCount.OneSample
+            TextureSampleCount = TextureSampleCount.OneSample
         };
         _fontTexture = _graphicsContext.CreateTexture(createTextureDescriptor);
 
@@ -254,23 +328,8 @@ internal sealed class UIRenderer : IUIRenderer
 
         _fontTexture.Update(updateTextureDescriptor, pixels);
 
-        var samplerDescriptor = new SamplerDescriptor
-        {
-            Anisotropy = SampleCount.SixteenSamples,
-            CompareOperation = CompareOperation.Always,
-            IsCompareEnabled = false,
-            LodBias = 0.0f,
-            MinLod = -1000.0f,
-            MaxLod = 1000.0f,
-            MagFilter = Filter.Linear,
-            MinFilter = Filter.Linear,
-            AddressModeU = AddressMode.ClampToBorder,
-            AddressModeV = AddressMode.ClampToBorder
-        };
-        _fontSampler = _graphicsContext.CreateSampler(samplerDescriptor);
-
-        _imGuiIo.Fonts.SetTexID((IntPtr)_fontTexture.Id);
-        _imGuiIo.Fonts.ClearTexData();
+        _imGuiIo.Fonts.SetTexID((nint)_fontTexture.Id);
+        //_imGuiIo.Fonts.ClearTexData();
     }
 
     private void SetPerFrameImGuiData(float deltaSeconds)
@@ -322,7 +381,7 @@ internal sealed class UIRenderer : IUIRenderer
         _imGuiIo.KeyCtrl = currentKeyboardState[Glfw.Key.KeyLeftCtrl] || currentKeyboardState[Glfw.Key.KeyRightCtrl];
         _imGuiIo.KeyAlt = currentKeyboardState[Glfw.Key.KeyLeftAlt] || currentKeyboardState[Glfw.Key.KeyRightAlt];
         _imGuiIo.KeyShift = currentKeyboardState[Glfw.Key.KeyLeftShift] || currentKeyboardState[Glfw.Key.KeyRightShift];
-        //_imGuiIo.KeySuper = keyboardState[Glfw.Key.KeyLeftCtrl] || keyboardState[Glfw.Key.KeyRightCtrl];
+        _imGuiIo.KeySuper = currentKeyboardState[Glfw.Key.KeyLeftCtrl] || currentKeyboardState[Glfw.Key.KeyRightCtrl];
     }
 
     internal void PressChar(char keyChar)
@@ -330,7 +389,7 @@ internal sealed class UIRenderer : IUIRenderer
         _pressedChars.Add(keyChar);
     }
 
-    internal void MouseScroll(Vector2 offset)
+    internal void MouseScroll(Num.Vector2 offset)
     {
         _imGuiIo.MouseWheel = offset.Y;
         _imGuiIo.MouseWheelH = offset.X;
@@ -366,6 +425,7 @@ internal sealed class UIRenderer : IUIRenderer
             return;
         }
 
+        GL.PushDebugGroup("UI");
         for (var i = 0; i < drawDataPtr.CmdListsCount; i++)
         {
             var commandList = drawDataPtr.CmdListsRange[i];
@@ -403,10 +463,7 @@ internal sealed class UIRenderer : IUIRenderer
 
         drawDataPtr.ScaleClipRects(_imGuiIo.DisplayFramebufferScale);
 
-        //GL.Enable(GL.EnableType.Blend);
         GL.Enable(GL.EnableType.ScissorTest);
-        //GL.BlendEquation(GL.BlendEquationMode.FuncAdd);
-        //GL.BlendFunc(GL.BlendFactor.SrcAlpha, GL.BlendFactor.OneMinusSrcAlpha);
         GL.Disable(GL.EnableType.CullFace);
         GL.Disable(GL.EnableType.DepthTest);
 
@@ -469,12 +526,72 @@ internal sealed class UIRenderer : IUIRenderer
 
         GL.Disable(GL.EnableType.Blend);
         GL.Disable(GL.EnableType.ScissorTest);
-        //GL.PopDebugGroup();
+        GL.PopDebugGroup();
     }
 
     public void Dispose()
     {
-        _fontTexture?.Dispose();
+        DestroyDeviceObjects();
+    }
+
+    private void SetStyleBlack(ImGuiStylePtr style)
+    {
+        ImGui.StyleColorsDark();
+        style.Colors[(int)ImGuiCol.Text] = new Num.Vector4(1.00f, 1.00f, 1.00f, 1.00f);
+        style.Colors[(int)ImGuiCol.TextDisabled] = new Num.Vector4(0.50f, 0.50f, 0.50f, 1.00f);
+        style.Colors[(int)ImGuiCol.WindowBg] = new Num.Vector4(0.10f, 0.10f, 0.10f, 1.00f);
+        style.Colors[(int)ImGuiCol.ChildBg] = new Num.Vector4(0.00f, 0.00f, 0.00f, 0.00f);
+        style.Colors[(int)ImGuiCol.PopupBg] = new Num.Vector4(0.19f, 0.19f, 0.19f, 0.92f);
+        style.Colors[(int)ImGuiCol.Border] = new Num.Vector4(0.19f, 0.19f, 0.19f, 0.29f);
+        style.Colors[(int)ImGuiCol.BorderShadow] = new Num.Vector4(0.00f, 0.00f, 0.00f, 0.24f);
+        style.Colors[(int)ImGuiCol.FrameBg] = new Num.Vector4(0.05f, 0.05f, 0.05f, 0.54f);
+        style.Colors[(int)ImGuiCol.FrameBgHovered] = new Num.Vector4(0.19f, 0.19f, 0.19f, 0.54f);
+        style.Colors[(int)ImGuiCol.FrameBgActive] = new Num.Vector4(0.20f, 0.22f, 0.23f, 1.00f);
+        style.Colors[(int)ImGuiCol.TitleBg] = new Num.Vector4(0.00f, 0.00f, 0.00f, 1.00f);
+        style.Colors[(int)ImGuiCol.TitleBgActive] = new Num.Vector4(0.06f, 0.06f, 0.06f, 1.00f);
+        style.Colors[(int)ImGuiCol.TitleBgCollapsed] = new Num.Vector4(0.00f, 0.00f, 0.00f, 1.00f);
+        style.Colors[(int)ImGuiCol.MenuBarBg] = new Num.Vector4(0.14f, 0.14f, 0.14f, 1.00f);
+        style.Colors[(int)ImGuiCol.ScrollbarBg] = new Num.Vector4(0.05f, 0.05f, 0.05f, 0.54f);
+        style.Colors[(int)ImGuiCol.ScrollbarGrab] = new Num.Vector4(0.34f, 0.34f, 0.34f, 0.54f);
+        style.Colors[(int)ImGuiCol.ScrollbarGrabHovered] = new Num.Vector4(0.40f, 0.40f, 0.40f, 0.54f);
+        style.Colors[(int)ImGuiCol.ScrollbarGrabActive] = new Num.Vector4(0.56f, 0.56f, 0.56f, 0.54f);
+        style.Colors[(int)ImGuiCol.CheckMark] = new Num.Vector4(0.33f, 0.67f, 0.86f, 1.00f);
+        style.Colors[(int)ImGuiCol.SliderGrab] = new Num.Vector4(0.34f, 0.34f, 0.34f, 0.54f);
+        style.Colors[(int)ImGuiCol.SliderGrabActive] = new Num.Vector4(0.56f, 0.56f, 0.56f, 0.54f);
+        style.Colors[(int)ImGuiCol.Button] = new Num.Vector4(0.05f, 0.05f, 0.05f, 0.54f);
+        style.Colors[(int)ImGuiCol.ButtonHovered] = new Num.Vector4(0.19f, 0.19f, 0.19f, 0.54f);
+        style.Colors[(int)ImGuiCol.ButtonActive] = new Num.Vector4(0.20f, 0.22f, 0.23f, 1.00f);
+        style.Colors[(int)ImGuiCol.Header] = new Num.Vector4(0.00f, 0.00f, 0.00f, 0.52f);
+        style.Colors[(int)ImGuiCol.HeaderHovered] = new Num.Vector4(0.00f, 0.00f, 0.00f, 0.36f);
+        style.Colors[(int)ImGuiCol.HeaderActive] = new Num.Vector4(0.20f, 0.22f, 0.23f, 0.33f);
+        style.Colors[(int)ImGuiCol.Separator] = new Num.Vector4(0.28f, 0.28f, 0.28f, 0.29f);
+        style.Colors[(int)ImGuiCol.SeparatorHovered] = new Num.Vector4(0.44f, 0.44f, 0.44f, 0.29f);
+        style.Colors[(int)ImGuiCol.SeparatorActive] = new Num.Vector4(0.40f, 0.44f, 0.47f, 1.00f);
+        style.Colors[(int)ImGuiCol.ResizeGrip] = new Num.Vector4(0.28f, 0.28f, 0.28f, 0.29f);
+        style.Colors[(int)ImGuiCol.ResizeGripHovered] = new Num.Vector4(0.44f, 0.44f, 0.44f, 0.29f);
+        style.Colors[(int)ImGuiCol.ResizeGripActive] = new Num.Vector4(0.40f, 0.44f, 0.47f, 1.00f);
+        style.Colors[(int)ImGuiCol.Tab] = new Num.Vector4(0.00f, 0.00f, 0.00f, 0.52f);
+        style.Colors[(int)ImGuiCol.TabHovered] = new Num.Vector4(0.14f, 0.14f, 0.14f, 1.00f);
+        style.Colors[(int)ImGuiCol.TabActive] = new Num.Vector4(0.20f, 0.20f, 0.20f, 0.36f);
+        style.Colors[(int)ImGuiCol.TabUnfocused] = new Num.Vector4(0.00f, 0.00f, 0.00f, 0.52f);
+        style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new Num.Vector4(0.14f, 0.14f, 0.14f, 1.00f);
+        style.Colors[(int)ImGuiCol.DockingPreview] = new Num.Vector4(0.33f, 0.67f, 0.86f, 1.00f);
+        style.Colors[(int)ImGuiCol.DockingEmptyBg] = new Num.Vector4(1.00f, 0.00f, 0.00f, 1.00f);
+        style.Colors[(int)ImGuiCol.PlotLines] = new Num.Vector4(1.00f, 0.00f, 0.00f, 1.00f);
+        style.Colors[(int)ImGuiCol.PlotLinesHovered] = new Num.Vector4(1.00f, 0.00f, 0.00f, 1.00f);
+        style.Colors[(int)ImGuiCol.PlotHistogram] = new Num.Vector4(1.00f, 0.00f, 0.00f, 1.00f);
+        style.Colors[(int)ImGuiCol.PlotHistogramHovered] = new Num.Vector4(1.00f, 0.00f, 0.00f, 1.00f);
+        style.Colors[(int)ImGuiCol.TableHeaderBg] = new Num.Vector4(0.00f, 0.00f, 0.00f, 0.52f);
+        style.Colors[(int)ImGuiCol.TableBorderStrong] = new Num.Vector4(0.00f, 0.00f, 0.00f, 0.52f);
+        style.Colors[(int)ImGuiCol.TableBorderLight] = new Num.Vector4(0.28f, 0.28f, 0.28f, 0.29f);
+        style.Colors[(int)ImGuiCol.TableRowBg] = new Num.Vector4(0.00f, 0.00f, 0.00f, 0.00f);
+        style.Colors[(int)ImGuiCol.TableRowBgAlt] = new Num.Vector4(1.00f, 1.00f, 1.00f, 0.06f);
+        style.Colors[(int)ImGuiCol.TextSelectedBg] = new Num.Vector4(0.20f, 0.22f, 0.23f, 1.00f);
+        style.Colors[(int)ImGuiCol.DragDropTarget] = new Num.Vector4(0.33f, 0.67f, 0.86f, 1.00f);
+        style.Colors[(int)ImGuiCol.NavHighlight] = new Num.Vector4(1.00f, 0.00f, 0.00f, 1.00f);
+        style.Colors[(int)ImGuiCol.NavWindowingHighlight] = new Num.Vector4(1.00f, 0.00f, 0.00f, 0.70f);
+        style.Colors[(int)ImGuiCol.NavWindowingDimBg] = new Num.Vector4(0.80f, 0.80f, 0.80f, 0.35f);
+        style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new Num.Vector4(0.80f, 0.80f, 0.80f, 0.35f);
     }
 
     private void SetStylePurple(ImGuiStylePtr style)

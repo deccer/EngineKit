@@ -11,16 +11,22 @@ public class Texture : ITexture
     private readonly uint _id;
     private bool _isResident;
 
-    public Format Format
-    {
-        get => _textureCreateDescriptor.Format;
-    }
+    public TextureCreateDescriptor TextureCreateDescriptor => _textureCreateDescriptor;
+
+    public Format Format => _textureCreateDescriptor.Format;
 
     public ulong TextureHandle { get; private set; }
 
     public void MakeResident()
     {
         TextureHandle = GL.GetTextureHandle(_id);
+        GL.MakeTextureHandleResident(TextureHandle);
+        _isResident = true;
+    }
+    
+    public void MakeResident(ISampler sampler)
+    {
+        TextureHandle = GL.GetTextureSamplerHandle(_id, sampler.Id);
         GL.MakeTextureHandleResident(TextureHandle);
         _isResident = true;
     }
@@ -100,13 +106,34 @@ public class Texture : ITexture
         var textureViewDescriptor = new TextureViewDescriptor
         {
             Format = _textureCreateDescriptor.Format,
-            Label = _textureCreateDescriptor.Label + "_View",
+            Label = _textureCreateDescriptor.Label + "-View",
             ImageType = _textureCreateDescriptor.ImageType,
             MinLayer = 0,
-            NumLayers = _textureCreateDescriptor.ArrayLayers,
+            NumLayers = _textureCreateDescriptor.ArrayLayers + 1,
             MinLevel = 0,
             NumLevels = _textureCreateDescriptor.MipLevels
         };
+        return new TextureView(textureViewDescriptor, this);
+    }
+    
+    public TextureView CreateTextureView(SwizzleMapping swizzleMapping)
+    {
+        var textureViewDescriptor = new TextureViewDescriptor
+        {
+            Format = _textureCreateDescriptor.Format,
+            Label = _textureCreateDescriptor.Label + "-View",
+            ImageType = _textureCreateDescriptor.ImageType,
+            MinLayer = 0,
+            NumLayers = _textureCreateDescriptor.ArrayLayers + 1,
+            MinLevel = 0,
+            NumLevels = _textureCreateDescriptor.MipLevels,
+            SwizzleMapping = swizzleMapping
+        };
+        return new TextureView(textureViewDescriptor, this);
+    }
+    
+    public TextureView CreateTextureView(TextureViewDescriptor textureViewDescriptor)
+    {
         return new TextureView(textureViewDescriptor, this);
     }
 
@@ -125,7 +152,7 @@ public class Texture : ITexture
 
     public void Update(
         TextureUpdateDescriptor textureUpdateDescriptor,
-        IntPtr pixelPtr)
+        nint pixelPtr)
     {
         switch (textureUpdateDescriptor.UploadDimension)
         {

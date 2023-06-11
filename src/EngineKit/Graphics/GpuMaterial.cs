@@ -3,18 +3,30 @@ using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct GpuMaterial
 {
-    public Color4 BaseColor;
+    public Vector4 BaseColorFactor;
+    
+    public Vector4 EmissiveFactor;
 
-    public Color4 Emissive;
+    public float MetallicFactor;
 
-    public Int4 BaseColorTextureId;
+    public float RoughnessFactor;
 
-    public Int4 NormalTextureId;
+    public float AlphaCutOff;
 
-    public Int4 SpecularTextureId;
+    public int AlphaMode;
 
-    public Int4 MetalnessRoughnessTextureId;
+    public ulong BaseColorTexture;
+
+    public ulong NormalTexture;
+    
+    public ulong MetalnessRoughnessTexture;
+    
+    public ulong SpecularTexture;
+
+    public ulong OcclusionTexture;
+
+    public ulong EmissiveTexture;
 }

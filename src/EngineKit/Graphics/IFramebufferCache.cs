@@ -4,7 +4,7 @@ namespace EngineKit.Graphics;
 
 internal interface IFramebufferCache : IDisposable
 {
-    uint GetOrCreateFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor);
+    uint GetOrCreateFramebuffer(FramebufferDescriptor framebufferDescriptor);
 
-    void RemoveFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor);
+    void RemoveFramebuffer(FramebufferDescriptor framebufferDescriptor);
 }

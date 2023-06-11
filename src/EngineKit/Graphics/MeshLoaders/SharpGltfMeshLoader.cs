@@ -8,6 +8,10 @@ using EngineKit.Mathematics;
 using Serilog;
 using SharpGLTF.Schema2;
 using SharpGLTF.Validation;
+using Num = System.Numerics;
+using Vector2 = EngineKit.Mathematics.Vector2;
+using Vector3 = EngineKit.Mathematics.Vector3;
+using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace EngineKit.Graphics.MeshLoaders;
 
@@ -24,7 +28,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
         _materialLibrary = materialLibrary;
     }
 
-    public IReadOnlyCollection<MeshData> LoadModel(string filePath)
+    public IReadOnlyCollection<MeshPrimitive> LoadMeshPrimitivesFromFile(string filePath)
     {
         //var runtimeOptions = new RuntimeOptions().GpuMeshInstancing == MeshInstancing.SingleMesh;
         var readSettings = new ReadSettings
@@ -34,15 +38,22 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
         var model = ModelRoot.Load(filePath, readSettings);
 
-        foreach (var material in model.LogicalMaterials)
+        var materials = new List<Material>(128);
+        foreach (var gltfMaterial in model.LogicalMaterials)
         {
+            if (gltfMaterial == null)
+            {
+                continue;
+            }
+
+            var material = ProcessMaterial(gltfMaterial);
             if (material != null)
             {
-                ProcessMaterial(material);
+                materials.Add(material);
             }
         }
 
-        var meshDates = new List<MeshData>(model.LogicalMeshes.Count);
+        var meshPrimitives = new List<MeshPrimitive>(model.LogicalNodes.Count);
         foreach (var node in model.LogicalNodes)
         {
             if (node.Mesh == null)
@@ -50,147 +61,219 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 continue;
             }
 
-            ProcessNode(meshDates, node);
+            ProcessNode(meshPrimitives, node, materials);
         }
 
         _logger.Debug("{Category}: Loaded {PrimitiveCount} primitives from {FilePath}", nameof(SharpGltfMeshLoader),
-            meshDates.Count, filePath);
+            meshPrimitives.Count, filePath);
 
-        return meshDates;
+        return meshPrimitives;
     }
 
-    private void ProcessMaterial(SharpGLTF.Schema2.Material gltfMaterial)
+    private Material? ProcessMaterial(SharpGLTF.Schema2.Material gltfMaterial)
     {
-        // BaseColor
-        // MetallicRoughness
-        // Normal
-        // Occlusion
-        // Emissive
+        var materialName = gltfMaterial.Name ?? Guid.NewGuid().ToString();
 
-        if (string.IsNullOrEmpty(gltfMaterial.Name))
+        if (_materialLibrary.Exists(materialName))
         {
-            _logger.Error("{Category}: Material has no name, skipping import", nameof(SharpGltfMeshLoader));
-            return;
+            _logger.Debug("{Category}: Material {MaterialName} imported already", nameof(SharpGltfMeshLoader), materialName);
+            return null;
         }
 
-        if (_materialLibrary.Exists(gltfMaterial.Name))
-        {
-            _logger.Debug("{Category}: Material {MaterialName} imported already", nameof(SharpGltfMeshLoader), gltfMaterial.Name);
-            return;
-        }
+        _logger.Debug("{Category}: Loading Material {MaterialName}", nameof(SharpGltfMeshLoader), materialName);
 
-        var material = new Material(gltfMaterial.Name ?? Guid.NewGuid().ToString());
-
+        var material = new Material(materialName);
         foreach (var materialChannel in gltfMaterial.Channels)
         {
-            if (materialChannel.Key is "BaseColor" or "Diffuse")
+            if (materialChannel.Key is "BaseColor" or "Diffuse" or "RGB")
             {
                 material.BaseColor = new Color4(
                     materialChannel.Color.X,
                     materialChannel.Color.Y,
                     materialChannel.Color.Z,
                     materialChannel.Color.W);
-
+                
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
                     material.BaseColorTextureDataName =
-                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Name) ??
+                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
                         Guid.NewGuid().ToString();
-                    if (materialChannel.Texture!.PrimaryImage!.Content.IsEmpty)
+                    if (File.Exists(materialChannel.Texture?.PrimaryImage?.Content.SourcePath))
                     {
                         material.BaseColorTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
                     }
                     else
                     {
-                        material.BaseColorEmbeddedImageData = materialChannel.Texture.PrimaryImage.Content.Content;
+                        material.BaseColorEmbeddedImageData = materialChannel.Texture?.PrimaryImage?.Content.Content;
                     }
+                }
+
+                if (materialChannel.TextureSampler != null)
+                {
+                    material.BaseColorTextureSamplerInformation =
+                        new SamplerInformation(materialChannel.TextureSampler);
                 }
             }
             else if (materialChannel.Key == "Normal")
             {
+                // NormalScale
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
                     material.NormalTextureDataName =
-                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Name) ??
+                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
                         Guid.NewGuid().ToString();
-                    if (materialChannel.Texture!.PrimaryImage!.Content.IsEmpty)
+                    if (File.Exists(materialChannel.Texture?.PrimaryImage?.Content.SourcePath))
                     {
                         material.NormalTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
                     }
                     else
                     {
-                        material.NormalEmbeddedImageData = materialChannel.Texture.PrimaryImage.Content.Content;
+                        material.NormalEmbeddedImageData = materialChannel.Texture?.PrimaryImage?.Content.Content;
                     }
                 }
 
-                // NormalScale
+                if (materialChannel.TextureSampler != null)
+                {
+                    material.NormalTextureSamplerInformation = new SamplerInformation(materialChannel.TextureSampler);
+                }
             }
             else if (materialChannel.Key == "MetallicRoughness")
             {
-                material.MetallicFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "MetallicFactor")?.Value ?? 0.0f;
-                material.RoughnessFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "RuoghnessFactor")?.Value ?? 0.0f;
+                material.MetallicFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "MetallicFactor")?.Value ?? 1.0f;
+                material.RoughnessFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "RoughnessFactor")?.Value ?? 1.0f;
 
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
                     material.MetalnessRoughnessTextureDataName =
-                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Name) ??
+                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
                         Guid.NewGuid().ToString();
-                    if (materialChannel.Texture!.PrimaryImage!.Content.IsEmpty)
+                    if (File.Exists(materialChannel.Texture?.PrimaryImage?.Content.SourcePath))
                     {
                         material.MetalnessRoughnessTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
                     }
                     else
                     {
-                        material.MetalnessRoughnessEmbeddedImageData = materialChannel.Texture.PrimaryImage.Content.Content;
+                        material.MetalnessRoughnessEmbeddedImageData = materialChannel.Texture?.PrimaryImage?.Content.Content;
                     }
                 }
+
+                if (materialChannel.TextureSampler != null)
+                {
+                    material.MetalnessRoughnessTextureSamplerInformation =
+                        new SamplerInformation(materialChannel.TextureSampler);
+                }
+            }
+            else if (materialChannel.Key == "SpecularColor")
+            {
+                material.SpecularColor = new Color4(materialChannel.Color.X, materialChannel.Color.Y, materialChannel.Color.Z, materialChannel.Color.W);
+            }
+            else if (materialChannel.Key == "SpecularFactor")
+            {
+                var specularFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "SpecularFactor")?.Value ?? 1.0f;
+                material.SpecularFactor = new Num.Vector3(specularFactor);
             }
             else if (materialChannel.Key == "SpecularGlossiness")
             {
-                // SpecularFactor (vec3) (parameters[0])
-                // GlossinessFactor (float) (parameters[1])
+                material.SpecularFactor = (Num.Vector3?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "SpecularFactor")?.Value ?? Num.Vector3.One;
+                material.GlossinessFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "GlossinessFactor")?.Value ?? 1.0f;
+
+                if (materialChannel.TextureSampler != null)
+                {
+                    material.SpecularTextureSamplerInformation = new SamplerInformation(materialChannel.TextureSampler);
+                }
             }
             else if (materialChannel.Key == "Occlusion")
             {
-                // OcclusionStrength
-            }
-            else if (materialChannel.Key == "RGB")
-            {
-                // Value
+                material.OcclusionStrength = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "OcclusionStrength")?.Value ?? 1.0f;
+                
+                if (materialChannel.Texture?.PrimaryImage != null)
+                {
+                    material.OcclusionTextureDataName =
+                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
+                        Guid.NewGuid().ToString();
+                    if (File.Exists(materialChannel.Texture?.PrimaryImage?.Content.SourcePath))
+                    {
+                        material.OcclusionTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
+                    }
+                    else
+                    {
+                        material.OcclusionEmbeddedImageData = materialChannel.Texture?.PrimaryImage?.Content.Content;
+                    }
+                }
+
+                if (materialChannel.TextureSampler != null)
+                {
+                    material.OcclusionTextureSamplerInformation = new SamplerInformation(materialChannel.TextureSampler);
+                }
             }
             else if (materialChannel.Key == "Emissive")
             {
                 // Color
-                material.Emissive = new Color4(materialChannel.Color.X, materialChannel.Color.Y, materialChannel.Color.Z, 0.0f);
+                material.EmissiveColor = new Color4(materialChannel.Color.X, materialChannel.Color.Y, materialChannel.Color.Z, 0.0f);
+                
+                if (materialChannel.Texture?.PrimaryImage != null)
+                {
+                    material.EmissiveTextureDataName =
+                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
+                        Guid.NewGuid().ToString();
+                    if (File.Exists(materialChannel.Texture?.PrimaryImage?.Content.SourcePath))
+                    {
+                        material.EmissiveTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
+                    }
+                    else
+                    {
+                        material.EmissiveEmbeddedImageData = materialChannel.Texture?.PrimaryImage?.Content.Content;
+                    }
+                }
+
+                if (materialChannel.TextureSampler != null)
+                {
+                    material.EmissiveTextureSamplerInformation = new SamplerInformation(materialChannel.TextureSampler);
+                }
             }
         }
 
-        _materialLibrary.AddMaterial(material.Name, material);
+        _materialLibrary.AddMaterial(material);
+        return material;
     }
 
-    private void ProcessNode(ICollection<MeshData> meshDates, Node node)
+    private void ProcessNode(ICollection<MeshPrimitive> meshPrimitives, Node node, ICollection<Material> materials)
     {
-        if (node.Mesh == null)
-        {
-            _logger.Debug("{Category}: No mesh found in node {NodeName}", nameof(SharpGltfMeshLoader), node.Name);
-            return;
-        }
-
-        var meshData = new MeshData(node.Name ?? Guid.NewGuid().ToString());
-        meshData.Transform = node.WorldMatrix.ToMatrix();
-
         foreach (var primitive in node.Mesh.Primitives)
         {
-            meshData.MaterialName = primitive?.Material?.Name ?? "Unnamed Material";
-            if (primitive!.DrawPrimitiveType != PrimitiveType.TRIANGLES)
+            if (primitive?.VertexAccessors?.Keys == null)
+            {
+                _logger.Error("{Category}: Primitives has no vertices. Skipping", nameof(SharpGltfMeshLoader));
+                continue;
+            }
+
+            if (primitive.DrawPrimitiveType != PrimitiveType.TRIANGLES)
             {
                 _logger.Error("{Category}: Only triangle primitives are allowed", nameof(SharpGltfMeshLoader));
                 continue;
             }
 
-            var vertexType = GetVertexTypeFromVertexAccessorNames(primitive.VertexAccessors.Keys.ToList());
-
+            var meshName = string.IsNullOrEmpty(node.Name)
+                ? Guid.NewGuid().ToString()
+                : meshPrimitives.Any(md => md.MeshName == node.Name)
+                    ? node.Name + "_" + Guid.NewGuid()
+                    : node.Name;
+            
             var positions = primitive.VertexAccessors.GetValueOrDefault("POSITION").AsSpan<Vector3>();
+            if (positions.Length == 0)
+            {
+                _logger.Error("{Category}: Mesh primitive {MeshName} has no valid vertex data", nameof(SharpGltfMeshLoader), meshName);
+                continue;
+            }      
+            
+            var meshPrimitive = new MeshPrimitive(meshName);
+            meshPrimitive.Transform = node.WorldMatrix.ToMatrix();
+            meshPrimitive.MaterialName = primitive.Material?.Name ?? (primitive.Material == null ? "M_NotFound" : materials.ElementAt(primitive.Material.LogicalIndex)?.Name) ?? "M_NotFound";
+            
+            var vertexType = GetVertexTypeFromVertexAccessorNames(primitive!.VertexAccessors!.Keys.ToList());
+
+            meshPrimitive.BoundingBox = BoundingBox.FromPoints(positions.ToArray());
+            
             var normals = primitive.VertexAccessors.GetValueOrDefault("NORMAL").AsSpan<Vector3>();
             var uvs = primitive.VertexAccessors.GetValueOrDefault("TEXCOORD_0").AsSpan<Vector2>();
             var realTangents = primitive.VertexAccessors.GetValueOrDefault("TANGENT").AsSpan<Vector4>();
@@ -207,7 +290,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             if (primitive.IndexAccessor != null)
             {
                 var indices = primitive.IndexAccessor.AsIndicesArray().ToArray();
-                meshData.AddIndices(indices);
+                meshPrimitive.AddIndices(indices);
             }
             else
             {
@@ -216,43 +299,42 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
             for (var i = 0; i < positions.Length; i++)
             {
-                var position = Vector3.TransformPosition(positions[i], meshData.Transform);
-                var normal = Vector3.TransformDirection(normals[i], meshData.Transform);
+                var position = Vector3.TransformPosition(positions[i], meshPrimitive.Transform);
+                var normal = Vector3.TransformDirection(normals[i], meshPrimitive.Transform);
                 var realTangentXyz = new Vector3(realTangents[i].X, realTangents[i].Y, realTangents[i].Z);
-                var realTangent = new Vector4(Vector3.TransformDirection(realTangentXyz, meshData.Transform), realTangents[i].W);
+                var realTangent = new Vector4(Vector3.TransformDirection(realTangentXyz, meshPrimitive.Transform), realTangents[i].W);
 
                 switch (vertexType)
                 {
                     case VertexType.PositionNormal:
-                        meshData.AddPositionNormal(position, normal);
+                        meshPrimitive.AddPositionNormal(position, normal);
                         break;
                     case VertexType.PositionNormalUv:
-                        meshData.AddPositionNormalUvRealTangent(position, normal, uvs[i], Vector4.One);
+                        meshPrimitive.AddPositionNormalUvRealTangent(position, normal, uvs[i], Vector4.One);
                         break;
                     case VertexType.PositionNormalUvTangent:
-                        meshData.AddPositionNormalUvRealTangent(
+                        meshPrimitive.AddPositionNormalUvRealTangent(
                             position,
                             normal,
                             uvs[i],
                             realTangent);
                         break;
                     case VertexType.PositionUv:
-                        meshData.AddPositionUv(position, uvs[i]);
+                        meshPrimitive.AddPositionUv(position, uvs[i]);
                         break;
                     default:
                     {
                         if (vertexType == VertexType.PositionUv)
                         {
-                            meshData.AddPositionUv(position, uvs[i]);
+                            meshPrimitive.AddPositionUv(position, uvs[i]);
                         }
 
                         break;
                     }
                 }
             }
+            meshPrimitives.Add(meshPrimitive);
         }
-
-        meshDates.Add(meshData);
     }
 
     private static VertexType GetVertexTypeFromVertexAccessorNames(ICollection<string> vertexAccessorNames)

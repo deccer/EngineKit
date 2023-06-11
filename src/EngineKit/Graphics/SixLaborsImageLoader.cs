@@ -3,6 +3,7 @@ using System.IO;
 using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace EngineKit.Graphics;
 
@@ -14,23 +15,86 @@ internal sealed class SixLaborsImageLoader : IImageLoader
     {
         _logger = logger.ForContext<SixLaborsImageLoader>();
     }
-    
-    public Image? LoadImage<TPixel>(string filePath) where TPixel : IPixel
+
+    public Image? LoadImageFromFile<TPixel>(string filePath, bool flipVertical = true, bool flipHorizontal = false) where TPixel : IPixel
     {
         if (!File.Exists(filePath))
         {
             _logger.Error("ImageLoader: File {FilePath} not found", filePath);
             return null;
         }
-        
+
         if (typeof(TPixel) == typeof(Rgb24))
         {
-            return Image.Load<Rgb24>(filePath);
+            var image = Image.Load<Rgb24>(filePath);
+            if (flipVertical)
+            {
+                image.Mutate(pc => pc.Flip(FlipMode.Vertical));
+            }
+
+            if (flipHorizontal)
+            {
+                image.Mutate(pc => pc.Flip(FlipMode.Horizontal));
+            }
+
+            return image;
         };
-        
+
         if (typeof(TPixel) == typeof(Rgba32))
         {
-            return Image.Load<Rgba32>(filePath);
+            var image = Image.Load<Rgba32>(filePath);
+            if (flipVertical)
+            {
+                image.Mutate(pc => pc.Flip(FlipMode.Vertical));
+            }
+
+            if (flipHorizontal)
+            {
+                image.Mutate(pc => pc.Flip(FlipMode.Horizontal));
+            }
+
+            return image;
+        };
+
+        throw new ArgumentException("Unsupported Pixel type");
+    }
+
+    public Image? LoadImageFromMemory<TPixel>(ReadOnlySpan<byte> pixelBytes, bool flipVertical = true, bool flipHorizontal = false) where TPixel : IPixel
+    {
+        if (pixelBytes.IsEmpty)
+        {
+            _logger.Error("ImageLoader: pixelBytes is empty");
+        }
+        if (typeof(TPixel) == typeof(Rgb24))
+        {
+            var image = Image.Load<Rgb24>(pixelBytes);
+            if (flipVertical)
+            {
+                image.Mutate(pc => pc.Flip(FlipMode.Vertical));
+            }
+
+            if (flipHorizontal)
+            {
+                image.Mutate(pc => pc.Flip(FlipMode.Horizontal));
+            }
+
+            return image;
+        };
+
+        if (typeof(TPixel) == typeof(Rgba32))
+        {
+            var image = Image.Load<Rgba32>(pixelBytes);
+            if (flipVertical)
+            {
+                image.Mutate(pc => pc.Flip(FlipMode.Vertical));
+            }
+
+            if (flipHorizontal)
+            {
+                image.Mutate(pc => pc.Flip(FlipMode.Horizontal));
+            }
+
+            return image;
         };
 
         throw new ArgumentException("Unsupported Pixel type");

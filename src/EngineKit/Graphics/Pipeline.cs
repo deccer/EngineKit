@@ -1,12 +1,14 @@
-using CSharpFunctionalExtensions;
 using EngineKit.Extensions;
+using EngineKit.Graphics.Shaders;
 using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
 
 public abstract class Pipeline : IPipeline
 {
-    protected ShaderProgram? ShaderProgram;        
+    protected ShaderProgram? ShaderProgram;
+    
+    public Label Label { get; protected set; }
 
     public virtual void Bind()
     {
@@ -17,7 +19,7 @@ public abstract class Pipeline : IPipeline
     {
         ShaderProgram?.Dispose();
     }
-    
+
     public void BindImage(
         ITexture texture,
         uint unit,
@@ -47,19 +49,19 @@ public abstract class Pipeline : IPipeline
     }
 
     public void BindShaderStorageBuffer(
-        IShaderStorageBuffer buffer,
+        IShaderStorageBuffer? buffer,
         uint bindingIndex)
     {
-        buffer.Bind(bindingIndex);
+        buffer?.Bind(bindingIndex);
     }
-    
+
     public void BindTexture(
         ITexture texture,
         uint bindingIndex)
     {
         GL.BindTextureUnit(bindingIndex, texture.Id);
     }
-    
+
     public void BindSampledTexture(ISampler sampler, ITexture texture, uint bindingIndex)
     {
         GL.BindTextureUnit(bindingIndex, texture.Id);
@@ -70,20 +72,5 @@ public abstract class Pipeline : IPipeline
     {
         GL.BindTextureUnit(bindingIndex, textureId);
         GL.BindSampler(bindingIndex, sampler.Id);
-    }
-    
-
-    internal Result LinkPrograms()
-    {
-        if (ShaderProgram is null)
-        {
-            return Result.Failure("No shader program available");
-        }
-
-        var linkResult = ShaderProgram.Link();
-
-        return linkResult.IsFailure
-            ? linkResult
-            : Result.Success();
     }
 }

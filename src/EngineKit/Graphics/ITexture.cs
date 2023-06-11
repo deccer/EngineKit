@@ -3,19 +3,23 @@ using System.Buffers;
 
 namespace EngineKit.Graphics;
 
-public interface ITexture : IDisposable
+public interface ITexture : IHasTextureId, IDisposable
 {
-    Format Format { get; }
-
-    uint Id { get; }
+    TextureCreateDescriptor TextureCreateDescriptor { get; }
 
     ulong TextureHandle { get; }
 
     void MakeResident();
 
+    void MakeResident(ISampler sampler);
+
     void MakeNonResident();
 
     TextureView CreateTextureView();
+    
+    TextureView CreateTextureView(SwizzleMapping swizzleMapping);
+    
+    TextureView CreateTextureView(TextureViewDescriptor textureViewDescriptor);
 
     void GenerateMipmaps();
 

@@ -1,68 +1,39 @@
 ﻿using System;
 using EngineKit.Graphics;
-using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Extensions;
 
 public static class FormatExtensions
 {
-    public static VertexAttributeType ToVertexAttributeType(this Format format)
+    public static bool IsStencilFormat(this Format format)
     {
         return format switch
         {
-            Format.R11G11B10Float => VertexAttributeType.Float,
-            Format.R16Float => VertexAttributeType.Float,
-            Format.R16G16Float => VertexAttributeType.Float,
-            Format.R16G16B16Float => VertexAttributeType.Float,
-            Format.R16G16B16A16Float => VertexAttributeType.Float,
-            Format.R32Float => VertexAttributeType.Float,
-            Format.R32G32Float => VertexAttributeType.Float,
-            Format.R32G32B32Float => VertexAttributeType.Float,
-            Format.R32G32B32A32Float => VertexAttributeType.Float,
-            Format.R8UInt => VertexAttributeType.Integer,
-            Format.R8UNorm => VertexAttributeType.Integer,
-            Format.R8SInt => VertexAttributeType.Integer,
-            Format.R8SNorm => VertexAttributeType.Integer,
-            Format.R8G8UInt => VertexAttributeType.Integer,
-            Format.R8G8UNorm => VertexAttributeType.Integer,
-            Format.R8G8SInt => VertexAttributeType.Integer,
-            Format.R8G8SNorm => VertexAttributeType.Integer,
-            Format.R8G8B8UInt => VertexAttributeType.Integer,
-            Format.R8G8B8UNorm => VertexAttributeType.Integer,
-            Format.R8G8B8SInt => VertexAttributeType.Integer,
-            Format.R8G8B8SNorm => VertexAttributeType.Integer,
-            Format.R8G8B8A8UInt => VertexAttributeType.Integer,
-            Format.R8G8B8A8UNorm => VertexAttributeType.Byte,
-            Format.R8G8B8A8SInt => VertexAttributeType.Integer,
-            Format.R8G8B8A8SNorm => VertexAttributeType.Integer,
-            Format.R16UInt => VertexAttributeType.Integer,
-            Format.R16UNorm => VertexAttributeType.Integer,
-            Format.R16SInt => VertexAttributeType.Integer,
-            Format.R16SNorm => VertexAttributeType.Integer,
-            Format.R16G16UInt => VertexAttributeType.Integer,
-            Format.R16G16UNorm => VertexAttributeType.Integer,
-            Format.R16G16SInt => VertexAttributeType.Integer,
-            Format.R16G16SNorm => VertexAttributeType.Integer,
-            Format.R16G16B16UInt => VertexAttributeType.Integer,
-            Format.R16G16B16UNorm => VertexAttributeType.Integer,
-            Format.R16G16B16SInt => VertexAttributeType.Integer,
-            Format.R16G16B16SNorm => VertexAttributeType.Integer,
-            Format.R16G16B16A16UInt => VertexAttributeType.Integer,
-            Format.R16G16B16A16UNorm => VertexAttributeType.Integer,
-            Format.R16G16B16A16SInt => VertexAttributeType.Integer,
-            Format.R16G16B16A16SNorm => VertexAttributeType.Integer,
-            Format.R32UInt => VertexAttributeType.Integer,
-            Format.R32SInt => VertexAttributeType.Integer,
-            Format.R32G32UInt => VertexAttributeType.Integer,
-            Format.R32G32SInt => VertexAttributeType.Integer,
-            Format.R32G32B32UInt => VertexAttributeType.Integer,
-            Format.R32G32B32SInt => VertexAttributeType.Integer,
-            Format.R32G32B32A32UInt => VertexAttributeType.Integer,
-            Format.R32G32B32A32SInt => VertexAttributeType.Integer,
-            _ => throw new ArgumentOutOfRangeException(nameof(format))
+            Format.D32FloatS8UInt => true,
+            Format.D24UNormS8UInt => true,
+            _ => false
         };
     }
 
+    public static bool IsColorFormat(this Format format)
+    {
+        return !(IsStencilFormat(format) || IsDepthFormat(format));
+    }
+    
+    public static bool IsDepthFormat(this Format format)
+    {
+        return format switch
+        {
+            Format.D32Float => true,
+            Format.D32UNorm => true,
+            Format.D32FloatS8UInt => true,
+            Format.D24UNormS8UInt => true,
+            Format.D24UNorm => true,
+            Format.D16UNorm => true,
+            _ => false
+        };
+    }
+    
     public static bool IsNormalized(this Format format)
     {
         switch (format)
@@ -79,6 +50,7 @@ public static class FormatExtensions
             case Format.R8G8B8A8SNorm:
             case Format.R8G8B8UNorm:
             case Format.R8G8B8SNorm:
+            case Format.R10G10B10A2UNorm:
             case Format.R16G16B16UNorm:
             case Format.R16G16B16SNorm:
             case Format.R16G16B16A16UNorm:
@@ -187,6 +159,7 @@ public static class FormatExtensions
             case Format.R8G8B8A8UInt:
             case Format.R8G8B8A8SNorm:
             case Format.R8G8B8A8SInt:
+            case Format.R10G10B10A2UNorm:
             case Format.R16G16B16A16UNorm:
             case Format.R16G16B16A16UInt:
             case Format.R16G16B16A16SNorm:
@@ -205,6 +178,8 @@ public static class FormatExtensions
     {
         return format switch
         {
+            Format.R8G8B8Srgb => FormatBaseType.Float,
+            Format.R8G8B8A8Srgb => FormatBaseType.Float,
             Format.R8UNorm => FormatBaseType.Float,
             Format.R8G8UNorm => FormatBaseType.Float,
             Format.R8G8B8UNorm => FormatBaseType.Float,
@@ -221,6 +196,7 @@ public static class FormatExtensions
             Format.R8G8SInt => FormatBaseType.SignedInteger,
             Format.R8G8B8SInt => FormatBaseType.SignedInteger,
             Format.R8G8B8A8SInt => FormatBaseType.SignedInteger,
+            Format.R10G10B10A2UNorm => FormatBaseType.Float,
             Format.R11G11B10Float => FormatBaseType.Float,
             Format.R16UNorm => FormatBaseType.Float,
             Format.R16G16UNorm => FormatBaseType.Float,
@@ -260,6 +236,70 @@ public static class FormatExtensions
             Format.D16UNorm => FormatBaseType.UnsignedInteger,
             Format.D32FloatS8UInt => FormatBaseType.UnsignedInteger,
             Format.D24UNormS8UInt => FormatBaseType.UnsignedInteger,
+            _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
+        };
+    }
+    
+    public static DataType ToDataType(this Format format)
+    {
+        return format switch
+        {
+            Format.R8UNorm => DataType.Float,
+            Format.R8G8UNorm => DataType.Float,
+            Format.R8G8B8UNorm => DataType.Float,
+            Format.R8G8B8A8UNorm => DataType.Float,
+            Format.R8UInt => DataType.UnsignedInteger,
+            Format.R8G8UInt => DataType.UnsignedInteger,
+            Format.R8G8B8UInt => DataType.UnsignedInteger,
+            Format.R8G8B8A8UInt => DataType.UnsignedInteger,
+            Format.R8SNorm => DataType.Float,
+            Format.R8G8SNorm => DataType.Float,
+            Format.R8G8B8SNorm => DataType.Float,
+            Format.R8G8B8A8SNorm => DataType.Float,
+            Format.R8SInt => DataType.Integer,
+            Format.R8G8SInt => DataType.Integer,
+            Format.R8G8B8SInt => DataType.Integer,
+            Format.R8G8B8A8SInt => DataType.Integer,
+            Format.R10G10B10A2UNorm => DataType.Float,
+            Format.R11G11B10Float => DataType.Float,
+            Format.R16UNorm => DataType.Float,
+            Format.R16G16UNorm => DataType.Float,
+            Format.R16G16B16UNorm => DataType.Float,
+            Format.R16G16B16A16UNorm => DataType.Float,
+            Format.R16UInt => DataType.UnsignedInteger,
+            Format.R16G16UInt => DataType.UnsignedInteger,
+            Format.R16G16B16UInt => DataType.UnsignedInteger,
+            Format.R16G16B16A16UInt => DataType.UnsignedInteger,
+            Format.R16SNorm => DataType.Float,
+            Format.R16G16SNorm => DataType.Float,
+            Format.R16G16B16SNorm => DataType.Float,
+            Format.R16G16B16A16SNorm => DataType.Float,
+            Format.R16SInt => DataType.Integer,
+            Format.R16G16SInt => DataType.Integer,
+            Format.R16G16B16SInt => DataType.Integer,
+            Format.R16G16B16A16SInt => DataType.Integer,
+            Format.R16Float => DataType.Float,
+            Format.R16G16Float => DataType.Float,
+            Format.R16G16B16Float => DataType.Float,
+            Format.R16G16B16A16Float => DataType.Float,
+            Format.R32Float => DataType.Float,
+            Format.R32G32Float => DataType.Float,
+            Format.R32G32B32Float => DataType.Float,
+            Format.R32G32B32A32Float => DataType.Float,
+            Format.R32SInt => DataType.Integer,
+            Format.R32G32SInt => DataType.Integer,
+            Format.R32G32B32SInt => DataType.Integer,
+            Format.R32G32B32A32SInt => DataType.Integer,
+            Format.R32UInt => DataType.UnsignedInteger,
+            Format.R32G32UInt => DataType.UnsignedInteger,
+            Format.R32G32B32UInt => DataType.UnsignedInteger,
+            Format.R32G32B32A32UInt => DataType.UnsignedInteger,
+            Format.D32Float => DataType.Float,
+            Format.D32UNorm => DataType.UnsignedInteger,
+            Format.D24UNorm => DataType.UnsignedInteger,
+            Format.D16UNorm => DataType.UnsignedInteger,
+            Format.D32FloatS8UInt => DataType.UnsignedInteger,
+            Format.D24UNormS8UInt => DataType.UnsignedInteger,
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
         };
     }

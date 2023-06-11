@@ -8,12 +8,12 @@ namespace EngineKit.Graphics;
 internal sealed class FramebufferCache : IFramebufferCache
 {
     private readonly ILogger _logger;
-    private readonly IDictionary<FramebufferRenderDescriptor, uint> _framebufferCache;
+    private readonly IDictionary<FramebufferDescriptor, uint> _framebufferCache;
 
     public FramebufferCache(ILogger logger)
     {
         _logger = logger.ForContext<FramebufferCache>();
-        _framebufferCache = new Dictionary<FramebufferRenderDescriptor, uint>(16);
+        _framebufferCache = new Dictionary<FramebufferDescriptor, uint>(16);
     }
 
     public void Dispose()
@@ -26,34 +26,37 @@ internal sealed class FramebufferCache : IFramebufferCache
         _framebufferCache.Clear();
     }
 
-    public uint GetOrCreateFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
+    public uint GetOrCreateFramebuffer(FramebufferDescriptor framebufferDescriptor)
     {
-        return _framebufferCache.TryGetValue(framebufferRenderDescriptor, out var framebuffer)
+        return _framebufferCache.TryGetValue(framebufferDescriptor, out var framebuffer)
             ? framebuffer
-            : CreateFramebuffer(framebufferRenderDescriptor);
+            : CreateFramebuffer(framebufferDescriptor);
     }
 
-    public void RemoveFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
+    public void RemoveFramebuffer(FramebufferDescriptor framebufferDescriptor)
     {
-        if (_framebufferCache.TryGetValue(framebufferRenderDescriptor, out var framebuffer))
+        if (_framebufferCache.TryGetValue(framebufferDescriptor, out var framebuffer))
         {
             GL.DeleteFramebuffer(framebuffer);
-            _framebufferCache.Remove(framebufferRenderDescriptor);
+            _framebufferCache.Remove(framebufferDescriptor);
         }
     }
 
-    private uint CreateFramebuffer(FramebufferRenderDescriptor framebufferRenderDescriptor)
+    private uint CreateFramebuffer(FramebufferDescriptor framebufferDescriptor)
     {
-        _logger.Debug("Creating Framebuffer");
-
+        var framebufferName = "Framebuffer-" + framebufferDescriptor.Label;
         var drawBuffers = new List<GL.DrawBuffer>(8);
         var framebufferId = GL.CreateFramebuffer();
-        for (var i = 0; i < framebufferRenderDescriptor.ColorAttachments.Length; i++)
+        if (!string.IsNullOrEmpty(framebufferDescriptor.Label))
+        {
+            GL.ObjectLabel(GL.ObjectIdentifier.Framebuffer, framebufferId, framebufferName);
+        }
+        for (var i = 0; i < framebufferDescriptor.ColorAttachments.Length; i++)
         {
             GL.NamedFramebufferTexture(
                 framebufferId,
                 (GL.FramebufferAttachment)((int)GL.FramebufferAttachment.ColorAttachment0 + i),
-                framebufferRenderDescriptor.ColorAttachments[i].Texture.Id,
+                framebufferDescriptor.ColorAttachments[i].Texture.Id,
                 0);
             drawBuffers.Add((GL.DrawBuffer)((int)GL.DrawBuffer.ColorAttachment0 + i));
         }
@@ -69,33 +72,34 @@ internal sealed class FramebufferCache : IFramebufferCache
             GL.NamedFramebufferDrawBuffers(framebufferId, GL.DrawBuffer.None);
         }
 
-        if (framebufferRenderDescriptor.DepthAttachment.HasValue &&
-            framebufferRenderDescriptor.StencilAttachment.HasValue)
+        if (framebufferDescriptor.DepthAttachment.HasValue &&
+            framebufferDescriptor.StencilAttachment.HasValue)
         {
             GL.NamedFramebufferTexture(
                 framebufferId,
                 GL.FramebufferAttachment.DepthStencilAttachment,
-                framebufferRenderDescriptor.DepthAttachment.Value.Texture.Id,
+                framebufferDescriptor.DepthAttachment.Value.Texture.Id,
                 0);
         }
-        else if (framebufferRenderDescriptor.DepthAttachment.HasValue)
+        else if (framebufferDescriptor.DepthAttachment.HasValue)
         {
             GL.NamedFramebufferTexture(
                 framebufferId,
                 GL.FramebufferAttachment.DepthAttachment,
-                framebufferRenderDescriptor.DepthAttachment.Value.Texture.Id,
+                framebufferDescriptor.DepthAttachment.Value.Texture.Id,
                 0);
         }
-        else if (framebufferRenderDescriptor.StencilAttachment.HasValue)
+        else if (framebufferDescriptor.StencilAttachment.HasValue)
         {
             GL.NamedFramebufferTexture(
                 framebufferId,
                 GL.FramebufferAttachment.StencilAttachment,
-                framebufferRenderDescriptor.StencilAttachment.Value.Texture.Id,
+                framebufferDescriptor.StencilAttachment.Value.Texture.Id,
                 0);
         }
 
-        _framebufferCache.Add(framebufferRenderDescriptor, framebufferId);
+        _framebufferCache.Add(framebufferDescriptor, framebufferId);
+        _logger.Debug("{Category}: Framebuffer {FramebufferName} created", "FramebufferCache", framebufferName);
 
         return framebufferId;
     }

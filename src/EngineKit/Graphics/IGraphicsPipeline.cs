@@ -3,15 +3,15 @@ namespace EngineKit.Graphics;
 public interface IGraphicsPipeline : IPipeline
 {
     void BindVertexBuffer(
-        IVertexBuffer vertexBuffer,
+        IVertexBuffer? vertexBuffer,
         uint binding,
         uint offset);
 
-    void BindIndexBuffer(IIndexBuffer indexBuffer);
+    void BindIndexBuffer(IIndexBuffer? indexBuffer);
 
     void DrawArrays(
         int vertexCount,
-        int vertexOffset);
+        int vertexOffset = 0);
 
     void DrawArraysInstanced(
         int firstVertex,
@@ -21,11 +21,11 @@ public interface IGraphicsPipeline : IPipeline
 
     void DrawElements(
         int elementCount,
-        int offset);
+        int offset = 0);
 
     void DrawElementsIndirect(
         IIndirectBuffer indirectBuffer,
-        int indirectElementIndex);
+        int indirectElementIndex= 0);
 
     void DrawElementsInstanced(
         int elementCount,

@@ -21,10 +21,11 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
         IMetrics metrics,
+        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider, graphicsContext, uiRenderer)
+        : base(logger, windowSettings, contextSettings, applicationContext, metrics, limits, inputProvider, graphicsContext, uiRenderer)
     {
         _logger = logger;
         _metrics = metrics;
@@ -42,7 +43,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render()
+    protected override void Render(float deltaTime)
     {
         GL.Clear(GL.FramebufferBit.ColorBufferBit | GL.FramebufferBit.DepthBufferBit);
 
@@ -61,7 +62,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
                 }
 
                 ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
-                ImGui.TextUnformatted($"Fps: {_metrics.GetAverageFps()}");
+                ImGui.TextUnformatted($"Fps: {_metrics.AverageFrameTime}");
 
                 ImGui.EndMenuBar();
             }
@@ -79,9 +80,9 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update()
+    protected override void Update(float deltaTime)
     {
-        base.Update();
+        base.Update(deltaTime);
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();

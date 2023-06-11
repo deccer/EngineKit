@@ -4,7 +4,7 @@ namespace DeferredRendering;
 
 public class ModelMesh
 {
-    public ModelMesh(string name, MeshData meshData)
+    public ModelMesh(string name, MeshPrimitive meshData)
     {
         Name = name;
         MeshData = meshData;
@@ -12,5 +12,5 @@ public class ModelMesh
     
     public string Name { get; }
     
-    public MeshData MeshData { get; }
+    public MeshPrimitive MeshData { get; }
 }

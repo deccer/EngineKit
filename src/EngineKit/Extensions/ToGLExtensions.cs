@@ -6,6 +6,44 @@ namespace EngineKit.Extensions;
 
 public static class ToGLExtensions
 {
+    public static GL.BlitFramebufferFilter ToGL(this BlitFramebufferFilter blitFramebufferFilter)
+    {
+        return blitFramebufferFilter switch
+        {
+            BlitFramebufferFilter.Linear => GL.BlitFramebufferFilter.Linear,
+            BlitFramebufferFilter.Nearest => GL.BlitFramebufferFilter.Nearest
+        };
+    }
+    
+    public static GL.FramebufferBit ToGL(this FramebufferBit framebufferBit)
+    {
+        GL.FramebufferBit result = 0u;
+        result |= (framebufferBit & FramebufferBit.ColorBufferBit) == FramebufferBit.ColorBufferBit
+            ? GL.FramebufferBit.ColorBufferBit
+            : 0;
+        result |= (framebufferBit & FramebufferBit.DepthBufferBit) == FramebufferBit.DepthBufferBit
+            ? GL.FramebufferBit.DepthBufferBit
+            : 0;
+        result |= (framebufferBit & FramebufferBit.StencilBufferBit) == FramebufferBit.StencilBufferBit
+            ? GL.FramebufferBit.StencilBufferBit
+            : 0;
+        return result;
+    }
+
+    public static int ToGL(this Swizzle swizzle)
+    {
+        return swizzle switch
+        {
+            Swizzle.Red => (int)GL.PixelFormat.Red,
+            Swizzle.Green => (int)GL.PixelFormat.Green,
+            Swizzle.Blue => (int)GL.PixelFormat.Blue,
+            Swizzle.Alpha => 0,
+            Swizzle.One => 1,
+            Swizzle.Zero => 0,
+            _ => throw new ArgumentOutOfRangeException(nameof(swizzle), swizzle, null)
+        };
+    }
+
     public static GL.BufferStorageMask ToGL(this StorageAllocationFlags storageAllocationFlags)
     {
         GL.BufferStorageMask result = 0u;
@@ -90,59 +128,59 @@ public static class ToGLExtensions
         };
     }
 
-    public static GL.BlendFactor ToGL(this BlendFactor blendFactor)
+    public static GL.BlendFactor ToGL(this Blend blend)
     {
-        return blendFactor switch
+        return blend switch
         {
-            BlendFactor.Zero => GL.BlendFactor.Zero,
-            BlendFactor.One => GL.BlendFactor.One,
-            BlendFactor.SourceColor => GL.BlendFactor.SrcColor,
-            BlendFactor.OneMinusSourceColor => GL.BlendFactor.OneMinusSrcColor,
-            BlendFactor.DestinationColor => GL.BlendFactor.DstColor,
-            BlendFactor.OneMinusDestinationColor => GL.BlendFactor.OneMinusDstColor,
-            BlendFactor.SourceAlpha => GL.BlendFactor.SrcAlpha,
-            BlendFactor.OneMinusSourceAlpha => GL.BlendFactor.OneMinusSrcAlpha,
-            BlendFactor.DestinationAlpha => GL.BlendFactor.DstAlpha,
-            BlendFactor.OneMinusDestinationAlpha => GL.BlendFactor.OneMinusDstAlpha,
-            BlendFactor.ConstantColor => GL.BlendFactor.ConstantColor,
-            BlendFactor.OneMinusConstantColor => GL.BlendFactor.OneMinusConstantColor,
-            BlendFactor.ConstantAlpha => GL.BlendFactor.ConstantAlpha,
-            BlendFactor.OneMinusConstantAlpha => GL.BlendFactor.OneMinusConstantAlpha,
-            BlendFactor.SourceAlphaSaturate => GL.BlendFactor.SrcAlphaSaturate,
-            BlendFactor.Source1Color => GL.BlendFactor.Src1Color,
-            BlendFactor.OneMinusSource1Color => GL.BlendFactor.OneMinusSrc1Color,
-            BlendFactor.Source1Alpha => GL.BlendFactor.Src1Alpha,
-            BlendFactor.OneMinusSource1Alpha => GL.BlendFactor.OneMinusSrc1Alpha,
-            _ => throw new ArgumentOutOfRangeException(nameof(blendFactor), blendFactor, null)
+            Blend.Zero => GL.BlendFactor.Zero,
+            Blend.One => GL.BlendFactor.One,
+            Blend.SourceColor => GL.BlendFactor.SrcColor,
+            Blend.OneMinusSourceColor => GL.BlendFactor.OneMinusSrcColor,
+            Blend.DestinationColor => GL.BlendFactor.DstColor,
+            Blend.OneMinusDestinationColor => GL.BlendFactor.OneMinusDstColor,
+            Blend.SourceAlpha => GL.BlendFactor.SrcAlpha,
+            Blend.OneMinusSourceAlpha => GL.BlendFactor.OneMinusSrcAlpha,
+            Blend.DestinationAlpha => GL.BlendFactor.DstAlpha,
+            Blend.OneMinusDestinationAlpha => GL.BlendFactor.OneMinusDstAlpha,
+            Blend.ConstantColor => GL.BlendFactor.ConstantColor,
+            Blend.OneMinusConstantColor => GL.BlendFactor.OneMinusConstantColor,
+            Blend.ConstantAlpha => GL.BlendFactor.ConstantAlpha,
+            Blend.OneMinusConstantAlpha => GL.BlendFactor.OneMinusConstantAlpha,
+            Blend.SourceAlphaSaturate => GL.BlendFactor.SrcAlphaSaturate,
+            Blend.Source1Color => GL.BlendFactor.Src1Color,
+            Blend.OneMinusSource1Color => GL.BlendFactor.OneMinusSrc1Color,
+            Blend.Source1Alpha => GL.BlendFactor.Src1Alpha,
+            Blend.OneMinusSource1Alpha => GL.BlendFactor.OneMinusSrc1Alpha,
+            _ => throw new ArgumentOutOfRangeException(nameof(blend), blend, null)
         };
     }
 
-    public static GL.CompareOperation ToGL(this CompareOperation compareOperation)
+    public static GL.CompareOperation ToGL(this CompareFunction compareFunction)
     {
-        return compareOperation switch
+        return compareFunction switch
         {
-            CompareOperation.Never => GL.CompareOperation.Never,
-            CompareOperation.Always => GL.CompareOperation.Always,
-            CompareOperation.Less => GL.CompareOperation.Less,
-            CompareOperation.LessOrEqual => GL.CompareOperation.LessOrEqual,
-            CompareOperation.Greater => GL.CompareOperation.Greater,
-            CompareOperation.GreaterOrEqual => GL.CompareOperation.GreaterOrEqual,
-            CompareOperation.Equal => GL.CompareOperation.Equal,
-            CompareOperation.NotEqual => GL.CompareOperation.NotEqual,
-            _ => throw new ArgumentOutOfRangeException(nameof(compareOperation), compareOperation, null)
+            CompareFunction.Never => GL.CompareOperation.Never,
+            CompareFunction.Always => GL.CompareOperation.Always,
+            CompareFunction.Less => GL.CompareOperation.Less,
+            CompareFunction.LessOrEqual => GL.CompareOperation.LessOrEqual,
+            CompareFunction.Greater => GL.CompareOperation.Greater,
+            CompareFunction.GreaterOrEqual => GL.CompareOperation.GreaterOrEqual,
+            CompareFunction.Equal => GL.CompareOperation.Equal,
+            CompareFunction.NotEqual => GL.CompareOperation.NotEqual,
+            _ => throw new ArgumentOutOfRangeException(nameof(compareFunction), compareFunction, null)
         };
     }
 
-    public static GL.BlendOperation ToGL(this BlendOperation blendOperation)
+    public static GL.BlendOperation ToGL(this BlendFunction blendFunction)
     {
-        return blendOperation switch
+        return blendFunction switch
         {
-            BlendOperation.Add => GL.BlendOperation.Add,
-            BlendOperation.Subtract => GL.BlendOperation.Subtract,
-            BlendOperation.ReverseSubtract => GL.BlendOperation.ReverseSubtract,
-            BlendOperation.Min => GL.BlendOperation.Min,
-            BlendOperation.Max => GL.BlendOperation.Max,
-            _ => throw new ArgumentOutOfRangeException(nameof(blendOperation), blendOperation, null)
+            BlendFunction.Add => GL.BlendOperation.Add,
+            BlendFunction.Subtract => GL.BlendOperation.Subtract,
+            BlendFunction.ReverseSubtract => GL.BlendOperation.ReverseSubtract,
+            BlendFunction.Min => GL.BlendOperation.Min,
+            BlendFunction.Max => GL.BlendOperation.Max,
+            _ => throw new ArgumentOutOfRangeException(nameof(blendFunction), blendFunction, null)
         };
     }
 
@@ -178,10 +216,13 @@ public static class ToGLExtensions
             Format.R8G8B8UNorm => GL.SizedInternalFormat.Rgb8,
             Format.R8G8B8SInt => GL.SizedInternalFormat.Rgb8i,
             Format.R8G8B8SNorm => GL.SizedInternalFormat.Rgb8Snorm,
+            Format.R8G8B8Srgb => GL.SizedInternalFormat.Srgb8,
             Format.R8G8B8A8UInt => GL.SizedInternalFormat.Rgba8ui,
             Format.R8G8B8A8UNorm => GL.SizedInternalFormat.Rgba8,
             Format.R8G8B8A8SInt => GL.SizedInternalFormat.Rgba8i,
             Format.R8G8B8A8SNorm => GL.SizedInternalFormat.Rgba8Snorm,
+            Format.R8G8B8A8Srgb => GL.SizedInternalFormat.Srgb8Alpha8,
+            Format.R10G10B10A2UNorm => GL.SizedInternalFormat.Rgb10A2,
             Format.R11G11B10Float => GL.SizedInternalFormat.R11fG11fB10f,
             Format.R16UInt => GL.SizedInternalFormat.R16ui,
             Format.R16UNorm => GL.SizedInternalFormat.R16,
@@ -254,15 +295,15 @@ public static class ToGLExtensions
         };
     }
 
-    public static GL.AddressMode ToGL(this AddressMode addressMode)
+    public static GL.AddressMode ToGL(this TextureAddressMode textureAddressMode)
     {
-        return addressMode switch
+        return textureAddressMode switch
         {
-            AddressMode.Repeat => GL.AddressMode.Repeat,
-            AddressMode.MirroredRepeat => GL.AddressMode.MirroredRepeat,
-            AddressMode.ClampToEdge => GL.AddressMode.ClampToEdge,
-            AddressMode.ClampToBorder => GL.AddressMode.ClampToBorder,
-            _ => throw new ArgumentOutOfRangeException(nameof(addressMode), addressMode, null)
+            TextureAddressMode.Repeat => GL.AddressMode.Repeat,
+            TextureAddressMode.MirroredRepeat => GL.AddressMode.MirroredRepeat,
+            TextureAddressMode.ClampToEdge => GL.AddressMode.ClampToEdge,
+            TextureAddressMode.ClampToBorder => GL.AddressMode.ClampToBorder,
+            _ => throw new ArgumentOutOfRangeException(nameof(textureAddressMode), textureAddressMode, null)
         };
     }
 
@@ -292,13 +333,29 @@ public static class ToGLExtensions
         };
     }
 
-    public static GL.Filter ToGL(this Filter filter)
+    public static GL.Filter ToGL(this TextureInterpolationFilter interpolationFilter)
     {
-        return filter switch
+        return interpolationFilter switch
         {
-            Filter.Nearest => GL.Filter.Nearest,
-            Filter.Linear => GL.Filter.Linear,
-            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null)
+            TextureInterpolationFilter.Default => GL.Filter.Linear,
+            TextureInterpolationFilter.Linear => GL.Filter.Linear,
+            TextureInterpolationFilter.Nearest => GL.Filter.Nearest,
+            _ => throw new ArgumentOutOfRangeException(nameof(interpolationFilter), interpolationFilter, null)
+        };
+    }
+
+    public static GL.Filter ToGL(this TextureMipmapFilter mipmapFilter)
+    {
+        return mipmapFilter switch
+        {
+            TextureMipmapFilter.Default => GL.Filter.LinearMipmapLinear,
+            TextureMipmapFilter.Linear => GL.Filter.Linear,
+            TextureMipmapFilter.LinearMipmapLinear => GL.Filter.LinearMipmapLinear,
+            TextureMipmapFilter.LinearMipmapNearest => GL.Filter.LinearMipmapNearest,
+            TextureMipmapFilter.Nearest => GL.Filter.Nearest,
+            TextureMipmapFilter.NearestMipmapLinear => GL.Filter.NearestMipmapLinear,
+            TextureMipmapFilter.NearestMipmapNearest => GL.Filter.NearestMipmapNearest,
+            _ => throw new ArgumentOutOfRangeException(nameof(mipmapFilter), mipmapFilter, null)
         };
     }
 

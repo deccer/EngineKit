@@ -2,36 +2,47 @@ namespace EngineKit.Graphics;
 
 public record struct ColorBlendAttachmentDescriptor(
     bool IsBlendEnabled,
-    BlendFactor SourceColorBlendFactor,
-    BlendFactor DestinationColorBlendFactor,
-    BlendOperation ColorBlendOperation,
-    BlendFactor SourceAlphaBlendFactor,
-    BlendFactor DestinationAlphaBlendFactor,
-    BlendOperation AlphaBlendOperation,
+    Blend SourceColorBlend,
+    Blend DestinationColorBlend,
+    BlendFunction ColorBlendFunction,
+    Blend SourceAlphaBlend,
+    Blend DestinationAlphaBlend,
+    BlendFunction AlphaBlendFunction,
     ColorMask ColorWriteMask)
 {
     public static readonly ColorBlendAttachmentDescriptor Opaque = new ColorBlendAttachmentDescriptor
     {
         IsBlendEnabled = false,
-        SourceColorBlendFactor = BlendFactor.One,
-        DestinationColorBlendFactor = BlendFactor.Zero,
-        ColorBlendOperation = BlendOperation.Add,
-        SourceAlphaBlendFactor = BlendFactor.One,
-        DestinationAlphaBlendFactor = BlendFactor.Zero,
-        AlphaBlendOperation = BlendOperation.Add,
+        SourceColorBlend = Blend.One,
+        SourceAlphaBlend = Blend.One,
+        DestinationColorBlend = Blend.Zero,
+        DestinationAlphaBlend = Blend.Zero,
+        ColorBlendFunction = BlendFunction.Add,
+        AlphaBlendFunction = BlendFunction.Add,
         ColorWriteMask = ColorMask.All
     };
-
 
     public static readonly ColorBlendAttachmentDescriptor PreMultiplied = new ColorBlendAttachmentDescriptor
     {
         IsBlendEnabled = true,
-        SourceColorBlendFactor = BlendFactor.SourceAlpha,
-        DestinationColorBlendFactor = BlendFactor.OneMinusSourceAlpha,
-        ColorBlendOperation = BlendOperation.Add,
-        SourceAlphaBlendFactor = BlendFactor.One,
-        DestinationAlphaBlendFactor = BlendFactor.OneMinusSourceAlpha,
-        AlphaBlendOperation = BlendOperation.Add,
+        SourceColorBlend = Blend.SourceAlpha,
+        SourceAlphaBlend = Blend.One,
+        DestinationColorBlend = Blend.OneMinusSourceAlpha,
+        DestinationAlphaBlend = Blend.OneMinusSourceAlpha,
+        ColorBlendFunction = BlendFunction.Add,
+        AlphaBlendFunction = BlendFunction.Add,
+        ColorWriteMask = ColorMask.All
+    };
+    
+    public static readonly ColorBlendAttachmentDescriptor Additive = new ColorBlendAttachmentDescriptor
+    {
+        IsBlendEnabled = true,
+        SourceColorBlend = Blend.One,
+        SourceAlphaBlend = Blend.One,
+        DestinationColorBlend = Blend.SourceColor,
+        DestinationAlphaBlend = Blend.SourceAlpha,
+        ColorBlendFunction = BlendFunction.Add,
+        AlphaBlendFunction = BlendFunction.Add,
         ColorWriteMask = ColorMask.All
     };
 }

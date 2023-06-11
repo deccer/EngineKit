@@ -12,21 +12,20 @@ public class SamplerBuilder
         _samplerDescriptor.LodBias = 0.0f;
         _samplerDescriptor.MinLod = -1000.0f;
         _samplerDescriptor.MaxLod = 1000.0f;
-        _samplerDescriptor.Anisotropy = SampleCount.OneSample;
-        _samplerDescriptor.CompareOperation = CompareOperation.Less;
+        _samplerDescriptor.Anisotropy = TextureSampleCount.OneSample;
+        _samplerDescriptor.CompareFunction = CompareFunction.Less;
         _samplerDescriptor.IsCompareEnabled = false;
     }
 
-    public SamplerBuilder WithMagnificationFilter(Filter filter = Filter.Linear)
+    public SamplerBuilder WithInterpolationFilter(TextureInterpolationFilter filter)
     {
-        _samplerDescriptor.MagFilter = filter;
+        _samplerDescriptor.InterpolationFilter = filter;
         return this;
     }
 
-    public SamplerBuilder WithMinificationFilter(Filter mipmapFilter = Filter.Linear, Filter filter = Filter.Linear)
+    public SamplerBuilder WithMipmapFilter(TextureMipmapFilter mipmapFilter)
     {
         _samplerDescriptor.MipmapFilter = mipmapFilter;
-        _samplerDescriptor.MinFilter = filter;
         return this;
     }
 
@@ -43,11 +42,11 @@ public class SamplerBuilder
         return this;
     }
 
-    public SamplerBuilder WithAddressMode(AddressMode addressMode)
+    public SamplerBuilder WithAddressMode(TextureAddressMode textureAddressMode)
     {
-        _samplerDescriptor.AddressModeU = addressMode;
-        _samplerDescriptor.AddressModeV = addressMode;
-        _samplerDescriptor.AddressModeW = addressMode;
+        _samplerDescriptor.TextureAddressModeU = textureAddressMode;
+        _samplerDescriptor.TextureAddressModeV = textureAddressMode;
+        _samplerDescriptor.TextureAddressModeW = textureAddressMode;
         return this;
     }
 

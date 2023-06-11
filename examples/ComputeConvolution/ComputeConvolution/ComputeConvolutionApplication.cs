@@ -7,7 +7,7 @@ using ImGuiNET;
 using Microsoft.Extensions.Options;
 using EngineKit.Mathematics;
 using Serilog;
-using SixLabors.ImageSharp;
+using SixLabors;
 using SixLabors.ImageSharp.PixelFormats;
 using Color = EngineKit.Mathematics.Color;
 
@@ -22,7 +22,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
     private ITexture? _skyboxTexture;
     private ITexture? _skyboxConvolvedTexture;
     private ISampler? _skyboxSampler;
-    private SwapchainRenderDescriptor _swapchainRenderDescriptor;
+    private SwapchainDescriptor _swapchainDescriptor;
 
     private IGraphicsPipeline? _sceneGraphicsPipeline;
 
@@ -32,10 +32,11 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
         IMetrics metrics,
+        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, inputProvider, graphicsContext, uiRenderer)
+        : base(logger, windowSettings, contextSettings, applicationContext, metrics, limits, inputProvider, graphicsContext, uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;
@@ -73,7 +74,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render()
+    protected override void Render(float deltaTime)
     {
         if (_metrics.FrameCounter == 0)
         {
@@ -82,7 +83,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
                 return;
             }
         }
-        GraphicsContext.BeginRenderToSwapchain(_swapchainRenderDescriptor);
+        GraphicsContext.BeginRenderToSwapchain(_swapchainDescriptor);
         GraphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline!);
 
         _sceneGraphicsPipeline!.BindSampledTexture(_skyboxSampler!, _skyboxTexture!.Id, 0);
@@ -103,9 +104,9 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update()
+    protected override void Update(float deltaTime)
     {
-        base.Update();
+        base.Update(deltaTime);
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();
@@ -141,7 +142,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
     private bool LoadRenderDescriptors()
     {
         //TODO(deccer) hide SwapchainDescriptor in Application/also make sure to resize when window resize
-        _swapchainRenderDescriptor = new SwapchainRenderDescriptorBuilder()
+        _swapchainDescriptor = new SwapchainDescriptorBuilder()
             .ClearColor(Color.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
@@ -197,14 +198,14 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             Label = "ConvolvedSkybox",
             Size = new Int3(1024, 1024, 1),
             MipLevels = (uint)(1 + MathF.Ceiling(MathF.Log2(1024))),
-            SampleCount = SampleCount.OneSample
+            TextureSampleCount = TextureSampleCount.OneSample
         };
         _skyboxConvolvedTexture = GraphicsContext.CreateTexture(skyboxTextureCreateDescriptor);
 
         _skyboxSampler = GraphicsContext.CreateSamplerBuilder()
-            .WithMagnificationFilter()
-            .WithMinificationFilter(Filter.Linear, Filter.Nearest)
-            .WithAddressMode(AddressMode.Repeat)
+            .WithInterpolationFilter(TextureInterpolationFilter.Linear)
+            .WithMipmapFilter(TextureMipmapFilter.LinearMipmapNearest)
+            .WithAddressMode(TextureAddressMode.Repeat)
             .Build("LinearMipmapNearest");
 
         return true;
@@ -235,13 +236,13 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             0,
             0,
             MemoryAccess.ReadOnly,
-            _skyboxTexture!.Format);
+            _skyboxTexture!.TextureCreateDescriptor.Format);
         convolutionComputePipeline.BindImage(
             _skyboxConvolvedTexture!,
             1,
             0,
             MemoryAccess.WriteOnly,
-            _skyboxConvolvedTexture!.Format);
+            _skyboxConvolvedTexture!.TextureCreateDescriptor.Format);
         convolutionComputePipeline.Dispatch(xGroups, yGroups, 6);
         GraphicsContext.InsertMemoryBarrier(BarrierMask.ShaderImageAccess);
 
@@ -265,7 +266,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         var slice = 0;
         foreach (var skyboxFileName in skyboxFileNames)
         {
-            using var image = Image.Load<Rgba32>(skyboxFileName);
+            using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(skyboxFileName);
 
             if (slice == 0)
             {
@@ -276,7 +277,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
                     Label = $"Skybox_{skyboxName}",
                     Size = new Int3(image.Width, image.Height, 1),
                     MipLevels = 1,
-                    SampleCount = SampleCount.OneSample
+                    TextureSampleCount = TextureSampleCount.OneSample
                 };
                 _skyboxTexture = GraphicsContext.CreateTexture(skyboxTextureCreateDescriptor);
             }

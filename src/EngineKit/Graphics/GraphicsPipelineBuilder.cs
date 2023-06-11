@@ -1,5 +1,5 @@
 using System.IO;
-using System.Net;
+using System.Linq;
 using CSharpFunctionalExtensions;
 
 namespace EngineKit.Graphics;
@@ -42,7 +42,7 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
             },
             DepthStencilDescriptor = new DepthStencilDescriptor
             {
-                DepthCompareOperation = CompareOperation.Less,
+                DepthCompareFunction = CompareFunction.Less,
                 IsDepthTestEnabled = true,
                 IsDepthWriteEnabled = true
             }
@@ -109,10 +109,10 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
-    public IGraphicsPipelineBuilder EnableDepthTest(CompareOperation compareOperation = CompareOperation.Less)
+    public IGraphicsPipelineBuilder EnableDepthTest(CompareFunction compareFunction = CompareFunction.Less)
     {
         _graphicsPipelineDescriptor.DepthStencilDescriptor.IsDepthTestEnabled = true;
-        _graphicsPipelineDescriptor.DepthStencilDescriptor.DepthCompareOperation = compareOperation;
+        _graphicsPipelineDescriptor.DepthStencilDescriptor.DepthCompareFunction = compareFunction;
         return this;
     }
 
@@ -173,8 +173,13 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
-    public Result<IGraphicsPipeline> Build(string label)
+    public Result<IGraphicsPipeline> Build(Label label)
     {
+        if (!_graphicsPipelineDescriptor.VertexInput.VertexBindingDescriptors.Any())
+        {
+            return Result.Failure<IGraphicsPipeline>("VertexBindingDescriptors not found. Did you forget adding Attributes?");
+        }
+
         if (_shadersFromFiles)
         {
             if (!File.Exists(_vertexShaderFilePath))
@@ -204,7 +209,7 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
 
         _graphicsPipelineDescriptor.VertexShaderSource = _vertexShaderSource;
         _graphicsPipelineDescriptor.FragmentShaderSource = _fragmentShaderSource;
-        _graphicsPipelineDescriptor.PipelineProgramLabel = new Label(label);
+        _graphicsPipelineDescriptor.PipelineProgramLabel = label;
         return _internalGraphicsContext.CreateGraphicsPipeline(_graphicsPipelineDescriptor);
     }
 }

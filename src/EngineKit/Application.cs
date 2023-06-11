@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using EngineKit.Input;
 using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
@@ -15,9 +17,11 @@ public class Application : IApplication
     private readonly IOptions<WindowSettings> _windowSettings;
     private readonly IOptions<ContextSettings> _contextSettings;
     private readonly IApplicationContext _applicationContext;
+    private readonly ILimits _limits;
     private readonly IMetrics _metrics;
     private readonly IInputProvider _inputProvider;
     private readonly ILogger _logger;
+    private readonly IList<string> _extensions;
     private nint _windowHandle;
 
     private GL.GLDebugProc? _debugProcCallback;
@@ -31,11 +35,15 @@ public class Application : IApplication
     private static bool _isFirstFrame = true;
     private bool _isCursorVisible;
 
-    public Application(
+    private readonly FrameTimeAverager _frameTimeAverager;
+    private long _previousFrameTicks;
+
+    protected Application(
         ILogger logger,
         IOptions<WindowSettings> windowSettings,
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
+        ILimits limits,
         IMetrics metrics,
         IInputProvider inputProvider)
     {
@@ -43,16 +51,23 @@ public class Application : IApplication
         _windowSettings = windowSettings;
         _contextSettings = contextSettings;
         _applicationContext = applicationContext;
+        _limits = limits;
         _metrics = metrics;
         _inputProvider = inputProvider;
         _windowHandle = nint.Zero;
+        _frameTimeAverager = new FrameTimeAverager(50);
+        _extensions = new List<string>(512);
     }
+    
+    public double DesiredFramerate { get; set; } = 120.0;
+    
+    public bool LimitFrameRate { get; set; } = true;
 
     public void Dispose()
     {
         //Glfw.Terminate();
     }
-
+    
     public void Run()
     {
         if (!Initialize())
@@ -68,68 +83,38 @@ public class Application : IApplication
         }
 
         _logger.Debug("{Category}: Loaded", "App");
-
-        var stopwatch = Stopwatch.StartNew();
-        var accumulator = 0f;
-        var currentTime = stopwatch.ElapsedMilliseconds;
-        var lastTime = currentTime;
-        var nextUpdate = lastTime + _metrics.ShowFramesPerSecondInterval;
-        _metrics.UpdateRate = 1.0f / 60.0f;
-
+        
         if (Glfw.IsRawMouseMotionSupported())
         {
             Glfw.SetInputMode(_windowHandle, Glfw.InputMode.RawMouseMotion, Glfw.True);
         }
-
+        
+        var stopwatch = Stopwatch.StartNew();        
         while (!Glfw.ShouldWindowClose(_windowHandle))
         {
+            var desiredFrameTime = 1000.0 / DesiredFramerate;
+            var currentFrameTicks = stopwatch.ElapsedTicks;
+            var deltaMilliseconds = (currentFrameTicks - _previousFrameTicks) * (1000.0 / Stopwatch.Frequency);
+
+            while (LimitFrameRate && deltaMilliseconds < desiredFrameTime)
+            {
+                Thread.Sleep(0);
+                currentFrameTicks = stopwatch.ElapsedTicks;
+                deltaMilliseconds = (currentFrameTicks - _previousFrameTicks) * (1000.0 / Stopwatch.Frequency);
+            }
+            _previousFrameTicks = currentFrameTicks;
+            var deltaSeconds = (float)deltaMilliseconds / 1000.0f;
+            _frameTimeAverager.AddTime(deltaMilliseconds);
+            _metrics.AverageFrameTime = _frameTimeAverager.CurrentAverageFrameTime;
+
+            Render(deltaSeconds);
+            Update(deltaSeconds);
+
             _inputProvider.MouseState.Center();
             Glfw.PollEvents();
+            Glfw.SwapBuffers(_windowHandle);            
 
-            currentTime = stopwatch.ElapsedMilliseconds;
-            var deltaTime = currentTime - lastTime;
-            var lastRenderTimeInSeconds = deltaTime / (float)_metrics.ShowFramesPerSecondInterval;
-            accumulator += lastRenderTimeInSeconds;
-            lastTime = currentTime;
-
-            _metrics.CurrentTime = currentTime;
-            _metrics.DeltaTime = deltaTime;
-
-            while (accumulator >= _metrics.UpdateRate)
-            {
-                FixedUpdate();
-                if (Glfw.ShouldWindowClose(_windowHandle))
-                {
-                    break;
-                }
-
-                accumulator -= _metrics.UpdateRate;
-                _metrics.UpdatesPerSecond++;
-            }
-
-            Update();
-            Render();
-
-            var swapBufferStart = Stopwatch.StartNew();
-            Glfw.SwapBuffers(_windowHandle);
-            _metrics.SwapBufferDuration = swapBufferStart.Elapsed.TotalMilliseconds;
             _metrics.FrameCounter++;
-            _metrics.FramesPerSecond++;
-
-            if (_metrics.ShowFramesPerSecond && stopwatch.ElapsedMilliseconds >= nextUpdate)
-            {
-                _metrics.CollectFrameSample();
-                _logger.Debug("{Category}: FPS: {@FramesPerSecond} FPS1%: {@FramesPerSecond1PLow} UPS: {@UpdatesPerSecond} UR: {@UpdateRate} SD: {SwapBufferDuration:F3}ms",
-                    "App",
-                    _metrics.GetAverageFps(),
-                    _metrics.GetLow1PercentFps(),
-                    _metrics.UpdatesPerSecond,
-                    _metrics.UpdateRate,
-                    _metrics.SwapBufferDuration);
-                _metrics.UpdatesPerSecond = 0;
-                _metrics.FramesPerSecond = 0;
-                nextUpdate = stopwatch.ElapsedMilliseconds + _metrics.ShowFramesPerSecondInterval;
-            }
         }
 
         stopwatch.Stop();
@@ -184,22 +169,27 @@ public class Application : IApplication
         var windowResizable = windowSettings.WindowMode is WindowMode.Windowed or WindowMode.WindowedBorderless;
 
         Glfw.WindowHint(Glfw.WindowInitHint.ScaleToMonitor, true);
-        Glfw.WindowHint(Glfw.WindowInitHint.ClientApi, Glfw.ClientApi.OpenGL);
         Glfw.WindowHint(Glfw.WindowInitHint.IsResizeable, windowResizable);
         Glfw.WindowHint(Glfw.WindowInitHint.IsDecorated, windowSettings.WindowMode == WindowMode.Windowed);
         Glfw.WindowHint(Glfw.WindowInitHint.IsMaximized, !windowResizable);
         Glfw.WindowHint(Glfw.WindowInitHint.IsFloating, !windowResizable);
         Glfw.WindowHint(Glfw.WindowInitHint.IsFocused, true);
-
+        /*
+        Glfw.WindowHint(Glfw.FramebufferInitHint.RedBits, 10);
+        Glfw.WindowHint(Glfw.FramebufferInitHint.GreenBits, 10);
+        Glfw.WindowHint(Glfw.FramebufferInitHint.BlueBits, 10);
+        Glfw.WindowHint(Glfw.FramebufferInitHint.AlphaBits, 2);
+        */
         var monitorHandle = Glfw.GetPrimaryMonitor();
         var videoMode = Glfw.GetVideoMode(monitorHandle);
         var screenWidth = videoMode.Width;
         var screenHeight = videoMode.Height;
+        DesiredFramerate = videoMode.RefreshRate;
 
         _applicationContext.ScreenSize = new Point(screenWidth, screenHeight);
         _applicationContext.WindowSize = windowResizable
             ? new Point(_windowSettings.Value.ResolutionWidth,  _windowSettings.Value.ResolutionHeight)
-            : new Point((int)(screenWidth * 0.8f), (int)(screenHeight * 0.8f));
+            : new Point((int)(screenWidth * 0.9f), (int)(screenHeight * 0.9f));
 
         if (!windowResizable)
         {
@@ -219,6 +209,7 @@ public class Application : IApplication
             }
         }
 
+        Glfw.WindowHint(Glfw.WindowInitHint.ClientApi, Glfw.ClientApi.OpenGL);
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.VersionMajor, glVersion.Major);
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.VersionMinor, glVersion.Minor);
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.DebugContext, _contextSettings.Value.IsDebugContext);
@@ -246,7 +237,7 @@ public class Application : IApplication
         _windowHandle = Glfw.CreateWindow(
             _applicationContext.WindowSize.X,
             _applicationContext.WindowSize.Y,
-            "EngineKit",
+            "OpenSpace",
             monitorHandle,
             nint.Zero);
         if (_windowHandle == nint.Zero)
@@ -254,6 +245,8 @@ public class Application : IApplication
             _logger.Error("{Category}: Unable to create window", "Glfw");
             return false;
         }
+        
+        Glfw.SwapBuffers(_windowHandle);
 
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -263,10 +256,10 @@ public class Application : IApplication
              *  window creation.
              */
             Glfw.PollEvents();
-            Glfw.WaitEventsTimeout(0.5);
+            Glfw.WaitEventsTimeout(0.25);
             Glfw.PollEvents();
             Glfw.SwapBuffers(_windowHandle);
-            Glfw.WaitEventsTimeout(0.5);
+            Glfw.WaitEventsTimeout(0.25);
         }
 
         if (windowResizable)
@@ -298,13 +291,28 @@ public class Application : IApplication
         }
 
         Glfw.MakeContextCurrent(_windowHandle);
+        LoadExtensions();
+
+        if (!_limits.Load())
+        {
+            return false;
+        }
 
         _logger.Information("{Category}: Vendor - {Vendor}", "GL", GL.GetString(GL.StringName.Vendor));
         _logger.Information("{Category}: Renderer - {Renderer}", "GL", GL.GetString(GL.StringName.Renderer));
         _logger.Information("{Category}: Version - {Version}", "GL", GL.GetString(GL.StringName.Version));
         _logger.Information("{Category}: Shading Language Version - {ShadingLanguageVersion}", "GL", GL.GetString(GL.StringName.ShadingLanguageVersion));
 
-        Glfw.SwapInterval(_windowSettings.Value.IsVsyncEnabled ? 1 : 0);
+        if (IsExtensionSupported("WGL_EXT_swap_control_tear") || IsExtensionSupported("GLX_EXT_swap_control_tear"))
+        {
+            Glfw.SwapInterval(_windowSettings.Value.IsVsyncEnabled ? 1 : -1);
+        }
+        else
+        {
+            Glfw.SwapInterval(_windowSettings.Value.IsVsyncEnabled ? 1 : 0);
+        }
+
+        LimitFrameRate = _windowSettings.Value.IsVsyncEnabled;
 
         BindCallbacks();
 
@@ -319,8 +327,15 @@ public class Application : IApplication
         {
             _logger.Debug("{Category}: Debug callback disabled", "GL");
         }
+        
+        GL.Enable(GL.EnableType.FramebufferSrgb);
 
         return true;
+    }
+    
+    protected bool IsExtensionSupported(string extensionName)
+    {
+        return _extensions.Contains(extensionName);
     }
 
     protected virtual bool Load()
@@ -328,7 +343,7 @@ public class Application : IApplication
         return true;
     }
 
-    protected virtual void Render()
+    protected virtual void Render(float deltaTime)
     {
     }
 
@@ -337,7 +352,7 @@ public class Application : IApplication
         UnbindCallbacks();
     }
 
-    protected virtual void Update()
+    protected virtual void Update(float deltaTime)
     {
     }
 
@@ -367,6 +382,15 @@ public class Application : IApplication
     protected void Close()
     {
         Glfw.SetWindowShouldClose(_windowHandle, 1);
+    }
+    
+    private void LoadExtensions()
+    {
+        var extensionCount = GL.GetInteger((uint)GL.GetName.NumExtensions);
+        for (var i = 0u; i < extensionCount; i++)
+        {
+            _extensions.Add(GL.GetString(GL.StringName.Extensions, i));
+        }
     }
 
     private void BindCallbacks()
@@ -411,14 +435,12 @@ public class Application : IApplication
             _inputProvider.KeyboardState.SetKeyState(key, action is Glfw.KeyAction.Pressed or Glfw.KeyAction.Repeat);
         }
 
-        /*
-        _logger.Debug("{Category} Key: {Key} Scancode: {ScanCode} Action: {Action} Modifiers: {Modifiers}",
+        _logger.Verbose("{Category} Key: {Key} Scancode: {ScanCode} Action: {Action} Modifiers: {Modifiers}",
             "Glfw",
             key,
             scancode,
             action,
             modifiers);
-            */
     }
 
     private void OnMouseMove(
@@ -440,14 +462,14 @@ public class Application : IApplication
         _inputProvider.MouseState.PreviousX = (float)currentCursorX;
         _inputProvider.MouseState.PreviousY = (float)currentCursorY;
 
-        //_logger.Debug("{Category}: MouseMove: {MouseState}", "Glfw", _inputProvider.MouseState);
+        //_logger.Verbose("{Category}: MouseMove: {MouseState}", "Glfw", _inputProvider.MouseState);
     }
 
     private void OnMouseEnterLeave(
         nint windowHandle,
         Glfw.CursorEnterMode cursorEnterMode)
     {
-        _logger.Debug("{Category}: Mode: {CursorEnterMode}", "Glfw", cursorEnterMode);
+        _logger.Verbose("{Category}: Mode: {CursorEnterMode}", "Glfw", cursorEnterMode);
     }
 
     private void OnMouseButton(
@@ -457,7 +479,7 @@ public class Application : IApplication
         Glfw.KeyModifiers modifiers)
     {
         _inputProvider.MouseState[mouseButton] = action is Glfw.KeyAction.Pressed or Glfw.KeyAction.Repeat;
-        _logger.Debug("{Category}: Button: {MouseButton} Action: {Action} Modifiers: {Modifiers}",
+        _logger.Verbose("{Category}: Button: {MouseButton} Action: {Action} Modifiers: {Modifiers}",
             "Glfw",
             mouseButton,
             action,

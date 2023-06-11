@@ -21,50 +21,29 @@ internal sealed class Sampler : ISampler
         _id = GL.CreateSampler();
         if (!string.IsNullOrEmpty(samplerDescriptor.Label))
         {
-            GL.ObjectLabel(GL.ObjectIdentifier.Sampler, _id, samplerDescriptor.Label);
+            GL.ObjectLabel(GL.ObjectIdentifier.Sampler, _id, $"Sampler-{samplerDescriptor.Label}");
         }
 
-        var magFilter = samplerDescriptor.MagFilter == Filter.Linear ? GL.Filter.Linear : GL.Filter.Nearest;
-        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureMagFilter, (int)magFilter);
+        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureMagFilter, (int)samplerDescriptor.InterpolationFilter.ToGL());
+        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureMinFilter, (int)samplerDescriptor.MipmapFilter.ToGL());
 
-        var minFilter = GL.Filter.Nearest;
-        switch (samplerDescriptor.MipmapFilter)
+        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureWrapS, (int)samplerDescriptor.TextureAddressModeU.ToGL());
+        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureWrapT, (int)samplerDescriptor.TextureAddressModeV.ToGL());
+        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureWrapR, (int)samplerDescriptor.TextureAddressModeW.ToGL());
+
+        if (samplerDescriptor.TextureAddressModeU == TextureAddressMode.ClampToEdge ||
+            samplerDescriptor.TextureAddressModeV == TextureAddressMode.ClampToEdge ||
+            samplerDescriptor.TextureAddressModeW == TextureAddressMode.ClampToEdge)
         {
-            case Filter.None:
-                minFilter = samplerDescriptor.MinFilter == Filter.Linear
-                    ? GL.Filter.Linear
-                    : GL.Filter.Nearest;
-                break;
-            case Filter.Nearest:
-                minFilter = samplerDescriptor.MinFilter == Filter.Linear
-                    ? GL.Filter.LinearMipmapNearest
-                    : GL.Filter.NearestMipmapNearest;
-                break;
-            case Filter.Linear:
-                minFilter = samplerDescriptor.MinFilter == Filter.Linear
-                    ? GL.Filter.LinearMipmapLinear
-                    : GL.Filter.NearestMipmapLinear;
-                break;
-        }
-        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureMinFilter, (int)minFilter);
-
-        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureWrapS, (int)samplerDescriptor.AddressModeU.ToGL());
-        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureWrapT, (int)samplerDescriptor.AddressModeV.ToGL());
-        GL.SamplerParameter(_id, GL.SamplerParameterI.TextureWrapR, (int)samplerDescriptor.AddressModeW.ToGL());
-
-        if (samplerDescriptor.AddressModeU == AddressMode.ClampToEdge ||
-            samplerDescriptor.AddressModeV == AddressMode.ClampToEdge ||
-            samplerDescriptor.AddressModeW == AddressMode.ClampToEdge)
-        {
-            switch (samplerDescriptor.BorderColor)
+            switch (samplerDescriptor.TextureBorderColor)
             {
-                case BorderColor.FloatOpaqueBlack:
+                case TextureBorderColor.FloatOpaqueBlack:
                     GL.SamplerParameter(_id, GL.SamplerParameterF.TextureBorderColor, _blackBorderColorFloat);
                     break;
-                case BorderColor.FloatTransparentBlack:
+                case TextureBorderColor.FloatTransparentBlack:
                     GL.SamplerParameter(_id, GL.SamplerParameterF.TextureBorderColor, _transparentBorderColorFloat);
                     break;
-                case BorderColor.FloatOpaqueWhite:
+                case TextureBorderColor.FloatOpaqueWhite:
                     GL.SamplerParameter(_id, GL.SamplerParameterF.TextureBorderColor, _whiteBorderColorFloat);
                     break;
                 /*
@@ -91,7 +70,7 @@ internal sealed class Sampler : ISampler
             : (int)GL.TextureCompareMode.None);
         if (samplerDescriptor.IsCompareEnabled)
         {
-            GL.SamplerParameter(_id, GL.SamplerParameterI.TextureCompareFunc, (int)samplerDescriptor.CompareOperation);
+            GL.SamplerParameter(_id, GL.SamplerParameterI.TextureCompareFunc, (int)samplerDescriptor.CompareFunction);
         }
     }
 
@@ -100,16 +79,16 @@ internal sealed class Sampler : ISampler
         GL.DeleteSampler(_id);
     }
 
-    private float ToAnistropy(SampleCount sampleCount)
+    private float ToAnistropy(TextureSampleCount textureSampleCount)
     {
-        return sampleCount switch
+        return textureSampleCount switch
         {
-            SampleCount.OneSample => 1.0f,
-            SampleCount.TwoSamples => 2.0f,
-            SampleCount.FourSamples => 4.0f,
-            SampleCount.EightSamples => 8.0f,
-            SampleCount.SixteenSamples => 16.0f,
-            _ => throw new ArgumentOutOfRangeException(nameof(sampleCount), sampleCount, null)
+            TextureSampleCount.OneSample => 1.0f,
+            TextureSampleCount.TwoSamples => 2.0f,
+            TextureSampleCount.FourSamples => 4.0f,
+            TextureSampleCount.EightSamples => 8.0f,
+            TextureSampleCount.SixteenSamples => 16.0f,
+            _ => throw new ArgumentOutOfRangeException(nameof(textureSampleCount), textureSampleCount, null)
         };
     }
 }

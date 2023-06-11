@@ -20,9 +20,9 @@ public interface IBuffer : IDisposable
 
     void Update(nint dataPtr, int offsetInBytes, int sizeInBytes);
 
-    void Update<T>(T item, int elementOffset)
+    void Update<T>(T item, int elementOffset = 0)
         where T : unmanaged;
 
-    void Update<T>(T[] data, int elementOffset)
+    void Update<T>(T[] data, int elementOffset = 0)
         where T : unmanaged;
 }
