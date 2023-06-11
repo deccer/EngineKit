@@ -34,13 +34,6 @@
         <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0026" />
     </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\EngineKit.Assets\EngineKit.Assets.csproj">
-            <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-            <IncludeAssets>EngineKit.Assets.dll</IncludeAssets>
-        </ProjectReference>
-    </ItemGroup>
-
     <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
         <ItemGroup>
             <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
