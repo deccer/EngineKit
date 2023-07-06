@@ -37,5 +37,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ISamplerLibrary, SamplerLibrary>();
 
         services.AddSingleton<IImageLoader, SixLaborsImageLoader>();
+        services.AddSingleton<IKtxImageLoader, KtxImageLoader>();
     }
 }
