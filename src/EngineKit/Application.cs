@@ -6,6 +6,7 @@ using System.Threading;
 using EngineKit.Input;
 using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
+using EngineKit.Native.Ktx;
 using EngineKit.Native.OpenGL;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -65,13 +66,19 @@ public class Application : IApplication
 
     public void Dispose()
     {
-        //Glfw.Terminate();
+        Ktx.Terminate();
     }
     
     public void Run()
     {
         if (!Initialize())
         {
+            return;
+        }
+
+        if (!Ktx.Init())
+        {
+            _logger.Debug("{Category}: Unable to initialize Ktx2", "App");
             return;
         }
 
