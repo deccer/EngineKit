@@ -1,10 +1,56 @@
 ﻿using System;
 using EngineKit.Graphics;
+using EngineKit.Native.Ktx;
 
 namespace EngineKit.Extensions;
 
 public static class FormatExtensions
 {
+    public static bool IsCompressedFormat(this Format format)
+    {
+        return format switch
+        {
+            Format.Bc1RgbUNorm => true,
+            Format.Bc1RgbSrgb => true,
+            Format.Bc1RgbaUNorm => true,
+            Format.Bc2RgbaUNorm => true,
+            Format.Bc2RgbaSrgb => true,
+            Format.Bc3RgbaUNorm => true,
+            Format.Bc3RgbaSrgb => true,
+            Format.Bc4RUNorm => true,
+            Format.Bc4RSNorm => true,
+            Format.Bc5RgSNorm => true,
+            Format.Bc5RgUNorm => true,
+            Format.Bc6hRgbUFloat => true,
+            Format.Bc6hRgbSFloat => true,
+            Format.Bc7RgbaUNorm => true,
+            Format.Bc7RgbaSrgb => true,
+            _ => false
+        };
+    }
+    public static Format ToFormat(this Ktx.VkFormat vulkanFormat)
+    {
+        return vulkanFormat switch
+        {
+            Ktx.VkFormat.Bc1RgbUnormBlock => Format.Bc1RgbUNorm,
+            Ktx.VkFormat.Bc1RgbSrgbBlock => Format.Bc1RgbSrgb,
+            Ktx.VkFormat.Bc1RgbaUnormBlock => Format.Bc1RgbaUNorm,
+            Ktx.VkFormat.Bc1RgbaSrgbBlock => Format.Bc1RgbaUNorm,
+            Ktx.VkFormat.Bc2UnormBlock => Format.Bc2RgbaUNorm,
+            Ktx.VkFormat.Bc2SrgbBlock => Format.Bc2RgbaSrgb,
+            Ktx.VkFormat.Bc3UnormBlock => Format.Bc3RgbaUNorm,
+            Ktx.VkFormat.Bc3SrgbBlock => Format.Bc3RgbaSrgb,
+            Ktx.VkFormat.Bc4UnormBlock => Format.Bc4RUNorm,
+            Ktx.VkFormat.Bc4SnormBlock => Format.Bc4RSNorm,
+            Ktx.VkFormat.Bc5UnormBlock => Format.Bc5RgSNorm,
+            Ktx.VkFormat.Bc5SnormBlock => Format.Bc5RgUNorm,
+            Ktx.VkFormat.Bc6HUfloatBlock => Format.Bc6hRgbUFloat,
+            Ktx.VkFormat.Bc6HSfloatBlock => Format.Bc6hRgbSFloat,
+            Ktx.VkFormat.Bc7UnormBlock => Format.Bc7RgbaUNorm,
+            Ktx.VkFormat.Bc7SrgbBlock => Format.Bc7RgbaSrgb,
+            _ => throw new ArgumentOutOfRangeException(nameof(vulkanFormat), vulkanFormat, null)
+        };
+    }
     public static bool IsStencilFormat(this Format format)
     {
         return format switch
