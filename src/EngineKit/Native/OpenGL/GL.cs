@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using EngineKit.Extensions;
+using EngineKit.Graphics;
 using EngineKit.Mathematics;
 
 // ReSharper disable InconsistentNaming
@@ -1052,6 +1054,48 @@ public static unsafe partial class GL
                 type,
                 pixelPtr);
         }
+    }
+
+    public static void CompressedTextureSubImage2D(
+        uint texture,
+        int level,
+        int xOffset,
+        int yOffset,
+        int width,
+        int height,
+        Format format,
+        long imageSize,
+        void* data)
+    {
+        _glCompressedTextureSubImage2DDelegate(texture, level, xOffset, yOffset, width, height, (uint)format.ToGL(), imageSize,
+            data);
+    }
+    
+    public static void CompressedTextureSubImage3D(
+        uint texture,
+        int level,
+        int xOffset,
+        int yOffset,
+        int zOffset,
+        int width,
+        int height,
+        int depth,
+        Format format,
+        long imageSize,
+        void* data)
+    {
+        _glCompressedTextureSubImage3DDelegate(
+            texture,
+            level,
+            xOffset,
+            yOffset,
+            zOffset,
+            width,
+            height,
+            depth,
+            (uint)format.ToGL(),
+            imageSize,
+            data);
     }
 
     public static void NamedFramebufferTexture(

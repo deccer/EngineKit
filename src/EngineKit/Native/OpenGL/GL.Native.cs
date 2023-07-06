@@ -270,6 +270,43 @@ public static unsafe partial class GL
 
     private static delegate* unmanaged<uint, TextureTarget, int, int, int, int, uint, TextureTarget, int, int, int, int, int, int, int,
         void> _glCopyImageSubDataDelegate = &glCopyImageSubData;
+    
+    private static delegate* unmanaged<uint, int, int, int, int, int, uint, long, void*, void> _glCompressedTextureSubImage2DDelegate = &glCompressedTextureSubImage2D;
+    private static delegate* unmanaged<uint, int, int, int, int, int, int, int, uint, long, void*, void> _glCompressedTextureSubImage3DDelegate = &glCompressedTextureSubImage3D;    
+    
+    [UnmanagedCallersOnly]
+    private static void glCompressedTextureSubImage2D(
+        uint texture,
+        int level,
+        int xOffset,
+        int yOffset,
+        int width,
+        int height,
+        uint format,
+        long imageSize,
+        void* data)
+    {
+        _glCompressedTextureSubImage2DDelegate = (delegate* unmanaged<uint, int, int, int, int, int, uint, long, void*, void>)Glfw.Glfw.GetProcAddress(nameof(glCompressedTextureSubImage2D));
+        _glCompressedTextureSubImage2DDelegate(texture, level, xOffset, yOffset, width, height, format, imageSize, data);
+    }
+   
+    [UnmanagedCallersOnly]
+    private static void glCompressedTextureSubImage3D(
+        uint texture,
+        int level,
+        int xOffset,
+        int yOffset,
+        int zOffset,
+        int width,
+        int height,
+        int depth,
+        uint format,
+        long imageSize,
+        void* data)
+    {
+        _glCompressedTextureSubImage3DDelegate = (delegate* unmanaged<uint, int, int, int, int, int, int, int, uint, long, void*, void>)Glfw.Glfw.GetProcAddress(nameof(glCompressedTextureSubImage3D));
+        _glCompressedTextureSubImage3DDelegate(texture, level, xOffset, yOffset, zOffset, width, height, depth, format, imageSize, data);
+    }    
 
     [UnmanagedCallersOnly]
     private static void glGetFloativ(uint target, uint index, float* data)
