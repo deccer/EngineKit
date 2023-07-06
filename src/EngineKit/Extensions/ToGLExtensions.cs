@@ -256,6 +256,22 @@ public static class ToGLExtensions
             Format.R32G32B32A32UInt => GL.SizedInternalFormat.Rgba32ui,
             Format.R32G32B32A32SInt => GL.SizedInternalFormat.Rgba32i,
             Format.R32G32B32A32Float => GL.SizedInternalFormat.Rgba32f,
+            Format.Bc1RgbUNorm => GL.SizedInternalFormat.CompressedRgbS3tcDxt1Ext,
+            Format.Bc1RgbaUNorm => GL.SizedInternalFormat.CompressedRgbaS3tcDxt1Ext,
+            Format.Bc1RgbSrgb => GL.SizedInternalFormat.CompressedSrgbS3tcDxt1Ext,
+            Format.Bc1RgbaSrgb => GL.SizedInternalFormat.CompressedSrgbAlphaS3tcDxt1Ext,
+            Format.Bc2RgbaUNorm => GL.SizedInternalFormat.CompressedRgbaS3tcDxt3Ext,
+            Format.Bc2RgbaSrgb => GL.SizedInternalFormat.CompressedSrgbAlphaS3tcDxt3Ext,
+            Format.Bc3RgbaUNorm => GL.SizedInternalFormat.CompressedRgbaS3tcDxt5Ext,
+            Format.Bc3RgbaSrgb => GL.SizedInternalFormat.CompressedSrgbAlphaS3tcDxt5Ext,
+            Format.Bc4RUNorm => GL.SizedInternalFormat.CompressedRedRgtc1,
+            Format.Bc4RSNorm => GL.SizedInternalFormat.CompressedSignedRedRgtc1,
+            Format.Bc5RgUNorm => GL.SizedInternalFormat.CompressedRedGreenRgtc2Ext,
+            Format.Bc5RgSNorm => GL.SizedInternalFormat.CompressedSignedRgRgtc2,
+            Format.Bc6hRgbUFloat => GL.SizedInternalFormat.CompressedRgbBptcUnsignedFloat,
+            Format.Bc6hRgbSFloat => GL.SizedInternalFormat.CompressedRgbBptcSignedFloat,
+            Format.Bc7RgbaUNorm => GL.SizedInternalFormat.CompressedRgbaBptcUnorm,
+            Format.Bc7RgbaSrgb => GL.SizedInternalFormat.CompressedSrgbAlphaBptcUnorm,
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
         };
     }
