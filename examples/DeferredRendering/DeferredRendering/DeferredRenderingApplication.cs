@@ -295,18 +295,17 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             if (!_gpuMaterialsInUse.Contains(modelMesh.MeshData.MaterialName))
             {
                 var material = _materialLibrary.GetMaterialByName(modelMesh.MeshData.MaterialName);
-                if (!_textures.TryGetValue(material.BaseColorTextureDataName, out var texture))
+                if (!_textures.TryGetValue(material.BaseColorImage.Name, out var texture))
                 {
-                    texture = material.BaseColorEmbeddedImageData.HasValue
-                        ? GraphicsContext.CreateTextureFromMemory(
-                            material.BaseColorEmbeddedImageData.Value.Span,
+                    texture = material.BaseColorImage.ImageData.HasValue
+                        ? GraphicsContext.CreateTextureFromMemory(material.BaseColorImage,
                             Format.R8G8B8A8Srgb,
-                            material.BaseColorTextureDataName, true)
-                        : GraphicsContext.CreateTextureFromFile(material.BaseColorTextureFilePath, Format.R8G8B8A8Srgb, true);
+                            material.BaseColorImage.Name, true)
+                        : GraphicsContext.CreateTextureFromFile(material.BaseColorImage.FileName, Format.R8G8B8A8Srgb, true);
                     if (texture != null)
                     {
                         texture.MakeResident();
-                        _textures.Add(material.BaseColorTextureDataName, texture);
+                        _textures.Add(material.BaseColorImage.Name, texture);
                     }
                 }
 
