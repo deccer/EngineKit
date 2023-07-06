@@ -70,6 +70,18 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
         return meshPrimitives;
     }
 
+    private static ImageInformation GetImageInformationFromChannel(MaterialChannel materialChannel)
+    {
+        var name =
+            Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
+            Guid.NewGuid().ToString();
+        return new ImageInformation(
+            name,
+            materialChannel.Texture?.PrimaryImage?.Content.MimeType,
+            materialChannel.Texture?.PrimaryImage?.Content.Content,
+            materialChannel.Texture?.PrimaryImage?.Content.SourcePath);
+    }
+
     private Material? ProcessMaterial(SharpGLTF.Schema2.Material gltfMaterial)
     {
         var materialName = gltfMaterial.Name ?? Guid.NewGuid().ToString();
@@ -95,23 +107,12 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
-                    material.BaseColorTextureDataName =
-                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
-                        Guid.NewGuid().ToString();
-                    if (File.Exists(materialChannel.Texture?.PrimaryImage?.Content.SourcePath))
-                    {
-                        material.BaseColorTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
-                    }
-                    else
-                    {
-                        material.BaseColorEmbeddedImageData = materialChannel.Texture?.PrimaryImage?.Content.Content;
-                    }
+                    material.BaseColorImage = GetImageInformationFromChannel(materialChannel);
                 }
 
                 if (materialChannel.TextureSampler != null)
                 {
-                    material.BaseColorTextureSamplerInformation =
-                        new SamplerInformation(materialChannel.TextureSampler);
+                    material.BaseColorTextureSamplerInformation = new SamplerInformation(materialChannel.TextureSampler);
                 }
             }
             else if (materialChannel.Key == "Normal")
@@ -119,17 +120,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 // NormalScale
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
-                    material.NormalTextureDataName =
-                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
-                        Guid.NewGuid().ToString();
-                    if (File.Exists(materialChannel.Texture?.PrimaryImage?.Content.SourcePath))
-                    {
-                        material.NormalTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
-                    }
-                    else
-                    {
-                        material.NormalEmbeddedImageData = materialChannel.Texture?.PrimaryImage?.Content.Content;
-                    }
+                    material.NormalImage = GetImageInformationFromChannel(materialChannel);
                 }
 
                 if (materialChannel.TextureSampler != null)
@@ -144,17 +135,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
-                    material.MetalnessRoughnessTextureDataName =
-                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
-                        Guid.NewGuid().ToString();
-                    if (File.Exists(materialChannel.Texture?.PrimaryImage?.Content.SourcePath))
-                    {
-                        material.MetalnessRoughnessTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
-                    }
-                    else
-                    {
-                        material.MetalnessRoughnessEmbeddedImageData = materialChannel.Texture?.PrimaryImage?.Content.Content;
-                    }
+                    material.MetalnessRoughnessImage = GetImageInformationFromChannel(materialChannel);
                 }
 
                 if (materialChannel.TextureSampler != null)
@@ -188,17 +169,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
-                    material.OcclusionTextureDataName =
-                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
-                        Guid.NewGuid().ToString();
-                    if (File.Exists(materialChannel.Texture?.PrimaryImage?.Content.SourcePath))
-                    {
-                        material.OcclusionTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
-                    }
-                    else
-                    {
-                        material.OcclusionEmbeddedImageData = materialChannel.Texture?.PrimaryImage?.Content.Content;
-                    }
+                    material.OcclusionImage = GetImageInformationFromChannel(materialChannel);
                 }
 
                 if (materialChannel.TextureSampler != null)
@@ -213,17 +184,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
-                    material.EmissiveTextureDataName =
-                        Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
-                        Guid.NewGuid().ToString();
-                    if (File.Exists(materialChannel.Texture?.PrimaryImage?.Content.SourcePath))
-                    {
-                        material.EmissiveTextureFilePath = materialChannel.Texture?.PrimaryImage?.Content.SourcePath;
-                    }
-                    else
-                    {
-                        material.EmissiveEmbeddedImageData = materialChannel.Texture?.PrimaryImage?.Content.Content;
-                    }
+                    material.EmissiveImage = GetImageInformationFromChannel(materialChannel); 
                 }
 
                 if (materialChannel.TextureSampler != null)

@@ -1,13 +1,16 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using CSharpFunctionalExtensions;
 using EngineKit.Extensions;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Mathematics;
+using EngineKit.Native.Ktx;
 using EngineKit.Native.OpenGL;
 using Serilog;
 using SixLabors.ImageSharp;
@@ -286,21 +289,54 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         return CreateTextureFromImage(image, Path.GetFileNameWithoutExtension(filePath), format, generateMipmaps);
     }
 
-    public ITexture? CreateTextureFromMemory(
-        ReadOnlySpan<byte> pixelBytes,
+    public ITexture? CreateTextureFromMemory(ImageInformation imageInformation,
         Format format,
         Label label,
         bool generateMipmaps = true,
         bool flipVertical = true,
         bool flipHorizontal = false)
     {
-        if (pixelBytes.IsEmpty)
+        if (!imageInformation.ImageData.HasValue)
         {
             _logger.Error("{Category}: Unable to load image from memory. Provided pixelBytes are empty", "App");
             return null;
         }
 
-        using var image = _imageLoader.LoadImageFromMemory<Rgba32>(pixelBytes, flipVertical, flipHorizontal) as Image<Rgba32>;
+        if (imageInformation.MimeType == "image/ktx2")
+        { 
+            unsafe
+            {
+                var ktxTexture = Ktx.LoadFromMemory(imageInformation.ImageData.Value);
+                if (ktxTexture == null)
+                {
+                    _logger.Error("{Category}: Unable to load image from memory", "App");
+                    return null;
+                }
+
+                if (ktxTexture->CompressionScheme != Ktx.SuperCompressionScheme.None ||
+                    Ktx.NeedsTranscoding(ktxTexture))
+                {
+                    var transcodeResult = Ktx.Transcode(ktxTexture, Ktx.TranscodeFormat.Bc7Rgba, Ktx.TranscodeFlagBits.HighQuality);
+                    if (transcodeResult != Ktx.KtxErrorCode.KtxSuccess)
+                    {
+                        _logger.Error("{Category}: Unable to load image from memory. Transcoding was not successful ({TranscodeResult})", "App", transcodeResult);
+                        Ktx.Destroy(ktxTexture);
+                        return null;
+                    }
+                }
+
+                var texture = CreateTextureFromKtxTexture(ktxTexture, label);
+
+                Ktx.Destroy(ktxTexture);
+
+                return texture;
+            }
+        }
+
+        using var image = _imageLoader.LoadImageFromMemory<Rgba32>(
+            imageInformation.ImageData.Value.Span,
+            flipVertical,
+            flipHorizontal) as Image<Rgba32>;
         if (image == null)
         {
             _logger.Error("{Category}: Unable to load image from memory", "App");
@@ -725,6 +761,44 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
             GL.BindTextureUnit(i, 0);
             GL.BindSampler(i, 0);
         }
+    }
+
+    private unsafe ITexture CreateTextureFromKtxTexture(Ktx.KtxTexture* ktxTexture, Label label)
+    {
+        var textureCreateDescriptor = new TextureCreateDescriptor
+        {
+            ImageType = ImageType.Texture2D,
+            Format = ktxTexture->VulkanFormat.ToFormat(),
+            Label = label,
+            Size = new Int3((int)ktxTexture->BaseWidth, (int)ktxTexture->BaseHeight, (int)ktxTexture->BaseDepth),
+            MipLevels = ktxTexture->NumLevels,
+            TextureSampleCount = TextureSampleCount.OneSample
+        };
+
+        var texture = CreateTexture(textureCreateDescriptor);
+        for (var mipLevel = 0; mipLevel < ktxTexture->NumLevels; mipLevel++)
+        {
+            var mipMapWidth = (int)MathF.Max(ktxTexture->BaseWidth >> mipLevel, 1u);
+            var mipMapHeight = (int)MathF.Max(ktxTexture->BaseHeight >> mipLevel, 1u);
+           
+            var imageSize = Ktx.GetImageSize(ktxTexture, (uint)mipLevel);
+            
+            var textureUpdateDescriptor = new TextureUpdateDescriptor
+            {
+                Offset = new Int3(0, 0, (int)imageSize),
+                Size = new Int3(mipMapWidth, mipMapHeight, 1),
+                UploadDimension = UploadDimension.Two,
+                UploadFormat = UploadFormat.RedGreenBlueAlpha,
+                UploadType = UploadType.UnsignedByte,
+                Level = mipLevel,
+            };
+
+            var imageOffset = Ktx.GetImageOffset(ktxTexture, (uint)mipLevel, 0, 0);
+
+            texture.Update(textureUpdateDescriptor, new MemoryHandle((void*)(new IntPtr(ktxTexture->Data) + new IntPtr(imageOffset))));
+        }
+
+        return texture;
     }
 
     private ITexture CreateTextureFromImage(Image<Rgba32> image, Label label, Format format, bool generateMipmaps = true)

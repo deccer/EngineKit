@@ -7,7 +7,7 @@ using Vector3 = System.Numerics.Vector3;
 
 namespace EngineKit.Graphics;
 
-public record Material(string Name)
+public record Material(string Name) : IDisposable
 {
     private float _metallicFactor;
     private float _roughnessFactor;
@@ -17,12 +17,12 @@ public record Material(string Name)
     private Color4 _emissiveColor;
     private Color4 _baseColor;
     private Color4 _specularColor;
-    private string? _baseColorTextureFilePath;
-    private string? _normalTextureFilePath;
-    private string? _specularTextureFilePath;
-    private string? _metalnessRoughnessTextureFilePath;
-    private string? _occlusionTextureFilePath;
-    private string? _emissiveTextureFilePath;
+    private ImageInformation? _baseColorImage;
+    private ImageInformation? _normalImage;
+    private ImageInformation? _specularImage;
+    private ImageInformation? _metalnessRoughnessImage;
+    private ImageInformation? _occlusionImage;
+    private ImageInformation? _emissiveImage;
 
     public SamplerInformation? BaseColorTextureSamplerInformation;
     public SamplerInformation? NormalTextureSamplerInformation;
@@ -139,112 +139,84 @@ public record Material(string Name)
         }
     }
     
-    public string? EmissiveTextureDataName { get; set; }
-
-    public string? EmissiveTextureFilePath
+    public ImageInformation? EmissiveImage
     {
-        get => _emissiveTextureFilePath;
+        get => _emissiveImage;
         set
         {
-            if (_emissiveTextureFilePath != value)
+            if (_emissiveImage != value)
             {
-                _emissiveTextureFilePath = value;
-                _isDirty = true;
-            }
-        }
-    }
-    
-    public ReadOnlyMemory<byte>? EmissiveEmbeddedImageData { get; set; }
-    
-    public ITexture? EmissiveTexture;
-
-    public string? BaseColorTextureDataName { get; set; }
-
-    public string? BaseColorTextureFilePath
-    {
-        get => _baseColorTextureFilePath;
-        set
-        {
-            if (_baseColorTextureFilePath != value)
-            {
-                _baseColorTextureFilePath = value;
+                _emissiveImage = value;
                 _isDirty = true;
             }
         }
     }
 
-    public ReadOnlyMemory<byte>? BaseColorEmbeddedImageData { get; set; }
-
-    public ITexture? BaseColorTexture;
-
-    public string? NormalTextureDataName { get; set; }
-
-    public string? NormalTextureFilePath
+    public ImageInformation? BaseColorImage
     {
-        get => _normalTextureFilePath;
+        get => _baseColorImage;
         set
         {
-            if (_normalTextureFilePath != value)
+            if (_baseColorImage != value)
             {
-                _normalTextureFilePath = value;
+                _baseColorImage = value;
                 _isDirty = true;
             }
         }
     }
 
-    public ReadOnlyMemory<byte>? NormalEmbeddedImageData { get; set; }
-
-    public ITexture? NormalTexture;
-    
-    public string? SpecularTextureDataName { get; set; }
-
-    public string? SpecularTextureFilePath
+    public ImageInformation? NormalImage
     {
-        get => _specularTextureFilePath;
+        get => _normalImage;
         set
         {
-            if (_specularTextureFilePath != value)
+            if (_normalImage != value)
             {
-                _specularTextureFilePath = value;
+                _normalImage = value;
+                _isDirty = true;
+            }
+        }
+    }
+    
+    public ImageInformation? SpecularImage
+    {
+        get => _specularImage;
+        set
+        {
+            if (_specularImage != value)
+            {
+                _specularImage = value;
                 _isDirty = true;
             }
         }
     }
 
-    public ReadOnlyMemory<byte>? SpecularEmbeddedImageData { get; set; }
-
-    public ITexture? SpecularTexture;
-
-    public string? MetalnessRoughnessTextureDataName { get; set; }
-
-    public string? MetalnessRoughnessTextureFilePath
+    public ImageInformation? MetalnessRoughnessImage
     {
-        get => _metalnessRoughnessTextureFilePath;
+        get => _metalnessRoughnessImage;
         set
         {
-            _metalnessRoughnessTextureFilePath = value;
-            _isDirty = true;
-        }
-    }
-
-    public ReadOnlyMemory<byte>? MetalnessRoughnessEmbeddedImageData { get; set; }
-
-    public ITexture? MetalnessRoughnessTexture;
-    
-    public string? OcclusionTextureDataName { get; set; }
-
-    public string? OcclusionTextureFilePath
-    {
-        get => _occlusionTextureFilePath;
-        set
-        {
-            _occlusionTextureFilePath = value;
+            _metalnessRoughnessImage = value;
             _isDirty = true;
         }
     }
     
-    public ReadOnlyMemory<byte>? OcclusionEmbeddedImageData { get; set; }
-    public ITexture? OcclusionTexture;
+    public ImageInformation? OcclusionImage
+    {
+        get => _occlusionImage;
+        set
+        {
+            _occlusionImage = value;
+            _isDirty = true;
+        }
+    }
+    
+    public ITexture? BaseColorTexture { get; private set; }
+    public ITexture? NormalTexture { get; private set; }
+    public ITexture? SpecularTexture { get; private set; }
+    public ITexture? MetalnessRoughnessTexture { get; private set; }
+    public ITexture? OcclusionTexture { get; private set; }
+    public ITexture? EmissiveTexture { get; private set; }
 
     public void Dispose()
     {
@@ -256,165 +228,77 @@ public record Material(string Name)
         EmissiveTexture?.Dispose();
     }
 
-    public bool LoadTextures(ILogger logger, IGraphicsContext graphicsContext, ISamplerLibrary samplerLibrary, IDictionary<string, ITexture> textures, bool makeResident)
+    public void LoadTextures(
+        ILogger logger,
+        IGraphicsContext graphicsContext,
+        ISamplerLibrary samplerLibrary,
+        IDictionary<string, ITexture> textures,
+        bool makeResident)
     {
         //TODO(deccer) TextureLoader should be called and pass in material, to set its Texture objects perhaps
         //TODO(deccer) this needs to be inverted, ie someone else needs to load the stuff per material, not the material itself
-        if (!string.IsNullOrEmpty(BaseColorTextureDataName) && !textures.TryGetValue(BaseColorTextureDataName, out BaseColorTexture))
-        {
-            var sw = Stopwatch.StartNew();
-            BaseColorTexture = BaseColorEmbeddedImageData.HasValue
-                ? graphicsContext.CreateTextureFromMemory(BaseColorEmbeddedImageData.Value.Span, Format.R8G8B8A8Srgb,
-                    BaseColorTextureDataName, generateMipmaps: true, flipVertical: false, flipHorizontal: false)
-                : string.IsNullOrEmpty(BaseColorTextureFilePath)
-                    ? null
-                    : graphicsContext.CreateTextureFromFile(BaseColorTextureFilePath, Format.R8G8B8A8Srgb, true, false, false);
-            sw.Stop();
-            if (makeResident && BaseColorTexture != null)
-            {
-                if (BaseColorTextureSamplerInformation.HasValue)
-                {
-                    BaseColorTexture.MakeResident(samplerLibrary.GetSampler(BaseColorTextureSamplerInformation.Value));
-                }
-                else
-                {
-                    BaseColorTexture.MakeResident();
-                }
-                textures.Add(BaseColorTextureDataName, BaseColorTexture);
-                logger.Debug("{Category}: Loading baseColor texture {TextureName} took {LoadingTime}ms", "Material", BaseColorTextureDataName, sw.ElapsedMilliseconds);
-            }
-        }
-        if (!string.IsNullOrEmpty(NormalTextureDataName) && !textures.TryGetValue(NormalTextureDataName, out NormalTexture))
-        {
-            var sw = Stopwatch.StartNew();
-            NormalTexture = NormalEmbeddedImageData.HasValue
-                ? graphicsContext.CreateTextureFromMemory(NormalEmbeddedImageData.Value.Span, Format.R8G8B8A8UNorm,
-                    NormalTextureDataName, generateMipmaps: true, flipVertical: false, flipHorizontal: false)
-                : string.IsNullOrEmpty(NormalTextureFilePath)
-                    ? null
-                    : graphicsContext.CreateTextureFromFile(NormalTextureFilePath, Format.R8G8B8A8UNorm, true, false, false);
-            sw.Stop();
-            if (makeResident && NormalTexture != null)
-            {
-                if (NormalTextureSamplerInformation.HasValue)
-                {
-                    NormalTexture.MakeResident(samplerLibrary.GetSampler(NormalTextureSamplerInformation.Value));
-                }
-                else
-                {
-                    NormalTexture.MakeResident();
-                }
 
-                textures.Add(NormalTextureDataName, NormalTexture);
-                logger.Debug("{Category}: Loading normal texture {TextureName} took {LoadingTime}ms", "Material", NormalTextureDataName, sw.ElapsedMilliseconds);
-            }
-        }
-
-        if (!string.IsNullOrEmpty(MetalnessRoughnessTextureDataName) && !textures.TryGetValue(MetalnessRoughnessTextureDataName, out MetalnessRoughnessTexture))
-        {
-            var sw = Stopwatch.StartNew();
-            MetalnessRoughnessTexture = MetalnessRoughnessEmbeddedImageData.HasValue
-                ? graphicsContext.CreateTextureFromMemory(MetalnessRoughnessEmbeddedImageData.Value.Span, Format.R8G8B8A8UNorm,
-                    MetalnessRoughnessTextureDataName, generateMipmaps: true, flipVertical: false, flipHorizontal: false)
-                : string.IsNullOrEmpty(MetalnessRoughnessTextureFilePath)
-                    ? null
-                    : graphicsContext.CreateTextureFromFile(MetalnessRoughnessTextureFilePath, Format.R8G8B8A8UNorm, true, false, false);
-            sw.Stop();
-            if (makeResident && MetalnessRoughnessTexture != null)
-            {
-                if (MetalnessRoughnessTextureSamplerInformation.HasValue)
-                {
-                    MetalnessRoughnessTexture.MakeResident(samplerLibrary.GetSampler(MetalnessRoughnessTextureSamplerInformation.Value));
-                }
-                else
-                {
-                    MetalnessRoughnessTexture.MakeResident();
-                }
-
-                textures.Add(MetalnessRoughnessTextureDataName, MetalnessRoughnessTexture);
-                logger.Debug("{Category}: Loading metalnessRoughness texture {TextureName} took {LoadingTime}ms", "Material", MetalnessRoughnessTextureDataName, sw.ElapsedMilliseconds);
-            }
-        }
-
-        if (!string.IsNullOrEmpty(SpecularTextureDataName) && !textures.TryGetValue(SpecularTextureDataName, out SpecularTexture))
-        {
-            var sw = Stopwatch.StartNew();
-            SpecularTexture = SpecularEmbeddedImageData.HasValue
-                ? graphicsContext.CreateTextureFromMemory(SpecularEmbeddedImageData.Value.Span, Format.R8G8B8A8UNorm,
-                    SpecularTextureDataName, generateMipmaps: true, flipVertical: false, flipHorizontal: false)
-                : string.IsNullOrEmpty(SpecularTextureFilePath)
-                    ? null
-                    : graphicsContext.CreateTextureFromFile(SpecularTextureFilePath, Format.R8G8B8A8UNorm, true, false, false);
-            sw.Stop();
-            if (makeResident && SpecularTexture != null)
-            {
-                if (SpecularTextureSamplerInformation.HasValue)
-                {
-                    SpecularTexture.MakeResident(samplerLibrary.GetSampler(SpecularTextureSamplerInformation.Value));
-                }
-                else
-                {
-                    SpecularTexture.MakeResident();
-                }
-                textures.Add(SpecularTextureDataName, SpecularTexture);
-                logger.Debug("{Category}: Loading specular texture {TextureName} took {LoadingTime}ms", "Material", SpecularTextureDataName, sw.ElapsedMilliseconds);
-            }
-        }
-        
-        if (!string.IsNullOrEmpty(OcclusionTextureDataName) && !textures.TryGetValue(OcclusionTextureDataName, out OcclusionTexture))
-        {
-            var sw = Stopwatch.StartNew();
-            OcclusionTexture = OcclusionEmbeddedImageData.HasValue
-                ? graphicsContext.CreateTextureFromMemory(OcclusionEmbeddedImageData.Value.Span, Format.R8G8B8A8UNorm,
-                    OcclusionTextureDataName, generateMipmaps: true, flipVertical: false, flipHorizontal: false)
-                : string.IsNullOrEmpty(OcclusionTextureFilePath)
-                    ? null
-                    : graphicsContext.CreateTextureFromFile(OcclusionTextureFilePath, Format.R8G8B8A8UNorm, true, false, false);
-            sw.Stop();
-            if (makeResident && OcclusionTexture != null)
-            {
-                if (OcclusionTextureSamplerInformation.HasValue)
-                {
-                    OcclusionTexture.MakeResident(samplerLibrary.GetSampler(OcclusionTextureSamplerInformation.Value));
-                }
-                else
-                {
-                    OcclusionTexture.MakeResident();
-                }
-
-                textures.Add(OcclusionTextureDataName, OcclusionTexture);
-                logger.Debug("{Category}: Loading occlusion texture {TextureName} took {LoadingTime}ms", "Material", OcclusionTextureDataName, sw.ElapsedMilliseconds);
-            }
-        }
-        
-        if (!string.IsNullOrEmpty(EmissiveTextureDataName) && !textures.TryGetValue(EmissiveTextureDataName, out EmissiveTexture))
-        {
-            var sw = Stopwatch.StartNew();
-            EmissiveTexture = EmissiveEmbeddedImageData.HasValue
-                ? graphicsContext.CreateTextureFromMemory(EmissiveEmbeddedImageData.Value.Span, Format.R8G8B8A8Srgb,
-                    EmissiveTextureDataName, generateMipmaps: true, flipVertical: false, flipHorizontal: false)
-                : string.IsNullOrEmpty(EmissiveTextureFilePath)
-                    ? null
-                    : graphicsContext.CreateTextureFromFile(EmissiveTextureFilePath, Format.R8G8B8A8Srgb, true, false, false);
-            sw.Stop();
-            if (makeResident && EmissiveTexture != null)
-            {
-                if (EmissiveTextureSamplerInformation.HasValue)
-                {
-                    EmissiveTexture.MakeResident(samplerLibrary.GetSampler(EmissiveTextureSamplerInformation.Value));
-                }
-                else
-                {
-                    EmissiveTexture.MakeResident();
-                }
-
-                textures.Add(EmissiveTextureDataName, EmissiveTexture);
-                logger.Debug("{Category}: Loading emissive texture {TextureName} took {LoadingTime}ms", "Material", EmissiveTextureDataName, sw.ElapsedMilliseconds);
-            }
-        }
+        BaseColorTexture = CreateTextureFromImage(BaseColorImage, BaseColorTextureSamplerInformation, logger,
+            graphicsContext, samplerLibrary, textures, makeResident);
+        NormalTexture = CreateTextureFromImage(NormalImage, NormalTextureSamplerInformation, logger, graphicsContext,
+            samplerLibrary, textures, makeResident);
+        MetalnessRoughnessTexture = CreateTextureFromImage(MetalnessRoughnessImage,
+            MetalnessRoughnessTextureSamplerInformation, logger, graphicsContext, samplerLibrary, textures,
+            makeResident);
+        SpecularTexture = CreateTextureFromImage(SpecularImage, SpecularTextureSamplerInformation, logger,
+            graphicsContext, samplerLibrary, textures, makeResident);
+        OcclusionTexture = CreateTextureFromImage(OcclusionImage, OcclusionTextureSamplerInformation, logger,
+            graphicsContext, samplerLibrary, textures, makeResident);
+        EmissiveTexture = CreateTextureFromImage(EmissiveImage, EmissiveTextureSamplerInformation, logger,
+            graphicsContext, samplerLibrary, textures, makeResident);
 
         TexturesLoaded = true;
+    }
 
-        return TexturesLoaded;
+    private static ITexture? CreateTextureFromImage(
+        ImageInformation? image,
+        SamplerInformation? sampler,
+        ILogger logger,
+        IGraphicsContext graphicsContext,
+        ISamplerLibrary samplerLibrary,
+        IDictionary<string, ITexture> textures,
+        bool makeResident)
+    {
+        if (image == null || string.IsNullOrEmpty(image.Name) ||
+            textures.TryGetValue(image.Name, out var texture))
+        {
+            return null;
+        }
+        
+        var sw = Stopwatch.StartNew();
+        texture = image.ImageData.HasValue
+            ? graphicsContext.CreateTextureFromMemory(image, Format.R8G8B8A8Srgb, image.Name, generateMipmaps: true, flipVertical: false, flipHorizontal: false)
+            : string.IsNullOrEmpty(image.FileName)
+                ? null
+                : graphicsContext.CreateTextureFromFile(image.FileName, Format.R8G8B8A8Srgb, true, false, false);
+                    
+        sw.Stop();
+        
+        if (texture == null)
+        {
+            return texture;
+        }
+        
+        textures.Add(image.Name, texture);
+        logger.Debug("{Category}: Loading texture {TextureName} took {LoadingTime}ms", "Material", image.Name, sw.ElapsedMilliseconds);
+
+        if (makeResident)
+        {
+            if (sampler.HasValue)
+            {
+                texture.MakeResident(samplerLibrary.GetSampler(sampler.Value));
+            }
+            else
+            {
+                texture.MakeResident();
+            }
+        }
+
+        return texture;
     }
 }

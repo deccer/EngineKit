@@ -77,8 +77,7 @@ internal sealed class MaterialLibrary : IMaterialLibrary
         var notFoundMaterial = new Material("M_NotFound")
         {
             BaseColor = Color.Firebrick,
-            BaseColorTextureDataName = "NotFound.BaseColor",
-            BaseColorTextureFilePath = "Data/Default/T_Red_D.png",
+            BaseColorImage = new ImageInformation("NotFound.BaseColor", null, null, "Data/Default/T_Red_D.png"),
             EmissiveColor = Color.Firebrick
         };
 

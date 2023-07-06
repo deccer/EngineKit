@@ -64,7 +64,7 @@ public interface IGraphicsContext : IDisposable
         bool flipVertical = true,
         bool flipHorizontal = false);
 
-    ITexture? CreateTextureFromMemory(ReadOnlySpan<byte> pixelBytes,
+    ITexture? CreateTextureFromMemory(ImageInformation image,
         Format format,
         Label label,
         bool generateMipmaps = true,
