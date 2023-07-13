@@ -39,6 +39,11 @@ public static partial class Glfw
         IntPtr windowHandle,
         int width,
         int height);
+
+    public delegate void ScrollCallback(
+        IntPtr windowHandle,
+        double scrollX,
+        double scrollY);
     
     public delegate void ErrorCallback(
         ErrorCode error,

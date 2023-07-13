@@ -64,6 +64,9 @@ public static unsafe partial class Glfw
     private static delegate* unmanaged<IntPtr, IntPtr, void> _glfwSetFramebufferSizeCallbackDelegate =
         &glfwSetFramebufferSizeCallback;
 
+    private static delegate* unmanaged<IntPtr, IntPtr, void> _glfwSetScrollCallbackDelegate =
+        &glfwSetScrollCallback;
+
     private static delegate* unmanaged<IntPtr, int*, int*, void> _glfwGetFramebufferSizeDelegate = &glfwGetFramebufferSize;
 
     private static delegate* unmanaged<double> _glfwGetTimeDelegate = &glfwGetTime;
@@ -343,6 +346,15 @@ public static unsafe partial class Glfw
             (delegate* unmanaged<IntPtr, IntPtr, void>)NativeLibrary.GetExport(_glfwLibraryHandle,
                 nameof(glfwSetFramebufferSizeCallback));
         _glfwSetFramebufferSizeCallbackDelegate(windowHandle, framebufferSizeCallback);
+    }
+
+    [UnmanagedCallersOnly]
+    private static void glfwSetScrollCallback(IntPtr windowHandle, IntPtr scrollCallback)
+    {
+        _glfwSetScrollCallbackDelegate =
+            (delegate* unmanaged<IntPtr, IntPtr, void>)NativeLibrary.GetExport(_glfwLibraryHandle,
+                nameof(glfwSetScrollCallback));
+        _glfwSetScrollCallbackDelegate(windowHandle, scrollCallback);
     }
 
     [UnmanagedCallersOnly]

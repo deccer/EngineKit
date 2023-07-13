@@ -328,6 +328,14 @@ public static unsafe partial class Glfw
         _glfwSetFramebufferSizeCallbackDelegate(windowHandle, framebufferSizeCallbackPtr);
     }
 
+    public static void SetScrollCallback(IntPtr windowHandle, ScrollCallback? scrollCallback)
+    {
+        var scrollCallbackPtr = scrollCallback == null
+            ? IntPtr.Zero
+            : Marshal.GetFunctionPointerForDelegate(scrollCallback);
+        _glfwSetScrollCallbackDelegate(windowHandle, scrollCallbackPtr);
+    }
+
     public static void SetErrorCallback(ErrorCallback? errorCallback)
     {
         var errorCallbackPtr = errorCallback == null
