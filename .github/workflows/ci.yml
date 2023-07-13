@@ -26,17 +26,12 @@ jobs:
         sudo apt upgrade
       if: matrix.os == 'ubuntu-latest'
 
-    - name: Install Mesa
-      run: |
-        brew install mesa
-      if: matrix.os == 'macos-latest'
-
     - name: Install GLFW
       run: |
         sudo apt install libglfw3-dev
       if: matrix.os == 'ubuntu-latest'
 
-    - name: Install GLFW
+    - name: Install Mesa & GLFW
       run: |
         brew install mesa glfw
       if: matrix.os == 'macos-latest'
@@ -56,4 +51,6 @@ jobs:
       run: dotnet build EngineKit.sln --configuration Release --no-restore
 
     - name: Run tests
-      run: dotnet test EngineKit.sln /p:Configuration=Release --no-restore --verbosity normal
+      run: |
+           export DISPLAY=:0
+           dotnet test EngineKit.sln /p:Configuration=Release --no-restore --verbosity normal
