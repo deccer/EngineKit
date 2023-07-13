@@ -1482,6 +1482,11 @@ public static unsafe partial class GL
     {
         _glProgramUniform1fDelegate(program, location, value);
     }
+    
+    public static void ProgramUniform(int program, int location, int value)
+    {
+        _glProgramUniform1iDelegate(program, location, value);
+    }
 
     public static void CopyImageSubData(
         uint srcName,

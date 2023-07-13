@@ -267,6 +267,7 @@ public static unsafe partial class GL
     private static delegate* unmanaged<ClipControlOrigin, ClipControlDepth, void> _glClipControlDelegate = &glClipControl;
     private static delegate* unmanaged<uint, int, PixelFormat, DataType, int, void*, void> _glGetTextureImageDelegate = &glGetTextureImage;
     private static delegate* unmanaged<int, int, float, void> _glProgramUniform1fDelegate = &glProgramUniform1f;
+    private static delegate* unmanaged<int, int, int, void> _glProgramUniform1iDelegate = &glProgramUniform1i;
 
     private static delegate* unmanaged<uint, TextureTarget, int, int, int, int, uint, TextureTarget, int, int, int, int, int, int, int,
         void> _glCopyImageSubDataDelegate = &glCopyImageSubData;
@@ -1762,6 +1763,13 @@ public static unsafe partial class GL
     {
         _glProgramUniform1fDelegate = (delegate* unmanaged<int, int, float, void>)Glfw.Glfw.GetProcAddress(nameof(glProgramUniform1f));
         _glProgramUniform1fDelegate(program, location, value);
+    }
+    
+    [UnmanagedCallersOnly]
+    private static void glProgramUniform1i(int program, int location, int value)
+    {
+        _glProgramUniform1iDelegate = (delegate* unmanaged<int, int, int, void>)Glfw.Glfw.GetProcAddress(nameof(glProgramUniform1i));
+        _glProgramUniform1iDelegate(program, location, value);
     }
 
     [UnmanagedCallersOnly]
