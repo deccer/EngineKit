@@ -3,7 +3,7 @@ using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Sequential)]
 public readonly struct VertexPositionColor
 {
     public VertexPositionColor(Vector3 position, Vector3 color)
