@@ -29,6 +29,7 @@ public class Application : IApplication
     private Glfw.FramebufferSizeCallback? _framebufferSizeCallback;
     private Glfw.KeyCallback? _keyCallback;
     private Glfw.MouseButtonCallback? _mouseButtonCallback;
+    private Glfw.ScrollCallback? _mouseScrollCallback;
     private Glfw.CursorEnterCallback? _cursorEnterLeaveCallback;
     private Glfw.CursorPositionCallback? _cursorPositionCallback;
     private Glfw.WindowSizeCallback? _windowSizeCallback;
@@ -407,6 +408,7 @@ public class Application : IApplication
         _cursorPositionCallback = OnMouseMove;
         _keyCallback = OnKey;
         _mouseButtonCallback = OnMouseButton;
+        _mouseScrollCallback = OnMouseScroll;
         _framebufferSizeCallback = OnFramebufferSize;
         _windowSizeCallback = OnWindowSize;
 
@@ -414,6 +416,7 @@ public class Application : IApplication
         Glfw.SetCursorPositionCallback(_windowHandle, _cursorPositionCallback);
         Glfw.SetCursorEnterCallback(_windowHandle, _cursorEnterLeaveCallback);
         Glfw.SetMouseButtonCallback(_windowHandle, _mouseButtonCallback);
+        Glfw.SetScrollCallback(_windowHandle, _mouseScrollCallback);
         Glfw.SetWindowSizeCallback(_windowHandle, _windowSizeCallback);
         Glfw.SetFramebufferSizeCallback(_windowHandle, _framebufferSizeCallback);
     }
@@ -426,6 +429,7 @@ public class Application : IApplication
         Glfw.SetCursorEnterCallback(_windowHandle, null);
         Glfw.SetCursorPositionCallback(_windowHandle, null);
         Glfw.SetMouseButtonCallback(_windowHandle, null);
+        Glfw.SetScrollCallback(_windowHandle, null);
         Glfw.SetFramebufferSizeCallback(_windowHandle, null);
         Glfw.SetWindowSizeCallback(_windowHandle, null);
     }
@@ -491,6 +495,14 @@ public class Application : IApplication
             mouseButton,
             action,
             modifiers);
+    }
+
+    private void OnMouseScroll(
+        nint windowHandle,
+        double scrollX,
+        double scrollY)
+    {
+        _inputProvider.MouseState.Scroll += new Vector2((float)scrollX, (float)scrollY);
     }
 
     private void OnWindowSize(

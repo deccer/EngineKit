@@ -1,4 +1,5 @@
 using System.Collections;
+using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 
 namespace EngineKit.Input;
@@ -33,6 +34,12 @@ public class MouseState
     public float PreviousX { get; internal set; }
 
     public float PreviousY { get; internal set; }
+    
+    public Vector2 Scroll { get; internal set; }
+
+    public Vector2 PreviousScroll { get; internal set; }
+
+    public Vector2 ScrollDelta => Scroll - PreviousScroll;
 
     public override string ToString()
     {

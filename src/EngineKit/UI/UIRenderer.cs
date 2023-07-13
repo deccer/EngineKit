@@ -84,7 +84,7 @@ internal sealed class UIRenderer : IUIRenderer
     private int _framebufferWidth;
     private int _framebufferHeight;
 
-    //private int _scrollWheelValue;
+    private int _scrollWheelValue;
     private readonly List<char> _pressedChars;
     private readonly Num.Vector2 _scaleFactor = Num.Vector2.One;
 
@@ -351,15 +351,14 @@ internal sealed class UIRenderer : IUIRenderer
         _imGuiIo.MouseDown[2] = currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonMiddle);
         _imGuiIo.MousePos = new System.Numerics.Vector2(currentMouseState.X, currentMouseState.Y);
 
-        /*
-        var scrollDelta = 0;//currentMouseState.Scroll.Y - _scrollWheelValue;
+        
+        var scrollDelta = currentMouseState.Scroll.Y - _scrollWheelValue;
         _imGuiIo.MouseWheel = scrollDelta > 0
             ? 1
             : scrollDelta < 0
                 ? -1
                 : 0;
-        _scrollWheelValue = 0;//(int)currentMouseState.Scroll.Y;
-        */
+        _scrollWheelValue = (int)currentMouseState.Scroll.Y;
 
         foreach (Glfw.Key key in Enum.GetValues(typeof(Glfw.Key)))
         {
