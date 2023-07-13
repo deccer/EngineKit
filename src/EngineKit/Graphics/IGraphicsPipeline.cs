@@ -47,4 +47,11 @@ public interface IGraphicsPipeline : IPipeline
 
     void MultiDrawElementsIndirect(IIndirectBuffer indirectBuffer, int primitiveCount);
 
+    void VertexUniform(int location, float value);
+
+    void VertexUniform(int location, int value);
+
+    void FragmentUniform(int location, float value);
+
+    void FragmentUniform(int location, int value);
 }
