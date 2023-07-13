@@ -133,6 +133,7 @@ public class Application : IApplication
         Glfw.DestroyWindow(_windowHandle);
 
         _logger.Debug("{Category}: Unloaded", "App");
+        Glfw.Terminate();
     }
 
     protected void CenterMouseCursor()
