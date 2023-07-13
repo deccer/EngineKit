@@ -66,14 +66,9 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
             instanceOffset);
     }
 
-    public void DrawArrays(int vertexCount, int vertexOffset = 0)
+    public void DrawArrays(uint vertexCount, int vertexOffset = 0)
     {
-        GL.DrawArraysInstancedBaseInstance(
-            _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
-            vertexOffset,
-            vertexCount,
-            1,
-            0);
+        GL.DrawArrays(_graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(), 0, vertexCount);
     }
 
     public void DrawElements(int elementCount, int offset = 0)

@@ -10,7 +10,7 @@ public interface IGraphicsPipeline : IPipeline
     void BindIndexBuffer(IIndexBuffer? indexBuffer);
 
     void DrawArrays(
-        int vertexCount,
+        uint vertexCount,
         int vertexOffset = 0);
 
     void DrawArraysInstanced(
