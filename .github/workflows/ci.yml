@@ -54,3 +54,15 @@ jobs:
       run: |
            export DISPLAY=:0
            dotnet test EngineKit.sln /p:Configuration=Release --no-restore --verbosity normal
+      if: matrix.os == 'macos-latest'
+
+    - name: Run tests
+      run: |
+           export DISPLAY=:0
+           dotnet test EngineKit.sln /p:Configuration=Release --no-restore --verbosity normal
+      if: matrix.os == 'ubuntu-latest'
+      
+    - name: Run tests
+      run: |
+           dotnet test EngineKit.sln /p:Configuration=Release --no-restore --verbosity normal
+      if: matrix.os == 'windows-latest'      
