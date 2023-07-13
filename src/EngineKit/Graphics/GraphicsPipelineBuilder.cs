@@ -109,6 +109,12 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
+    public IGraphicsPipelineBuilder WithLineWidth(float lineWidth)
+    {
+        _graphicsPipelineDescriptor.RasterizationDescriptor.LineWidth = lineWidth;
+        return this;
+    }
+
     public IGraphicsPipelineBuilder EnableDepthTest(CompareFunction compareFunction = CompareFunction.Less)
     {
         _graphicsPipelineDescriptor.DepthStencilDescriptor.IsDepthTestEnabled = true;

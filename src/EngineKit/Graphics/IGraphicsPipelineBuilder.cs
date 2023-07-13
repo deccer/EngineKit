@@ -17,6 +17,8 @@ public interface IGraphicsPipelineBuilder
     IGraphicsPipelineBuilder WithTopology(
         PrimitiveTopology primitiveTopology,
         bool isPrimitiveRestartEnabled = false);
+    
+    IGraphicsPipelineBuilder WithLineWidth(float lineWidth);
 
     Result<IGraphicsPipeline> Build(Label label);
 
