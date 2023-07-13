@@ -456,7 +456,6 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
             graphicsPipelineDescriptor.InputAssembly.IsPrimitiveRestartEnabled);
 
         var rasterizationDescriptor = graphicsPipelineDescriptor.RasterizationDescriptor;
-        GL.EnableWhen(GL.EnableType.DepthClamp, rasterizationDescriptor.IsDepthClampEnabled);
         GL.PolygonMode(GL.PolygonModeType.FrontAndBack, rasterizationDescriptor.FillMode.ToGL());
         GL.EnableWhen(GL.EnableType.CullFace, rasterizationDescriptor.IsCullingEnabled);
         if (rasterizationDescriptor.IsCullingEnabled)
@@ -469,19 +468,13 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         GL.EnableWhen(GL.EnableType.PolygonOffsetFill, rasterizationDescriptor.IsDepthBiasEnabled);
         GL.EnableWhen(GL.EnableType.PolygonOffsetLine, rasterizationDescriptor.IsDepthBiasEnabled);
         GL.EnableWhen(GL.EnableType.PolygonOffsetPoint, rasterizationDescriptor.IsDepthBiasEnabled);
-        if (rasterizationDescriptor.IsDepthBiasEnabled)
-        {
-            GL.PolygonOffset(
-                rasterizationDescriptor.DepthBiasSlopeFactor,
-                rasterizationDescriptor.DepthBiasConstantFactor);
-        }
-
-        if (Math.Abs(rasterizationDescriptor.LineWidth - 1.0f) < 0.01f)
+        
+        //if (Math.Abs(rasterizationDescriptor.LineWidth - 1.0f) < float.Epsilon)
         {
             GL.LineWidth(rasterizationDescriptor.LineWidth);
         }
 
-        if (Math.Abs(rasterizationDescriptor.PointSize - 1.0f) < 0.01f)
+        //if (Math.Abs(rasterizationDescriptor.PointSize - 1.0f) < float.Epsilon)
         {
             GL.PointSize(rasterizationDescriptor.PointSize);
         }
@@ -490,6 +483,13 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         GL.EnableWhen(GL.EnableType.DepthTest, depthStencilDescriptor.IsDepthTestEnabled);
         GL.DepthMask(depthStencilDescriptor.IsDepthWriteEnabled);
         GL.DepthFunc(depthStencilDescriptor.DepthCompareFunction.ToGL());
+        GL.EnableWhen(GL.EnableType.DepthClamp, rasterizationDescriptor.IsDepthClampEnabled);
+        if (rasterizationDescriptor.IsDepthBiasEnabled)
+        {
+            GL.PolygonOffset(
+                rasterizationDescriptor.DepthBiasSlopeFactor,
+                rasterizationDescriptor.DepthBiasConstantFactor);
+        }
 
         var colorBlendDescriptor = graphicsPipelineDescriptor.ColorBlendDescriptor;
         GL.EnableWhen(GL.EnableType.Blend, colorBlendDescriptor.ColorBlendAttachmentDescriptors.Any(blendAttachmentDescriptor => blendAttachmentDescriptor.IsBlendEnabled));
