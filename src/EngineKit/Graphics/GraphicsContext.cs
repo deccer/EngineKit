@@ -738,8 +738,8 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         GL.StencilMask(true);
     }
 
-    [Conditional("DEBUG")]
-    private void ClearResourceBindings()
+    //[Conditional("DEBUG")]
+    public void ClearResourceBindings()
     {
         for (var i = 0u; i < _limits.MaxImageUnits; i++)
         {

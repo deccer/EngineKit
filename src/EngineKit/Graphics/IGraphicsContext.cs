@@ -104,5 +104,8 @@ public interface IGraphicsContext : IDisposable
     void RemoveFramebuffer(FramebufferDescriptor framebufferDescriptor);
 
     void Finish();
+    
     FramebufferDescriptor CreateSingleFramebufferDescriptorFromTexture(ITexture texture);
+    
+    void ClearResourceBindings();
 }
