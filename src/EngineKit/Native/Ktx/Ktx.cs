@@ -121,18 +121,12 @@ public static partial class Ktx
 
     private static string GetLibraryName()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            return "libktx.dylib";
-        }
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            return File.Exists("runtimes/win-x64/native/ktx.dll")
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? File.Exists("runtimes/win-x64/native/ktx.dll")
                 ? "runtimes/win-x64/native/ktx.dll"
-                : "ktx.dll";
-        }
-
-        return "libktx.so";
+                : "ktx.dll"
+            : File.Exists("runtimes/linux-x64/native/libktx.so.4.2.1")
+                ? "runtimes/linux-x64/native/libktx.so.4.2.1"
+                : "libktx.so";
     }
 }
