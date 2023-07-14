@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
@@ -36,29 +36,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <!--
-        <Content Include="..\..\lib\glfw\glfw3.dll" Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))'">
-            <Link>glfw3.dll</Link>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <Visible>false</Visible>
-        </Content>
-        -->
         <Content Include="..\..\lib\glfw\glfw3.dll">
-            <Pack>true</Pack>
-            <PackagePath>runtimes\win-x64\native\</PackagePath>
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Pack>true</Pack>
+            <PackagePath>runtimes/win-x64/native/</PackagePath>
             <Visible>false</Visible>
         </Content>
-        <Content Include="..\..\README.md">
+        <Content Include="..\..\lib\ktx\ktx.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Pack>true</Pack>
+            <PackagePath>runtimes/linux-x64/native/</PackagePath>
             <Visible>false</Visible>
         </Content>
     </ItemGroup>
-
-    <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
-        <ItemGroup>
-            <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
-        </ItemGroup>
-    </Target>
 </Project>
