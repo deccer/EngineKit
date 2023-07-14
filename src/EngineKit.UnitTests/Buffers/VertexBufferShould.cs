@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using EngineKit.Graphics;
-using EngineKit.Native.OpenGL;
 using EngineKit.UnitTests.TestInfrastructure;
 using FluentAssertions;
 using Xunit;
@@ -18,18 +17,10 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         _glfwOpenGLDummyWindow = glfwOpenGLDummyWindow;
     }
 
-#if DEBUG
     [Fact]
-#else
-    [SkippableFact]
-#endif
     public void BeInstantiable()
     {
         // Arrange
-#if !DEBUG
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
-#endif
-
         var vertexBuffer = new VertexBuffer<VertexPositionNormalUvTangent>("Label");
 
         // Act
@@ -41,23 +32,13 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         vertexBuffer.Stride.Should().Be(Marshal.SizeOf<VertexPositionNormalUvTangent>());
         vertexBuffer.Count.Should().Be(2);
         vertexBuffer.SizeInBytes.Should().Be(100);
-#if DEBUG
         _glfwOpenGLDummyWindow.ErrorMessages.Should().HaveCount(0);
-#endif
     }
 
-#if DEBUG
     [Fact]
-#else
-    [SkippableFact]
-#endif
     public void BeAbleToUpdateDynamicBuffer()
     {
         // Arrange
-#if !DEBUG
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
-#endif
-
         var vertexBuffer = new VertexBuffer<VertexPositionNormalUvTangent>("Label");
         vertexBuffer.AllocateStorage(100, StorageAllocationFlags.Dynamic);
 
@@ -73,8 +54,6 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         vertexBuffer.Count.Should().Be(2);
         vertexBuffer.SizeInBytes.Should().Be(100);
         vertexBuffer.Stride.Should().Be(Marshal.SizeOf<VertexPositionNormalUvTangent>());
-#if DEBUG
         _glfwOpenGLDummyWindow.ErrorMessages.Should().HaveCount(0);
-#endif
     }
 }

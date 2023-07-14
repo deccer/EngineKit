@@ -17,14 +17,10 @@ public class IndexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         _glfwOpenGLDummyWindow = glfwOpenGLDummyWindow;
     }
 
-    [SkippableFact]
+    [Fact]
     public void BeInstantiable()
     {
         // Arrange & Act
-#if !DEBUG
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
-#endif
-
         var indexBuffer = new IndexBuffer<uint>("Label");
         indexBuffer.AllocateStorage(100, StorageAllocationFlags.None);
 
@@ -36,14 +32,10 @@ public class IndexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         indexBuffer.SizeInBytes.Should().Be(100);
     }
 
-    [SkippableFact]
+    [Fact]
     public void BeAbleToUpdateDynamicBuffer()
     {
         // Arrange
-#if !DEBUG
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
-#endif
-
         var indexBuffer = new IndexBuffer<uint>("Label");
         indexBuffer.AllocateStorage(100, StorageAllocationFlags.Dynamic);
 
