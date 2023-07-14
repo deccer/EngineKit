@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace EngineKit.Native.Ktx;
@@ -106,7 +107,7 @@ public static partial class Ktx
             return imageOffset;
         }
 
-        throw new InvalidOperationException("Handle this");
+        throw new InvalidOperationException("Handle this properly");
     }
 
     public static unsafe uint GetImageSize(KtxTexture* texture, uint mipLevel)
@@ -127,7 +128,9 @@ public static partial class Ktx
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            return "libktx";
+            return File.Exists("runtimes/win-x64/native/ktx.dll")
+                ? "runtimes/win-x64/native/ktx.dll"
+                : "ktx.dll";
         }
 
         return "libktx.so";
