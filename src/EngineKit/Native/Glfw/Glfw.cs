@@ -24,11 +24,7 @@ public static unsafe partial class Glfw
         }
 
         var libraryName = "./runtimes/win-x64/native/glfw3.dll";
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            libraryName = "libglfw.3.dylib";
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             libraryName = "libglfw.so.3";
         }
