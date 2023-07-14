@@ -23,6 +23,8 @@ public static unsafe partial class Glfw
         {
             return _glfwInitDelegate() == True;
         }
+        
+        Console.WriteLine(RuntimeInformation.RuntimeIdentifier);
 
         var libraryName = "./runtimes/win-x64/native/glfw3.dll";
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
