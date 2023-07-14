@@ -28,4 +28,12 @@
         </None>
     </ItemGroup>
 
+    <Target Name="MoveBinaries" BeforeTargets="AfterBuild">
+        <CreateItem Include="$(OutputPath)glfw3.dll;$(OutputPath)ktx.dll">
+            <Output TaskParameter="Include" ItemName="PackageBinaries"/>
+        </CreateItem>
+
+        <Move SourceFiles="@(PackageBinaries)" DestinationFolder="$(OutputPath)runtimes/win-x64/native" OverwriteReadOnlyFiles="true"/>
+    </Target>
+
 </Project>
