@@ -36,6 +36,7 @@ public sealed class GlfwOpenGLDummyWindow : IDisposable
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.Profile, Glfw.OpenGLProfile.Core);
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.VersionMajor, 4);
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.VersionMinor, 6);
+        Glfw.WindowHint(Glfw.WindowOpenGLContextHint.DebugContext, Glfw.True);
         _windowHandle = Glfw.CreateWindow(100, 100, "OpenGLTests", nint.Zero, nint.Zero);
         Glfw.MakeContextCurrent(_windowHandle);
 
