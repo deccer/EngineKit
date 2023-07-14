@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -30,11 +30,6 @@ jobs:
       run: |
         sudo apt install libglfw3-dev
       if: matrix.os == 'ubuntu-latest'
-
-    - name: Install Mesa & GLFW
-      run: |
-        brew install mesa glfw
-      if: matrix.os == 'macos-latest'
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v2.1.0
@@ -54,15 +49,9 @@ jobs:
       run: |
            export DISPLAY=:0
            dotnet test EngineKit.sln /p:Configuration=Release --no-restore --verbosity normal
-      if: matrix.os == 'macos-latest'
-
-    - name: Run tests
-      run: |
-           export DISPLAY=:0
-           dotnet test EngineKit.sln /p:Configuration=Release --no-restore --verbosity normal
       if: matrix.os == 'ubuntu-latest'
       
     - name: Run tests
       run: |
            dotnet test EngineKit.sln /p:Configuration=Release --no-restore --verbosity normal
-      if: matrix.os == 'windows-latest'      
+      if: matrix.os == 'windows-latest'
