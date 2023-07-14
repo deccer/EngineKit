@@ -21,6 +21,11 @@ public sealed class GlfwOpenGLDummyWindow : IDisposable
 
     public IList<string> DebugMessages { get; }
 
+    static GlfwOpenGLDummyWindow()
+    {
+        Glfw.Init();
+    }
+
     public GlfwOpenGLDummyWindow()
     {
         WarningMessages = new List<string>();
@@ -28,7 +33,6 @@ public sealed class GlfwOpenGLDummyWindow : IDisposable
         InfoMessages = new List<string>();
         DebugMessages = new List<string>();
 
-        Glfw.Init();
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.Profile, Glfw.OpenGLProfile.Core);
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.VersionMajor, 4);
         Glfw.WindowHint(Glfw.WindowOpenGLContextHint.VersionMinor, 6);
@@ -47,8 +51,6 @@ public sealed class GlfwOpenGLDummyWindow : IDisposable
     {
         Thread.Sleep(1000);
         Glfw.DestroyWindow(_windowHandle);
-        Thread.Sleep(500);
-        Glfw.Terminate();
     }
 
     private void DebugCallback(
