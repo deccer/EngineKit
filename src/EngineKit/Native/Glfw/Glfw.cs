@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace EngineKit.Native.Glfw;
@@ -26,7 +27,11 @@ public static unsafe partial class Glfw
         var libraryName = "./runtimes/win-x64/native/glfw3.dll";
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            libraryName = "libglfw.so.3";
+            libraryName = RuntimeInformation.RuntimeIdentifier.Contains("ubuntu")
+                ? File.Exists("/usr/lib/x86_64-linux-gnu/libglfw.so")
+                    ? "/usr/lib/x86_64-linux-gnu/libglfw.so"
+                    : "libglfw.so.3"
+                : "libglfw.so.3";
         }
 
         if (!NativeLibrary.TryLoad(libraryName, out _glfwLibraryHandle))
