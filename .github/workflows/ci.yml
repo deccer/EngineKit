@@ -26,17 +26,16 @@ jobs:
         sudo apt upgrade
       if: matrix.os == 'ubuntu-latest'
 
-    - name: Install Build
+    - name: Build and install GLFW
       run: |
         sudo apt install xorg-dev cmake
-        cd /tmp
         git clone --recursive https://github.com/glfw/glfw.git
         cd glfw
         mkdir build
         cmake -S . -B ./build -D GLFW_BUILD_EXAMPLES=OFF -D GLFW_BUILD_TESTS=OFF -D GLFW_BUILD_DOCS=OFF -D BUILD_SHARED_LIBS=ON
         cd build
         make
-        make install
+        sudo make install
       if: matrix.os == 'ubuntu-latest'
 
     - name: Setup .NET
