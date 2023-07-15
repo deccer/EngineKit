@@ -30,11 +30,13 @@ public static unsafe partial class Glfw
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             libraryName = RuntimeInformation.RuntimeIdentifier.Contains("ubuntu")
-                ? File.Exists("/usr/lib/x86_64-linux-gnu/libglfw.so")
-                    ? "/usr/lib/x86_64-linux-gnu/libglfw.so"
+                ? File.Exists("/usr/local/lib/libglfw.so")
+                    ? "/usr/local/lib/libglfw.so"
                     : "libglfw.so.3"
                 : "libglfw.so.3";
         }
+        
+        Console.WriteLine(libraryName);
 
         if (!NativeLibrary.TryLoad(libraryName, out _glfwLibraryHandle))
         {
