@@ -30,7 +30,7 @@ public record Material(string Name) : IDisposable
     public SamplerInformation? MetalnessRoughnessTextureSamplerInformation;
     public SamplerInformation? OcclusionTextureSamplerInformation;
     public SamplerInformation? EmissiveTextureSamplerInformation;
-    
+
     private bool _isDirty;
     public string Name { get; set; } = Name;
 
@@ -238,18 +238,18 @@ public record Material(string Name) : IDisposable
         //TODO(deccer) TextureLoader should be called and pass in material, to set its Texture objects perhaps
         //TODO(deccer) this needs to be inverted, ie someone else needs to load the stuff per material, not the material itself
 
-        BaseColorTexture = CreateTextureFromImage(BaseColorImage, BaseColorTextureSamplerInformation, logger,
+        BaseColorTexture = CreateTextureFromImage(BaseColorImage, Format.R8G8B8A8Srgb, BaseColorTextureSamplerInformation, logger,
             graphicsContext, samplerLibrary, textures, makeResident);
-        NormalTexture = CreateTextureFromImage(NormalImage, NormalTextureSamplerInformation, logger, graphicsContext,
+        NormalTexture = CreateTextureFromImage(NormalImage, Format.R8G8B8A8UNorm, NormalTextureSamplerInformation, logger, graphicsContext,
             samplerLibrary, textures, makeResident);
-        MetalnessRoughnessTexture = CreateTextureFromImage(MetalnessRoughnessImage,
+        MetalnessRoughnessTexture = CreateTextureFromImage(MetalnessRoughnessImage, Format.R8G8B8A8UNorm,
             MetalnessRoughnessTextureSamplerInformation, logger, graphicsContext, samplerLibrary, textures,
             makeResident);
-        SpecularTexture = CreateTextureFromImage(SpecularImage, SpecularTextureSamplerInformation, logger,
+        SpecularTexture = CreateTextureFromImage(SpecularImage, Format.R8G8B8A8UNorm, SpecularTextureSamplerInformation, logger,
             graphicsContext, samplerLibrary, textures, makeResident);
-        OcclusionTexture = CreateTextureFromImage(OcclusionImage, OcclusionTextureSamplerInformation, logger,
+        OcclusionTexture = CreateTextureFromImage(OcclusionImage, Format.R8G8B8A8UNorm, OcclusionTextureSamplerInformation, logger,
             graphicsContext, samplerLibrary, textures, makeResident);
-        EmissiveTexture = CreateTextureFromImage(EmissiveImage, EmissiveTextureSamplerInformation, logger,
+        EmissiveTexture = CreateTextureFromImage(EmissiveImage, Format.R8G8B8A8Srgb, EmissiveTextureSamplerInformation, logger,
             graphicsContext, samplerLibrary, textures, makeResident);
 
         TexturesLoaded = true;
@@ -257,6 +257,7 @@ public record Material(string Name) : IDisposable
 
     private static ITexture? CreateTextureFromImage(
         ImageInformation? image,
+        Format format,
         SamplerInformation? sampler,
         ILogger logger,
         IGraphicsContext graphicsContext,
@@ -272,10 +273,10 @@ public record Material(string Name) : IDisposable
         
         var sw = Stopwatch.StartNew();
         texture = image.ImageData.HasValue
-            ? graphicsContext.CreateTextureFromMemory(image, Format.R8G8B8A8Srgb, image.Name, generateMipmaps: true, flipVertical: false, flipHorizontal: false)
+            ? graphicsContext.CreateTextureFromMemory(image, format, image.Name, generateMipmaps: true, flipVertical: false, flipHorizontal: false)
             : string.IsNullOrEmpty(image.FileName)
                 ? null
-                : graphicsContext.CreateTextureFromFile(image.FileName, Format.R8G8B8A8Srgb, true, false, false);
+                : graphicsContext.CreateTextureFromFile(image.FileName, format, true, false, false);
                     
         sw.Stop();
         
