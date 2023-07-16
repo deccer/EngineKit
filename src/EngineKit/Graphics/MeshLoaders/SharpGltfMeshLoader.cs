@@ -17,6 +17,18 @@ namespace EngineKit.Graphics.MeshLoaders;
 
 internal sealed class SharpGltfMeshLoader : IMeshLoader
 {
+    private const string SkipBecausePrimitiveHasNoVertices = "{Category}: Primitive has no vertices. Skipping";
+    private const string SkipBecausePrimitiveIsNotTriangulated = "{Category}: Primitive must be triangulated. Skipping";
+
+    private static class VertexAccessorName
+    {
+        public const string Position = "POSITION";
+        public const string Normal = "NORMAL";
+        public const string Uv0 = "TEXCOORD_0";
+        public const string Uv1 = "TEXCOORD_1";
+        public const string Tangent = "TANGENT";
+    }
+    
     private readonly ILogger _logger;
     private readonly IMaterialLibrary _materialLibrary;
 
@@ -99,11 +111,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
         {
             if (materialChannel.Key is "BaseColor" or "Diffuse" or "RGB")
             {
-                material.BaseColor = new Color4(
-                    materialChannel.Color.X,
-                    materialChannel.Color.Y,
-                    materialChannel.Color.Z,
-                    materialChannel.Color.W);
+                material.BaseColor = new Color4(materialChannel.Color.ToVector4());
                 
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
@@ -146,7 +154,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             }
             else if (materialChannel.Key == "SpecularColor")
             {
-                material.SpecularColor = new Color4(materialChannel.Color.X, materialChannel.Color.Y, materialChannel.Color.Z, materialChannel.Color.W);
+                material.SpecularColor = new Color4(materialChannel.Color.ToVector4());
             }
             else if (materialChannel.Key == "SpecularFactor")
             {
@@ -180,7 +188,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             else if (materialChannel.Key == "Emissive")
             {
                 // Color
-                material.EmissiveColor = new Color4(materialChannel.Color.X, materialChannel.Color.Y, materialChannel.Color.Z, 0.0f);
+                material.EmissiveColor = new Color4(materialChannel.Color.ToVector4());
                 
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
@@ -204,13 +212,13 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
         {
             if (primitive?.VertexAccessors?.Keys == null)
             {
-                _logger.Error("{Category}: Primitives has no vertices. Skipping", nameof(SharpGltfMeshLoader));
+                _logger.Error(SkipBecausePrimitiveHasNoVertices, nameof(SharpGltfMeshLoader));
                 continue;
             }
 
             if (primitive.DrawPrimitiveType != PrimitiveType.TRIANGLES)
             {
-                _logger.Error("{Category}: Only triangle primitives are allowed", nameof(SharpGltfMeshLoader));
+                _logger.Error(SkipBecausePrimitiveIsNotTriangulated, nameof(SharpGltfMeshLoader));
                 continue;
             }
 
@@ -220,24 +228,25 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                     ? node.Name + "_" + Guid.NewGuid()
                     : node.Name;
             
-            var positions = primitive.VertexAccessors.GetValueOrDefault("POSITION").AsSpan<Vector3>();
+            var positions = primitive.VertexAccessors.GetValueOrDefault(VertexAccessorName.Position).AsSpan<Vector3>();
             if (positions.Length == 0)
             {
-                _logger.Error("{Category}: Mesh primitive {MeshName} has no valid vertex data", nameof(SharpGltfMeshLoader), meshName);
+                _logger.Error("{Category}: Primitive {MeshName} has no valid vertex data", nameof(SharpGltfMeshLoader), meshName);
                 continue;
             }      
             
             var meshPrimitive = new MeshPrimitive(meshName);
             meshPrimitive.Transform = node.WorldMatrix.ToMatrix();
             meshPrimitive.MaterialName = primitive.Material?.Name ?? (primitive.Material == null ? "M_NotFound" : materials.ElementAt(primitive.Material.LogicalIndex)?.Name) ?? "M_NotFound";
-            
-            var vertexType = GetVertexTypeFromVertexAccessorNames(primitive!.VertexAccessors!.Keys.ToList());
-
             meshPrimitive.BoundingBox = BoundingBox.FromPoints(positions.ToArray());
             
-            var normals = primitive.VertexAccessors.GetValueOrDefault("NORMAL").AsSpan<Vector3>();
-            var uvs = primitive.VertexAccessors.GetValueOrDefault("TEXCOORD_0").AsSpan<Vector2>();
-            var realTangents = primitive.VertexAccessors.GetValueOrDefault("TANGENT").AsSpan<Vector4>();
+            var vertexType = GetVertexTypeFromVertexAccessorNames(primitive!.VertexAccessors!.Keys.ToList());
+            var normalsAccessor = primitive.VertexAccessors.GetValueOrDefault(VertexAccessorName.Normal);
+            var normals = normalsAccessor.AsSpan<Vector3>();
+            var uvsAccessor = primitive.VertexAccessors.GetValueOrDefault(VertexAccessorName.Uv0);
+            var uvs = uvsAccessor.AsSpan<Vector2>();
+            var tangentsAccessor = primitive.VertexAccessors.GetValueOrDefault(VertexAccessorName.Tangent);
+            var realTangents = tangentsAccessor.AsSpan<Vector4>();
             if (uvs.Length == 0)
             {
                 uvs = new Vector2[positions.Length].AsSpan();
@@ -261,9 +270,11 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             for (var i = 0; i < positions.Length; i++)
             {
                 var position = Vector3.TransformPosition(positions[i], meshPrimitive.Transform);
+                //var position = positions[i];
                 var normal = Vector3.TransformDirection(normals[i], meshPrimitive.Transform);
+                //var normal = normals[i];//Vector3.TransformDirection(normals[i], meshPrimitive.Transform);
                 var realTangentXyz = new Vector3(realTangents[i].X, realTangents[i].Y, realTangents[i].Z);
-                var realTangent = new Vector4(Vector3.TransformDirection(realTangentXyz, meshPrimitive.Transform), realTangents[i].W);
+                var realTangent = new Vector4(realTangentXyz, realTangents[i].W);
 
                 switch (vertexType)
                 {
@@ -285,11 +296,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                         break;
                     default:
                     {
-                        if (vertexType == VertexType.PositionUv)
-                        {
-                            meshPrimitive.AddPositionUv(position, uvs[i]);
-                        }
-
+                        meshPrimitive.AddPositionUv(position, uvs[i]);
                         break;
                     }
                 }
@@ -300,13 +307,13 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
     private static VertexType GetVertexTypeFromVertexAccessorNames(ICollection<string> vertexAccessorNames)
     {
-        if (vertexAccessorNames.Contains("POSITION"))
+        if (vertexAccessorNames.Contains(VertexAccessorName.Position))
         {
-            if (vertexAccessorNames.Contains("NORMAL"))
+            if (vertexAccessorNames.Contains(VertexAccessorName.Normal))
             {
-                if (vertexAccessorNames.Contains("TEXCOORD_0"))
+                if (vertexAccessorNames.Contains(VertexAccessorName.Uv0))
                 {
-                    if (vertexAccessorNames.Contains("TANGENT"))
+                    if (vertexAccessorNames.Contains(VertexAccessorName.Tangent))
                     {
                         return VertexType.PositionNormalUvTangent;
                     }
@@ -317,7 +324,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 return VertexType.PositionNormal;
             }
 
-            if (vertexAccessorNames.Contains("TEXCOORD_0"))
+            if (vertexAccessorNames.Contains(VertexAccessorName.Uv0))
             {
                 return VertexType.PositionUv;
             }
