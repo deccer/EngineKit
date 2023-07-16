@@ -216,7 +216,7 @@ public sealed class MeshPrimitive
             var biTangent = _biTangents[i];
 
             var realTangent = Vector3.Normalize(Vector3.Subtract(tangent, normal * Vector3.Dot(normal, tangent)));
-            var realBiTangent = Vector3.Dot(Vector3.Cross(normal, tangent), biTangent) < 0.0f
+            var realBiTangent = Vector3.Dot(Vector3.Cross( Vector3.Normalize(normal), Vector3.Normalize(tangent)), Vector3.Normalize(biTangent)) < 0.0f
                 ? -1.0f
                 : 1.0f;
 

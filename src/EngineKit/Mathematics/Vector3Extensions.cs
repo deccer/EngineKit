@@ -28,5 +28,5 @@ public static class Vector3Extensions
 
 public static class Vector4Extensions
 {
-    
+    public static Vector3 XYZ(this Vector4 v) => new Vector3(v.X, v.Y, v.Z);
 }

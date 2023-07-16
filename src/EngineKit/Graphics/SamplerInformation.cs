@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics;
 using EngineKit.Extensions;
 
 namespace EngineKit.Graphics;
 
+[DebuggerDisplay("S = {TextureAddressingModeS}, T = {TextureAddressingModeT}, IF = {TextureInterpolationFilter}, MF = {TextureMipmapFilter}")]
 public readonly struct SamplerInformation : IEquatable<SamplerInformation>
 {
     public SamplerInformation(SharpGLTF.Schema2.TextureSampler textureSampler)
@@ -17,6 +19,11 @@ public readonly struct SamplerInformation : IEquatable<SamplerInformation>
     public readonly TextureAddressMode TextureAddressingModeT;
     public readonly TextureInterpolationFilter TextureInterpolationFilter;
     public readonly TextureMipmapFilter TextureMipmapFilter;
+    
+    public override string ToString()
+    {
+        return $"S = {TextureAddressingModeS}, T = {TextureAddressingModeT}, IF = {TextureInterpolationFilter}, MF = {TextureMipmapFilter}";
+    }
 
     public bool Equals(SamplerInformation other)
     {
