@@ -20,6 +20,8 @@ internal abstract class Buffer : IBuffer
     public int Count { get; protected set; }
 
     public int SizeInBytes { get; private set; }
+    
+    public bool IsMappable { get; private set; }
 
     public void Dispose()
     {
@@ -31,6 +33,7 @@ internal abstract class Buffer : IBuffer
         GL.NamedBufferStorage(Id, sizeInBytes, nint.Zero, storageAllocationFlags.ToGL());
         SizeInBytes = sizeInBytes;
         Count = SizeInBytes / Stride;
+        IsMappable = storageAllocationFlags.HasFlag(StorageAllocationFlags.Mappable);
     }
 
     public void AllocateStorage<TElement>(TElement element, StorageAllocationFlags storageAllocationFlags)
@@ -39,6 +42,7 @@ internal abstract class Buffer : IBuffer
         GL.NamedBufferStorage(Id, element, storageAllocationFlags.ToGL());
         Count = 1;
         SizeInBytes = Marshal.SizeOf<TElement>();
+        IsMappable = storageAllocationFlags.HasFlag(StorageAllocationFlags.Mappable);
     }
 
     public void AllocateStorage<TElement>(TElement[] elements, StorageAllocationFlags storageAllocationFlags)
@@ -47,6 +51,7 @@ internal abstract class Buffer : IBuffer
         GL.NamedBufferStorage(Id, elements, storageAllocationFlags.ToGL());
         Count = elements.Length;
         SizeInBytes = Marshal.SizeOf<TElement>() * Count;
+        IsMappable = storageAllocationFlags.HasFlag(StorageAllocationFlags.Mappable);
     }
 
     public unsafe void Update(nint dataPtr, int offsetInBytes, int sizeInBytes)

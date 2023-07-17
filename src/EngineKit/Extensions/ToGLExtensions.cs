@@ -44,11 +44,14 @@ public static class ToGLExtensions
         };
     }
 
-    public static GL.BufferStorageMask ToGL(this StorageAllocationFlags storageAllocationFlags)
+    public static uint ToGL(this StorageAllocationFlags storageAllocationFlags)
     {
-        GL.BufferStorageMask result = 0u;
-        result |= (storageAllocationFlags & StorageAllocationFlags.Dynamic) == StorageAllocationFlags.Dynamic ? GL.BufferStorageMask.DynamicStorageBit : 0;
-        result |= (storageAllocationFlags & StorageAllocationFlags.Client) == StorageAllocationFlags.Client ? GL.BufferStorageMask.ClientStorageBit : 0;
+        var result = 0u;
+        result |= (storageAllocationFlags & StorageAllocationFlags.Dynamic) == StorageAllocationFlags.Dynamic ? (uint)GL.BufferStorageFlags.DynamicStorageBit : 0;
+        result |= (storageAllocationFlags & StorageAllocationFlags.Client) == StorageAllocationFlags.Client ? (uint)GL.BufferStorageFlags.ClientStorageBit : 0;
+        result |= (storageAllocationFlags & StorageAllocationFlags.Mappable) == StorageAllocationFlags.Mappable
+            ? (uint)(GL.MapFlags.Persistent | GL.MapFlags.Coherent)
+            : 0;
         return result;
     }
 
