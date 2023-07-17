@@ -585,35 +585,35 @@ public static unsafe partial class GL
         uint buffer,
         long size,
         nint data,
-        BufferStorageMask bufferStorageMask)
+        uint bufferStorageFlags)
     {
         var dataPtr = (void*)data;
-        NamedBufferStorage(buffer, size, dataPtr, bufferStorageMask);
+        NamedBufferStorage(buffer, size, dataPtr, bufferStorageFlags);
     }
 
     public static void NamedBufferStorage<TData>(
         uint buffer,
         in TData data,
-        BufferStorageMask bufferStorageMask)
+        uint bufferStorageFlags)
         where TData : unmanaged
     {
         var size = (long)sizeof(TData);
         fixed (void* dataPtr = &data)
         {
-            NamedBufferStorage(buffer, size, dataPtr, bufferStorageMask);
+            NamedBufferStorage(buffer, size, dataPtr, bufferStorageFlags);
         }
     }
 
     public static void NamedBufferStorage<TData>(
         uint buffer,
         TData[] data,
-        BufferStorageMask bufferStorageMask)
+        uint bufferStorageFlags)
         where TData : unmanaged
     {
         var size = (long)(data.Length * sizeof(TData));
         fixed (void* dataPtr = data)
         {
-            NamedBufferStorage(buffer, size, dataPtr, bufferStorageMask);
+            NamedBufferStorage(buffer, size, dataPtr, bufferStorageFlags);
         }
     }
 
@@ -621,9 +621,9 @@ public static unsafe partial class GL
         uint buffer,
         long size,
         void* dataPtr,
-        BufferStorageMask bufferStorageMask)
+        uint bufferStorageFlags)
     {
-        _glNamedBufferStorageDelegate(buffer, size, dataPtr, bufferStorageMask);
+        _glNamedBufferStorageDelegate(buffer, size, dataPtr, bufferStorageFlags);
     }
 
     public static void NamedBufferSubData<TData>(
@@ -1553,5 +1553,15 @@ public static unsafe partial class GL
             SizedInternalFormat.Rgb10A2ui => true,
             _ => false
         };
+    }
+
+    public static void* MapBuffer(uint buffer, MemoryAccess memoryAccess)
+    {
+        return _glMapNamedBufferDelegate(buffer, memoryAccess);
+    }
+
+    public static bool UnmapBuffer(uint buffer)
+    {
+        return _glUnmapNamedBufferDelegate(buffer) == 1;
     }
 }
