@@ -159,7 +159,7 @@ public static partial class GL
     }
 
     [Flags]
-    public enum BufferStorageMask : uint
+    public enum BufferStorageFlags : uint
     {
         MapReadBit = 1,
         MapWriteBit = 2,
@@ -1012,7 +1012,20 @@ public static partial class GL
         WriteOnly = 0x88B9,
         ReadWrite = 0x88BA
     }
-    
+
+    [Flags]
+    public enum MapFlags : uint
+    {
+        Read = 0x0001,
+        Write = 0x0002,
+        InvalidateRange = 0x0004,
+        InvalidateBuffer = 0x0008,
+        FlushExplicit = 0x0010,
+        UnSynchronized = 0x0020,
+        Persistent = 0x0040,
+        Coherent = 0x0080
+    }
+
     public enum ClipControlOrigin : uint
     {
         LowerLeft = 36001,

@@ -121,7 +121,7 @@ public static unsafe partial class GL
     private static delegate* unmanaged<float, void> _glLineWidthDelegate = &glLineWidth;
     private static delegate* unmanaged<LogicOperation, void> _glLogicOpDelegate = &glLogicOp;
 
-    private static delegate* unmanaged<uint, long, void*, BufferStorageMask, void> _glNamedBufferStorageDelegate =
+    private static delegate* unmanaged<uint, long, void*, uint, void> _glNamedBufferStorageDelegate =
         &glNamedBufferStorage;
 
     private static delegate* unmanaged<uint, nint, void*, BufferUsage, void> _glNamedBufferDataDelegate =
@@ -258,7 +258,8 @@ public static unsafe partial class GL
     private static delegate* unmanaged<uint, float*, void> _glGetFloatvDelegate = &glGetFloatv;
     private static delegate* unmanaged<uint, uint, byte*> _glGetStringiDelegate = &glGetStringi;
     
-    private static delegate* unmanaged<int, MemoryAccess, void*> _glMapNamedBufferDelegate = &glMapNamedBuffer;
+    private static delegate* unmanaged<uint, MemoryAccess, void*> _glMapNamedBufferDelegate = &glMapNamedBuffer;
+    private static delegate* unmanaged<uint, int> _glUnmapNamedBufferDelegate = &glUnmapNamedBuffer;
     
     private static delegate* unmanaged<uint, int, int, byte, int, MemoryAccess, SizedInternalFormat, void> _glBindImageTextureDelegate = &glBindImageTexture;
     private static delegate* unmanaged<uint, int, int*, void> _glBindImageTexturesDelegate = &glBindImageTextures;
@@ -974,12 +975,12 @@ public static unsafe partial class GL
         uint buffer,
         long size,
         void* dataPtr,
-        BufferStorageMask bufferStorageMask)
+        uint bufferStorageFlags)
     {
         _glNamedBufferStorageDelegate =
-            (delegate* unmanaged<uint, long, void*, BufferStorageMask, void>)Glfw.Glfw.GetProcAddress(
+            (delegate* unmanaged<uint, long, void*, uint, void>)Glfw.Glfw.GetProcAddress(
                 nameof(glNamedBufferStorage));
-        _glNamedBufferStorageDelegate(buffer, size, dataPtr, bufferStorageMask);
+        _glNamedBufferStorageDelegate(buffer, size, dataPtr, bufferStorageFlags);
     }
 
     [UnmanagedCallersOnly]
@@ -1738,10 +1739,17 @@ public static unsafe partial class GL
     }
     
     [UnmanagedCallersOnly]
-    private static void* glMapNamedBuffer(int buffer, MemoryAccess memoryAccess)
+    private static void* glMapNamedBuffer(uint buffer, MemoryAccess memoryAccess)
     {
-        _glMapNamedBufferDelegate = (delegate* unmanaged<int, MemoryAccess, void*>)Glfw.Glfw.GetProcAddress(nameof(glMapNamedBuffer));
+        _glMapNamedBufferDelegate = (delegate* unmanaged<uint, MemoryAccess, void*>)Glfw.Glfw.GetProcAddress(nameof(glMapNamedBuffer));
         return _glMapNamedBufferDelegate(buffer, memoryAccess);
+    }
+
+    [UnmanagedCallersOnly]
+    private static int glUnmapNamedBuffer(uint buffer)
+    {
+        _glUnmapNamedBufferDelegate = (delegate* unmanaged<uint, int>)Glfw.Glfw.GetProcAddress(nameof(glUnmapNamedBuffer));
+        return _glUnmapNamedBufferDelegate(buffer);
     }
     
     [UnmanagedCallersOnly]
