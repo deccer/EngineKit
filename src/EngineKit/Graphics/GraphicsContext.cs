@@ -159,6 +159,23 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         return Result.Success<IGraphicsPipeline>(graphicsPipeline);
     }
 
+    public unsafe bool TryMapBuffer(IBuffer buffer, MemoryAccess memoryAccess, out nint bufferPtr)
+    {
+        if (!buffer.IsMappable)
+        {
+            bufferPtr = IntPtr.Zero;
+            return false;
+        }
+
+        bufferPtr = (nint)GL.MapBuffer(buffer.Id, memoryAccess.ToGL());
+        return true;
+    }
+
+    public void UnmapBuffer(IBuffer buffer)
+    {
+        GL.UnmapBuffer(buffer.Id);
+    }
+
     public IIndexBuffer CreateIndexBuffer(Label label, MeshPrimitive[] meshPrimitives)
     {
         var indices = meshPrimitives

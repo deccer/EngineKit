@@ -9,6 +9,8 @@ public interface IBuffer : IDisposable
     int Stride { get; }
 
     int Count { get; }
+    
+    bool IsMappable { get; }
 
     void AllocateStorage(int sizeInBytes, StorageAllocationFlags storageAllocationFlags);
 

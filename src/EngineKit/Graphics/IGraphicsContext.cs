@@ -18,6 +18,10 @@ public interface IGraphicsContext : IDisposable
         int targetWidth,
         int targetHeight);
 
+    bool TryMapBuffer(IBuffer buffer, MemoryAccess memoryAccess, out nint bufferPtr);
+
+    void UnmapBuffer(IBuffer buffer);
+
     IIndexBuffer CreateIndexBuffer<TIndex>(Label label)
         where TIndex : unmanaged;
 
