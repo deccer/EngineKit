@@ -50,7 +50,7 @@ public static class ToGLExtensions
         result |= (storageAllocationFlags & StorageAllocationFlags.Dynamic) == StorageAllocationFlags.Dynamic ? (uint)GL.BufferStorageFlags.DynamicStorageBit : 0;
         result |= (storageAllocationFlags & StorageAllocationFlags.Client) == StorageAllocationFlags.Client ? (uint)GL.BufferStorageFlags.ClientStorageBit : 0;
         result |= (storageAllocationFlags & StorageAllocationFlags.Mappable) == StorageAllocationFlags.Mappable
-            ? (uint)(GL.MapFlags.Persistent | GL.MapFlags.Coherent)
+            ? (uint)(GL.MapFlags.Read | GL.MapFlags.Write | GL.MapFlags.Persistent | GL.MapFlags.Coherent)
             : 0;
         return result;
     }
