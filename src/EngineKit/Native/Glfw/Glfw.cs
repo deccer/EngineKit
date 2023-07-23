@@ -24,8 +24,6 @@ public static unsafe partial class Glfw
             return _glfwInitDelegate() == True;
         }
         
-        Console.WriteLine(RuntimeInformation.RuntimeIdentifier);
-
         var libraryName = "./runtimes/win-x64/native/glfw3.dll";
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
@@ -36,8 +34,6 @@ public static unsafe partial class Glfw
                 : "libglfw.so.3";
         }
         
-        Console.WriteLine(libraryName);
-
         if (!NativeLibrary.TryLoad(libraryName, out _glfwLibraryHandle))
         {
             Debug.WriteLine($"GLFW: Unable to load {libraryName}");
