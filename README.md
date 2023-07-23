@@ -15,7 +15,7 @@ Create two projects
 ---
 
 - Add `YourProject.Assets` as a project reference to `YourProject`.
-- Copy `Fonts` from [https://github.com/deccer/EngineKit/tree/main/examples/ForwardRendering/ForwardRendering.Assets/Fonts](here) into `YourProject.Assets` (i am working on a neater solution)
+- Copy `Fonts` directory from [here](https://github.com/deccer/EngineKit/tree/main/examples/ForwardRendering/ForwardRendering.Assets) into `YourProject.Assets` (i am working on a neater solution)
 - Add `EngineKit` to `YourProject` via nuget as a usual package.
 - Create an `appsettings.json` in `YourProject` which should like like [this](https://github.com/deccer/EngineKit/blob/main/examples/ForwardRendering/ForwardRendering/appsettings.json) one.
 - Make sure to have it copied when its newer by rightclickin it -> Properties -> "Copy to output directory" -> "Copy if newer"
