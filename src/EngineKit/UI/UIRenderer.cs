@@ -111,8 +111,7 @@ internal sealed class UIRenderer : IUIRenderer
 
         if (!File.Exists(filePath))
         {
-            //TODO(deccer) add logging
-            //_logger.Error("");
+            _logger.Error("{Category} Unable to load font {FileName}", "UIRenderer", filePath);
             return false;
         }
 
