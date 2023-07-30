@@ -21,11 +21,11 @@ internal sealed class UIRenderer : IUIRenderer
     #extension GL_ARB_separate_shader_objects : enable
     #extension GL_ARB_explicit_uniform_location : enable
 
-    layout(location = 0) in vec2 in_position;
-    layout(location = 1) in vec2 in_uv;
-    layout(location = 2) in vec4 in_color;
+    layout(location = 0) in vec2 i_position;
+    layout(location = 1) in vec2 i_uv;
+    layout(location = 2) in vec4 i_color;
 
-        out gl_PerVertex
+    out gl_PerVertex
     {
         vec4 gl_Position;
     };
@@ -39,11 +39,11 @@ internal sealed class UIRenderer : IUIRenderer
 
     void main()
     {
-        gl_Position = ProjectionMatrix * vec4(in_position, 0, 1);
-        v_color = in_color;
-        v_uv = in_uv;
+        gl_Position = ProjectionMatrix * vec4(i_position, 0, 1);
+        v_color = i_color;
+        v_uv = i_uv;
     }
-        ";
+    ";
 
     private const string ImGuiFragmentShader = @"
     #version 460 core
@@ -90,6 +90,8 @@ internal sealed class UIRenderer : IUIRenderer
 
     private readonly IDictionary<string, ImFontPtr> _fonts;
 
+    private Array _keyValues;
+
     public UIRenderer(
         ILogger logger,
         IGraphicsContext graphicsContext,
@@ -127,6 +129,8 @@ internal sealed class UIRenderer : IUIRenderer
         _framebufferWidth = width;
         _framebufferHeight = height;
 
+        _keyValues = Enum.GetValuesAsUnderlyingType<Glfw.Key>();
+
         var imGuiContext = ImGui.CreateContext();
         ImGui.SetCurrentContext(imGuiContext);
 
@@ -146,11 +150,14 @@ internal sealed class UIRenderer : IUIRenderer
         var imGuiGraphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromStrings(ImGuiVertexShader, ImGuiFragmentShader)
             .WithTopology(PrimitiveTopology.Triangles)
+/*            
             .WithVertexInput(new VertexInputDescriptorBuilder()
                 .AddAttribute(0, DataType.Float, 2, 0)
                 .AddAttribute(0, DataType.Float, 2, 8)
-                .AddAttribute(0, DataType.UnsignedByte, 4, 16, true)
+                .AddAttribute(0, DataType.UnsignedByte, 4, 16)            
                 .Build("UI"))
+*/          
+            .WithVertexInput(VertexInputDescriptor.ForVertexType(VertexType.ImGui))
             .EnableBlending(ColorBlendAttachmentDescriptor.PreMultiplied)
             .DisableDepthTest()
             .DisableDepthWrite()
@@ -359,7 +366,7 @@ internal sealed class UIRenderer : IUIRenderer
                 : 0;
         _scrollWheelValue = (int)currentMouseState.Scroll.Y;
 
-        foreach (Glfw.Key key in Enum.GetValues(typeof(Glfw.Key)))
+        foreach (Glfw.Key key in _keyValues)
         {
             if (key == Glfw.Key.Unknown)
             {
@@ -423,7 +430,6 @@ internal sealed class UIRenderer : IUIRenderer
             return;
         }
 
-        GL.PushDebugGroup("UI");
         for (var i = 0; i < drawDataPtr.CmdListsCount; i++)
         {
             var commandList = drawDataPtr.CmdListsRange[i];
@@ -524,7 +530,6 @@ internal sealed class UIRenderer : IUIRenderer
 
         GL.Disable(GL.EnableType.Blend);
         GL.Disable(GL.EnableType.ScissorTest);
-        GL.PopDebugGroup();
     }
 
     public void Dispose()

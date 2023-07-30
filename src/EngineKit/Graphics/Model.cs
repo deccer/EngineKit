@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace EngineKit.Graphics;
 
-public class Model
+public class Model : IHasName
 {
     public Model(string name, IEnumerable<ModelMesh> modelMeshes)
     {
