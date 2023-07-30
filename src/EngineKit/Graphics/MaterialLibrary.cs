@@ -65,16 +65,20 @@ internal sealed class MaterialLibrary : IMaterialLibrary
         return _materials.Keys.ToList();
     }
 
-    public Material GetMaterialByName(string materialName)
+    public Material GetMaterialByName(string? materialName)
     {
+        if (string.IsNullOrEmpty(materialName))
+        {
+            return _materials[Material.MaterialNotFoundName];
+        }
         return _materials.TryGetValue(materialName, out var material)
             ? material
-            : _materials["M_NotFound"];
+            : _materials[Material.MaterialNotFoundName];
     }
 
     private void CreateSystemMaterials()
     {
-        var notFoundMaterial = new Material("M_NotFound")
+        var notFoundMaterial = new Material(Material.MaterialNotFoundName)
         {
             BaseColor = Color.Firebrick,
             BaseColorImage = new ImageInformation("NotFound.BaseColor", null, null, "Data/Default/T_Red_D.png"),
