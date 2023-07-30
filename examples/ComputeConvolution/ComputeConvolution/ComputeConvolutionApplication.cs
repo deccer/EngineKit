@@ -7,7 +7,6 @@ using ImGuiNET;
 using Microsoft.Extensions.Options;
 using EngineKit.Mathematics;
 using Serilog;
-using SixLabors;
 using SixLabors.ImageSharp.PixelFormats;
 using Color = EngineKit.Mathematics.Color;
 
@@ -31,12 +30,23 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         IOptions<WindowSettings> windowSettings,
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
+        ICapabilities capabilities,
         IMetrics metrics,
         ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, limits, inputProvider, graphicsContext, uiRenderer)
+        : base(
+            logger,
+            windowSettings,
+            contextSettings,
+            applicationContext,
+            capabilities,
+            metrics,
+            limits,
+            inputProvider,
+            graphicsContext,
+            uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;

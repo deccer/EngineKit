@@ -18,6 +18,7 @@ public class Application : IApplication
     private readonly IOptions<WindowSettings> _windowSettings;
     private readonly IOptions<ContextSettings> _contextSettings;
     private readonly IApplicationContext _applicationContext;
+    private readonly ICapabilities _capabilities;
     private readonly ILimits _limits;
     private readonly IMetrics _metrics;
     private readonly IInputProvider _inputProvider;
@@ -45,6 +46,7 @@ public class Application : IApplication
         IOptions<WindowSettings> windowSettings,
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
+        ICapabilities capabilities,
         ILimits limits,
         IMetrics metrics,
         IInputProvider inputProvider)
@@ -53,12 +55,12 @@ public class Application : IApplication
         _windowSettings = windowSettings;
         _contextSettings = contextSettings;
         _applicationContext = applicationContext;
+        _capabilities = capabilities;
         _limits = limits;
         _metrics = metrics;
         _inputProvider = inputProvider;
         _windowHandle = nint.Zero;
         _frameTimeAverager = new FrameTimeAverager(50);
-        _extensions = new List<string>(512);
     }
     
     public double DesiredFramerate { get; set; } = 120.0;
@@ -300,7 +302,11 @@ public class Application : IApplication
         }
 
         Glfw.MakeContextCurrent(_windowHandle);
-        LoadExtensions();
+
+        if (!_capabilities.Load())
+        {
+            return false;
+        }
 
         if (!_limits.Load())
         {
@@ -312,7 +318,8 @@ public class Application : IApplication
         _logger.Information("{Category}: Version - {Version}", "GL", GL.GetString(GL.StringName.Version));
         _logger.Information("{Category}: Shading Language Version - {ShadingLanguageVersion}", "GL", GL.GetString(GL.StringName.ShadingLanguageVersion));
 
-        if (IsExtensionSupported("WGL_EXT_swap_control_tear") || IsExtensionSupported("GLX_EXT_swap_control_tear"))
+        
+        if (_capabilities.SupportsSwapControl)
         {
             Glfw.SwapInterval(_windowSettings.Value.IsVsyncEnabled ? 1 : -1);
         }
@@ -340,11 +347,6 @@ public class Application : IApplication
         GL.Enable(GL.EnableType.FramebufferSrgb);
 
         return true;
-    }
-    
-    protected bool IsExtensionSupported(string extensionName)
-    {
-        return _extensions.Contains(extensionName);
     }
 
     protected virtual bool Load()
@@ -391,15 +393,6 @@ public class Application : IApplication
     protected void Close()
     {
         Glfw.SetWindowShouldClose(_windowHandle, 1);
-    }
-    
-    private void LoadExtensions()
-    {
-        var extensionCount = GL.GetInteger((uint)GL.GetName.NumExtensions);
-        for (var i = 0u; i < extensionCount; i++)
-        {
-            _extensions.Add(GL.GetString(GL.StringName.Extensions, i));
-        }
     }
 
     private void BindCallbacks()

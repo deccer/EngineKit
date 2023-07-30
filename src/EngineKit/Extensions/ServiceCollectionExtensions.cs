@@ -16,6 +16,7 @@ public static class ServiceCollectionExtensions
         Configuration.Default.PreferContiguousImageBuffers = true;
         
         services.AddSingleton<IApplicationContext, ApplicationContext>();
+        services.AddSingleton<ICapabilities, Capabilities>();
         services.AddSingleton<IMetrics, Metrics>();
         services.AddSingleton<ILimits, Limits>();
         services.AddSingleton<IInputProvider, InputProvider>();

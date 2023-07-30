@@ -20,12 +20,23 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         IOptions<WindowSettings> windowSettings,
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
+        ICapabilities capabilities,
         IMetrics metrics,
         ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, limits, inputProvider, graphicsContext, uiRenderer)
+        : base(
+            logger,
+            windowSettings,
+            contextSettings,
+            applicationContext,
+            capabilities,
+            metrics,
+            limits,
+            inputProvider,
+            graphicsContext,
+            uiRenderer)
     {
         _logger = logger;
         _metrics = metrics;

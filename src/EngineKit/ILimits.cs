@@ -12,7 +12,5 @@ public interface ILimits
     
     int TotalAvailableVideoMemory { get; }
     
-    bool IsLaunchedByNSightGraphicsOnLinux { get; }
-
     bool Load();
 }
