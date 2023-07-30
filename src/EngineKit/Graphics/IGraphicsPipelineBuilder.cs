@@ -13,6 +13,8 @@ public interface IGraphicsPipelineBuilder
         string fragmentShaderSource);
 
     IGraphicsPipelineBuilder WithVertexInput(VertexInputDescriptor vertexInputDescriptor);
+    
+    IGraphicsPipelineBuilder WithVertexAttributesForVertexType(VertexType vertexType);
 
     IGraphicsPipelineBuilder WithTopology(
         PrimitiveTopology primitiveTopology,

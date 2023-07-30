@@ -237,7 +237,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             
             var meshPrimitive = new MeshPrimitive(meshName);
             meshPrimitive.Transform = node.WorldMatrix.ToMatrix();
-            meshPrimitive.MaterialName = primitive.Material?.Name ?? (primitive.Material == null ? "M_NotFound" : materials.ElementAt(primitive.Material.LogicalIndex)?.Name) ?? "M_NotFound";
+            meshPrimitive.MaterialName = primitive.Material?.Name ?? (primitive.Material == null ? Material.MaterialNotFoundName : materials.ElementAt(primitive.Material.LogicalIndex)?.Name) ?? Material.MaterialNotFoundName;
             meshPrimitive.BoundingBox = BoundingBox.FromPoints(positions.ToArray());
             
             var vertexType = GetVertexTypeFromVertexAccessorNames(primitive!.VertexAccessors!.Keys.ToList());
@@ -269,10 +269,11 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
             for (var i = 0; i < positions.Length; i++)
             {
-                var position = Vector3.TransformPosition(positions[i], meshPrimitive.Transform);
-                //var position = positions[i];
-                var normal = Vector3.TransformDirection(normals[i], meshPrimitive.Transform);
-                //var normal = normals[i];//Vector3.TransformDirection(normals[i], meshPrimitive.Transform);
+                //var position = Vector3.TransformPosition(positions[i], meshPrimitive.Transform);
+                ref var position = ref positions[i];
+                //var normal = Vector3.TransformDirection(normals[i], meshPrimitive.Transform);
+                ref var normal = ref normals[i];
+                
                 var realTangentXyz = new Vector3(realTangents[i].X, realTangents[i].Y, realTangents[i].Z);
                 var realTangent = new Vector4(realTangentXyz, realTangents[i].W);
 
