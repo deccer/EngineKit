@@ -17,8 +17,6 @@ internal sealed class Limits : ILimits
     
     public int TotalAvailableVideoMemory { get; private set; }
     
-    public bool IsLaunchedByNSightGraphicsOnLinux { get; private set; }
-
     public bool Load()
     {
         MaxImageUnits = GL.GetInteger(0x8F38);
@@ -34,10 +32,6 @@ internal sealed class Limits : ILimits
         {
             TotalAvailableVideoMemory = 0;
         }
-
-        IsLaunchedByNSightGraphicsOnLinux =
-            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("NOMAD_OPENGL_DELIMITER")) &
-            RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         
         return true;
     }

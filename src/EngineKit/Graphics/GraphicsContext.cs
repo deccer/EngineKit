@@ -2,10 +2,8 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using CSharpFunctionalExtensions;
 using EngineKit.Extensions;
 using EngineKit.Graphics.Shaders;
@@ -23,6 +21,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
     private readonly ILogger _logger;
     private readonly IShaderProgramFactory _shaderProgramFactory;
     private readonly IFramebufferCache _framebufferCache;
+    private readonly ICapabilities _capabilities;
     private readonly ILimits _limits;
     private readonly IImageLoader _imageLoader;
     private readonly IDictionary<IPipeline, GraphicsPipelineDescriptor> _graphicsPipelineCache;
@@ -36,12 +35,14 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         ILogger logger,
         IShaderProgramFactory shaderProgramFactory,
         IFramebufferCache framebufferCache,
+        ICapabilities capabilities,
         ILimits limits,
         IImageLoader imageLoader)
     {
         _logger = logger.ForContext<GraphicsContext>();
         _shaderProgramFactory = shaderProgramFactory;
         _framebufferCache = framebufferCache;
+        _capabilities = capabilities;
         _limits = limits;
         _imageLoader = imageLoader;
         _graphicsPipelineCache = new Dictionary<IPipeline, GraphicsPipelineDescriptor>(16);
@@ -98,7 +99,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
     public IMaterialPool CreateMaterialPool(Label label, int materialBufferCapacity, ISamplerLibrary samplerLibrary)
     {
-        return new MaterialPool(_logger, label, this, samplerLibrary, materialBufferCapacity);
+        return new MaterialPool(_logger, label, _capabilities, this, samplerLibrary, materialBufferCapacity);
     }
 
     public Result<IComputePipeline> CreateComputePipeline(ComputePipelineDescriptor computePipelineDescriptor)

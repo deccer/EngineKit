@@ -71,6 +71,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         IOptions<WindowSettings> windowSettings,
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
+        ICapabilities capabilities,
         IMetrics metrics,
         ILimits limits,
         IInputProvider inputProvider,
@@ -79,7 +80,17 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         IImageLoader imageLoader,
         IMeshLoader meshLoader,
         ICamera camera)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, limits, inputProvider, graphicsContext, uiRenderer)
+        : base(
+            logger,
+            windowSettings,
+            contextSettings,
+            applicationContext,
+            capabilities,
+            metrics,
+            limits,
+            inputProvider,
+            graphicsContext,
+            uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;

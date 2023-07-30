@@ -75,6 +75,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         IOptions<WindowSettings> windowSettings,
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
+        ICapabilities capabilities,
         IMetrics metrics,
         ILimits limits,
         IInputProvider inputProvider,
@@ -83,7 +84,16 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         ICamera camera,
         IMeshLoader meshLoader,
         IMaterialLibrary materialLibrary)
-        : base(logger, windowSettings, contextSettings, applicationContext, metrics, limits, inputProvider, graphicsContext,
+        : base(
+            logger,
+            windowSettings,
+            contextSettings,
+            applicationContext,
+            capabilities,
+            metrics,
+            limits,
+            inputProvider,
+            graphicsContext,
             uiRenderer)
     {
         _logger = logger;
