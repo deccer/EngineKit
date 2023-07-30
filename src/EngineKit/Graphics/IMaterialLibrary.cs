@@ -10,7 +10,7 @@ public interface IMaterialLibrary
 
     IList<string> GetMaterialNames();
 
-    Material GetMaterialByName(string materialName);
+    Material GetMaterialByName(string? materialName);
 
     Material GetRandomMaterial();
 

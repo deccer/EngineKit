@@ -1,6 +1,6 @@
 namespace EngineKit.Graphics;
 
-public class ModelMesh
+public class ModelMesh : IHasName
 {
     public ModelMesh(MeshPrimitive meshPrimitive)
     {
@@ -8,4 +8,6 @@ public class ModelMesh
     }
     
     public MeshPrimitive MeshPrimitive { get; }
+    
+    public string Name => MeshPrimitive.MeshName;
 }

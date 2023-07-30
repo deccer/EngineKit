@@ -39,7 +39,14 @@ internal sealed class MeshPool : IMeshPool
         var vertexOffset = _pooledMeshes.Values.Sum(pm => pm.VertexCount);
         var vertexCount = meshPrimitive.VertexCount;
         
-        pooledMesh = new PooledMesh((uint)indexCount, (uint)indexOffset, vertexCount, vertexOffset, meshPrimitive.MaterialName);
+        pooledMesh = new PooledMesh(
+            (uint)indexCount,
+            (uint)indexOffset,
+            vertexCount,
+            vertexOffset,
+            meshPrimitive.BoundingBox.Maximum,
+            meshPrimitive.BoundingBox.Minimum,
+            meshPrimitive.MaterialName);
 
         var vertices = meshPrimitive.GetVertices();
         VertexBuffer.Update(vertices, pooledMesh.VertexOffset);
