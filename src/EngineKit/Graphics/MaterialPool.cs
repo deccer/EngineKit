@@ -6,6 +6,7 @@ namespace EngineKit.Graphics;
 internal sealed class MaterialPool : IMaterialPool
 {
     private readonly ILogger _logger;
+    private readonly ICapabilities _capabilities;
     private readonly IGraphicsContext _graphicsContext;
     private readonly ISamplerLibrary _samplerLibrary;
     private readonly IDictionary<Material, PooledMaterial> _pooledMaterials;
@@ -16,11 +17,13 @@ internal sealed class MaterialPool : IMaterialPool
     public MaterialPool(
         ILogger logger,
         Label label,
+        ICapabilities capabilities,
         IGraphicsContext graphicsContext,
         ISamplerLibrary samplerLibrary,
         int materialBufferCapacity)
     {
         _logger = logger.ForContext<MaterialPool>();
+        _capabilities = capabilities;
         _graphicsContext = graphicsContext;
         _samplerLibrary = samplerLibrary;
         _pooledMaterials = new Dictionary<Material, PooledMaterial>();
@@ -65,7 +68,7 @@ internal sealed class MaterialPool : IMaterialPool
 
         if (!material.TexturesLoaded)
         {
-            material.LoadTextures(_logger, _graphicsContext, _samplerLibrary, _textures, true);
+            material.LoadTextures(_logger, _graphicsContext, _samplerLibrary, _textures, _capabilities.SupportsBindlessTextures);
         }
 
         var gpuMaterial = new GpuMaterial
