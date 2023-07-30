@@ -69,8 +69,6 @@ public sealed class MeshPrimitive
                 VertexType.Unknown => 0,
                 VertexType.Position => 12,
                 VertexType.PositionColor => 24,
-                VertexType.PositionColorNormal => 36,
-                VertexType.PositionColorNormalUv => 44,
                 VertexType.PositionColorUv => 32,
                 VertexType.PositionNormal => 24,
                 VertexType.PositionNormalUv => 32,
@@ -118,6 +116,7 @@ public sealed class MeshPrimitive
         return combinedMeshPrimitive;
     }
 
+    //public Span<VertexPositionNormalUvTangent> GetVertices()
     public VertexPositionNormalUvTangent[] GetVertices()
     {
         if (!RealTangents.Any())
@@ -242,25 +241,6 @@ public sealed class MeshPrimitive
     {
         AddVertex(position, color, uv: null, tangent: null);
         VertexType = VertexType.PositionColor;
-    }
-
-    public void AddPositionColorNormal(
-        Vector3 position,
-        Vector3 color,
-        Vector3 normal)
-    {
-        AddVertex(position, color, normal, tangent: null);
-        VertexType = VertexType.PositionColorNormal;
-    }
-
-    public void AddPositionColorNormalUv(
-        Vector3 position,
-        Vector3 color,
-        Vector3 normal,
-        Vector2 uv)
-    {
-        AddVertex(position, color, normal, uv, tangent: null);
-        VertexType = VertexType.PositionColorNormalUv;
     }
 
     public void AddPositionNormal(

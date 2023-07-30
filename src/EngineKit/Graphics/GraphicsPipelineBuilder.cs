@@ -55,6 +55,12 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
+    public IGraphicsPipelineBuilder WithVertexAttributesForVertexType(VertexType vertexType)
+    {
+        _graphicsPipelineDescriptor.VertexInput = VertexInputDescriptor.ForVertexType(vertexType);
+        return this;
+    }
+
     public IGraphicsPipelineBuilder WithShadersFromFiles(
         string vertexShaderFilePath,
         string fragmentShaderFilePath)

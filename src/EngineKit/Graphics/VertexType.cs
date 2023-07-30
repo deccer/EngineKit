@@ -7,11 +7,10 @@ public enum VertexType
     ImGui,
     Position,
     PositionColor,
-    PositionColorNormal,
-    PositionColorNormalUv,
     PositionColorUv,
     PositionNormal,
     PositionNormalUv,
     PositionNormalUvTangent,
     PositionUv,
 }
+
