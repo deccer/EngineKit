@@ -95,15 +95,7 @@ public sealed class Camera : ICamera
     {
         _yaw -= -_inputProvider.MouseState.DeltaX * Sensitivity;
         _pitch += _inputProvider.MouseState.DeltaY * Sensitivity;
-        if (_pitch > 89.0f)
-        {
-            _pitch = 89.0f;
-        }
-
-        if (_pitch < -89.0f)
-        {
-            _pitch = -89.0f;
-        }
+        _pitch = _pitch.Clamp(-89.0f, 89.0f);
 
         UpdateCameraVectors();
     }
