@@ -45,7 +45,7 @@
         <Content Include="..\..\lib\ktx\ktx.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Pack>true</Pack>
-            <PackagePath>runtimes/linux-x64/native/</PackagePath>
+            <PackagePath>runtimes/win-x64/native/</PackagePath>
             <Visible>false</Visible>
         </Content>
     </ItemGroup>
