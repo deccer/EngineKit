@@ -9,7 +9,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\EngineKit\EngineKit.csproj"/>
+        <ProjectReference Include="..\..\..\src\EngineKit\EngineKit.csproj"/>
+        <ProjectReference Include="..\HelloWindow.Assets\HelloWindow.Assets.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -25,6 +26,13 @@
         <None Update="appsettings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="..\..\..\enginekit-icon.png">
+            <Link>enginekit-icon.png</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <Target Name="MoveBinaries" BeforeTargets="AfterBuild">

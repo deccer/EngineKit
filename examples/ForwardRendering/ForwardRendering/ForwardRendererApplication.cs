@@ -17,23 +17,6 @@ using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace ForwardRendering;
 
-public struct ModelMesh
-{
-    public string MeshName;
-
-    public int VertexOffset;
-
-    public int VertexCount;
-
-    public int IndexOffset;
-
-    public int IndexCount;
-
-    public Matrix WorldMatrix;
-
-    public ulong TextureHandle;
-}
-
 internal sealed class ForwardRendererApplication : GraphicsApplication
 {
     private readonly ILogger _logger;
@@ -108,6 +91,18 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _modelMeshInstances = new List<ModelMeshInstance>();
         _gpuModelMeshInstances = new List<GpuModelMeshInstance>();
         _gpuIndirectElements = new List<GpuIndirectElementData>();
+    }
+    
+    protected override bool Initialize()
+    {
+        if (!base.Initialize())
+        {
+            return false;
+        }
+        
+        SetWindowIcon("enginekit-icon.png");
+
+        return true;
     }
 
     protected override bool Load()

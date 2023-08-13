@@ -28,6 +28,13 @@
         </None>
     </ItemGroup>
 
+    <ItemGroup>
+        <Content Include="..\..\..\enginekit-icon.png">
+            <Link>enginekit-icon.png</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
 	<Target Name="MoveBinaries" BeforeTargets="AfterBuild">
 		<CreateItem Include="$(OutputPath)glfw3.dll;$(OutputPath)ktx.dll">
 			<Output TaskParameter="Include" ItemName="PackageBinaries"/>

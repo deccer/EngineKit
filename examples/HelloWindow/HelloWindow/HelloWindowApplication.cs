@@ -41,6 +41,18 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         _logger = logger;
         _metrics = metrics;
     }
+    
+    protected override bool Initialize()
+    {
+        if (!base.Initialize())
+        {
+            return false;
+        }
+        
+        SetWindowIcon("enginekit-icon.png");
+
+        return true;
+    }
 
     protected override bool Load()
     {

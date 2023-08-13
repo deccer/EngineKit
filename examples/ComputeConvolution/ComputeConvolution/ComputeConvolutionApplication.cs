@@ -52,17 +52,24 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         _applicationContext = applicationContext;
         _metrics = metrics;
     }
+    
+    protected override bool Initialize()
+    {
+        if (!base.Initialize())
+        {
+            return false;
+        }
+        
+        SetWindowIcon("enginekit-icon.png");
+
+        return true;
+    }
 
     protected override bool Load()
     {
         if (!base.Load())
         {
             _logger.Error("{Category}: Unable to load", "App");
-            return false;
-        }
-
-        if (!LoadMeshes())
-        {
             return false;
         }
 
@@ -183,13 +190,6 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         }
 
         _sceneGraphicsPipeline = graphicsPipelineResult.Value;
-
-        return true;
-    }
-
-    private bool LoadMeshes()
-    {
-        var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
         return true;
     }
