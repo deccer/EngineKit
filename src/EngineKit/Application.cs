@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -23,7 +22,6 @@ public class Application : IApplication
     private readonly IMetrics _metrics;
     private readonly IInputProvider _inputProvider;
     private readonly ILogger _logger;
-    private readonly IList<string> _extensions;
     private nint _windowHandle;
 
     private GL.GLDebugProc? _debugProcCallback;
@@ -197,6 +195,11 @@ public class Application : IApplication
         var screenHeight = videoMode.Height;
         DesiredFramerate = videoMode.RefreshRate;
 
+        Glfw.GetMonitorPos(
+            monitorHandle,
+            out var monitorLeft,
+            out var monitorTop);
+
         _applicationContext.ScreenSize = new Point(screenWidth, screenHeight);
         _applicationContext.WindowSize = windowResizable
             ? new Point(_windowSettings.Value.ResolutionWidth,  _windowSettings.Value.ResolutionHeight)
@@ -277,12 +280,12 @@ public class Application : IApplication
         {
             Glfw.SetWindowPos(
                 _windowHandle,
-                screenWidth / 2 - _applicationContext.WindowSize.X / 2,
-                screenHeight / 2 - _applicationContext.WindowSize.Y / 2);
+                screenWidth / 2 - _applicationContext.WindowSize.X / 2 + monitorLeft,
+                screenHeight / 2 - _applicationContext.WindowSize.Y / 2 + monitorTop);
         }
         else
         {
-            Glfw.SetWindowPos(_windowHandle, 0,0);
+            Glfw.SetWindowPos(_windowHandle, monitorLeft, monitorTop);
         }
 
         Glfw.GetFramebufferSize(
