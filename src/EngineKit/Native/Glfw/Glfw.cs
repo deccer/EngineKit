@@ -99,6 +99,36 @@ public static unsafe partial class Glfw
         y = (int)cursorPosY;
     }
 
+    public static void GetMonitorPos(
+        IntPtr monitorHandle,
+        out int left,
+        out int top)
+    {
+        int leftNative;
+        int topNative;
+        _glfwGetMonitorPosDelegate(monitorHandle, &leftNative, &topNative);
+        left = leftNative;
+        top = topNative;
+    }
+
+    public static void GetMonitorWorkarea(
+        IntPtr monitorHandle,
+        out int left,
+        out int top,
+        out int width,
+        out int height)
+    {
+        int leftNative;
+        int topNative;
+        int widthNative;
+        int heightNative;
+        _glfwGetMonitorWorkareaDelegate(monitorHandle, &leftNative, &topNative, &widthNative, &heightNative);
+        left = leftNative;
+        top = topNative;
+        width = widthNative;
+        height = heightNative;
+    }
+
     public static void SetCursorPos(
         IntPtr windowHandle,
         float x,
