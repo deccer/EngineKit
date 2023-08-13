@@ -82,6 +82,8 @@ public static unsafe partial class Glfw
 
     private static delegate* unmanaged<IntPtr, void> _glfwSetErrorCallbackDelegate = &glfwSetErrorCallback;
 
+    private static delegate* unmanaged<IntPtr, int, Image*, void> _glfwSetWindowIconDelegate = &glfwSetWindowIcon;
+
     [UnmanagedCallersOnly]
     private static void glfwSetErrorCallback(IntPtr callback)
     {
@@ -399,5 +401,12 @@ public static unsafe partial class Glfw
         _glfwGetTimeDelegate =
             (delegate* unmanaged<double>)NativeLibrary.GetExport(_glfwLibraryHandle, nameof(glfwGetTime));
         return _glfwGetTimeDelegate();
+    }
+
+    [UnmanagedCallersOnly]
+    private static void glfwSetWindowIcon(IntPtr windowHandle, int imageCount, Image* images)
+    {
+        _glfwSetWindowIconDelegate = (delegate* unmanaged<IntPtr, int, Image*, void>)NativeLibrary.GetExport(_glfwLibraryHandle, nameof(glfwSetWindowIcon));
+        _glfwSetWindowIconDelegate(windowHandle, imageCount, images);
     }
 }
