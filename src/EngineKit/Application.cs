@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using EngineKit.Input;
@@ -9,6 +10,9 @@ using EngineKit.Native.Ktx;
 using EngineKit.Native.OpenGL;
 using Microsoft.Extensions.Options;
 using Serilog;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using Point = EngineKit.Mathematics.Point;
 
 namespace EngineKit;
 
@@ -368,6 +372,45 @@ public class Application : IApplication
 
     protected virtual void Update(float deltaTime)
     {
+    }
+
+    protected void SetWindowIcon(Image<Rgba32> image)
+    {
+        unsafe
+        {
+            if (image.DangerousTryGetSinglePixelMemory(out var memory))
+            {
+                Glfw.SetWindowIcon(_windowHandle, new Glfw.Image
+                {
+                    Width = image.Width,
+                    Height = image.Height,
+                    PixelPtr = (byte*)memory.Pin().Pointer
+                });
+            }
+        }
+    }
+
+    protected void SetWindowIcon(string fileName)
+    {
+        if (!File.Exists(fileName))
+        {
+            _logger.Error("{Category}: Window icon file {FilePath} not found", "App", fileName);
+            return;
+        }
+        
+        unsafe
+        {
+            using var image = Image.Load<Rgba32>(fileName);
+            if (image.DangerousTryGetSinglePixelMemory(out var memory))
+            {
+                Glfw.SetWindowIcon(_windowHandle, new Glfw.Image
+                {
+                    Width = image.Width,
+                    Height = image.Height,
+                    PixelPtr = (byte*)memory.Pin().Pointer
+                });
+            }
+        }
     }
 
     protected virtual void HandleDebugger(out bool breakOnError)
