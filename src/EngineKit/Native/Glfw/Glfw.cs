@@ -392,4 +392,9 @@ public static unsafe partial class Glfw
         framebufferWidth = width;
         framebufferHeight = height;
     }
+
+    public static void SetWindowIcon(IntPtr windowHandle, Image image)
+    {
+        _glfwSetWindowIconDelegate(windowHandle, 1, &image);
+    }
 }

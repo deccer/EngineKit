@@ -16,4 +16,11 @@ public static unsafe partial class Glfw
 
         public int RefreshRate;
     }
+
+    public struct Image
+    {
+        public int Width;
+        public int Height;
+        public byte* PixelPtr;
+    }
 }
