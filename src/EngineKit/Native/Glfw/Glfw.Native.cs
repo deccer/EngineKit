@@ -19,6 +19,11 @@ public static unsafe partial class Glfw
 
     private static delegate* unmanaged<IntPtr, double*, double*, void> _glfwGetCursorPosDelegate = &glfwGetCursorPos;
 
+    private static delegate* unmanaged<IntPtr, int*, int*, void> _glfwGetMonitorPosDelegate = &glfwGetMonitorPos;
+
+    private static delegate* unmanaged<IntPtr, int*, int*, int*, int*, void> _glfwGetMonitorWorkareaDelegate =
+        &glfwGetMonitorWorkarea;
+
     private static delegate* unmanaged<int, int, void> _glfwWindowHintDelegate = &glfwWindowHint;
 
     private static delegate* unmanaged<int, int, IntPtr, IntPtr, IntPtr, IntPtr> _glfwCreateWindowDelegate = &glfwCreateWindow;
@@ -137,6 +142,28 @@ public static unsafe partial class Glfw
     {
         _glfwSetInputModeDelegate = (delegate* unmanaged<IntPtr, InputMode, int, void>)NativeLibrary.GetExport(_glfwLibraryHandle, nameof(glfwSetInputMode));
         _glfwSetInputModeDelegate(windowHandle, mode, value);
+    }
+
+    [UnmanagedCallersOnly]
+    private static void glfwGetMonitorPos(
+        IntPtr monitorHandle,
+        int* left,
+        int* top)
+    {
+        _glfwGetMonitorPosDelegate = (delegate* unmanaged<IntPtr, int*, int*, void>)NativeLibrary.GetExport(_glfwLibraryHandle, nameof(glfwGetMonitorPos));
+        _glfwGetMonitorPosDelegate(monitorHandle, left, top);
+    }
+
+    [UnmanagedCallersOnly]
+    private static void glfwGetMonitorWorkarea(
+        IntPtr monitorHandle,
+        int* left,
+        int* top,
+        int* width,
+        int* height)
+    {
+        _glfwGetMonitorWorkareaDelegate = (delegate* unmanaged<IntPtr, int*, int*, int*, int*, void>)NativeLibrary.GetExport(_glfwLibraryHandle, nameof(glfwGetMonitorWorkarea));
+        _glfwGetMonitorWorkareaDelegate(monitorHandle, left, top, width, height);
     }
 
     [UnmanagedCallersOnly]
