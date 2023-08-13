@@ -16,19 +16,6 @@ using Num = System.Numerics;
 
 namespace DeferredRendering;
 
-public class DrawCommand
-{
-    public string Name { get; set; }
-
-    public Matrix WorldMatrix { get; set; }
-
-    public int IndexCount;
-
-    public int IndexOffset;
-
-    public int VertexOffset;
-}
-
 internal sealed class DeferredRenderingApplication : GraphicsApplication
 {
     private readonly ILogger _logger;
@@ -116,6 +103,18 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         CreateResolutionDependentResources();
         base.FramebufferResized();
     }
+    
+    protected override bool Initialize()
+    {
+        if (!base.Initialize())
+        {
+            return false;
+        }
+        
+        SetWindowIcon("enginekit-icon.png");
+
+        return true;
+    }
 
     protected override bool Load()
     {
@@ -143,6 +142,8 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         _gpuCameraConstantsBuffer = GraphicsContext.CreateUniformBuffer<GpuCameraConstants>("CameraConstants");
         _gpuCameraConstantsBuffer.AllocateStorage(_gpuCameraConstants, StorageAllocationFlags.Dynamic);
 
+        _camera.ProcessMouseMovement();
+        
         return true;
     }
 
@@ -394,13 +395,13 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         _gBufferBaseColorTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "BaseColor");
         _gBufferNormalTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
-            _applicationContext.ScaledFramebufferSize.Y, Format.R16G16B16A16Float, "Normals");
+            _applicationContext.ScaledFramebufferSize.Y, Format.R16G16B16Float, "Normals");
         _gBufferDepthTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y, Format.D32UNorm, "Depth");
 
         _gBufferFramebufferDescriptor = new FramebufferDescriptorBuilder()
             .WithColorAttachment(_gBufferBaseColorTexture, true, Vector4.Zero)
-            .WithColorAttachment(_gBufferNormalTexture, true, Vector4.One)
+            .WithColorAttachment(_gBufferNormalTexture, true, Vector4.Zero)
             .WithDepthAttachment(_gBufferDepthTexture, true)
             .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
             .Build("GBuffer");
