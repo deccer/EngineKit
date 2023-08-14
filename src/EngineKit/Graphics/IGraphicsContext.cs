@@ -1,4 +1,5 @@
 ﻿using System;
+using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
@@ -112,4 +113,5 @@ public interface IGraphicsContext : IDisposable
     FramebufferDescriptor CreateSingleFramebufferDescriptorFromTexture(ITexture texture);
     
     void ClearResourceBindings();
+    void UseViewport(Viewport viewport);
 }

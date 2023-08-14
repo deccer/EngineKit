@@ -92,6 +92,11 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         RemoveFramebuffer(targetFramebufferDescriptor);
     }
 
+    public void UseViewport(Viewport viewport)
+    {
+        GL.Viewport(viewport);
+    }
+
     public IMeshPool CreateMeshPool(Label label, int vertexBufferCapacity, int indexBufferCapacity)
     {
         return new MeshPool(label, this, vertexBufferCapacity, indexBufferCapacity);
