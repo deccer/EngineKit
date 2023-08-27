@@ -14,6 +14,9 @@ public class TextureView : IHasTextureId, IDisposable
     {
         _id = GL.GenTexture();
         Format = textureViewDescriptor.Format;
+        Width = texture.TextureCreateDescriptor.Size.X;
+        Height = texture.TextureCreateDescriptor.Size.Y;
+        Depth = texture.TextureCreateDescriptor.Size.Z;
         GL.TextureView(
             _id,
             textureViewDescriptor.ImageType.ToGL(),
@@ -39,6 +42,12 @@ public class TextureView : IHasTextureId, IDisposable
     public uint Id => _id;
 
     public Format Format { get; }
+    
+    public int Width { get; private set; }
+    
+    public int Height { get; private set; }
+    
+    public int Depth { get; private set; }
 
     public void Dispose()
     {
