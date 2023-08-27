@@ -826,7 +826,7 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
 
     private ITexture CreateTextureFromImage(Image<Rgba32> image, Label label, Format format, bool generateMipmaps = true)
     {
-        var calculatedMipLevels = (uint)(1 + MathF.Ceiling(MathF.Log2(MathF.Min(image.Width, image.Height))));
+        var calculatedMipLevels = (uint)(1 + MathF.Floor(MathF.Log2(MathF.Min(image.Width, image.Height))));
         var textureCreateDescriptor = new TextureCreateDescriptor
         {
             ImageType = ImageType.Texture2D,

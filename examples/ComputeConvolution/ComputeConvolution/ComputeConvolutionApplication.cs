@@ -206,8 +206,8 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             ImageType = ImageType.TextureCube,
             Format = Format.R16G16B16A16Float,
             Label = "ConvolvedSkybox",
-            Size = new Int3(1024, 1024, 1),
-            MipLevels = (uint)(1 + MathF.Ceiling(MathF.Log2(1024))),
+            Size = new Int3(_skyboxTexture.TextureCreateDescriptor.Size.X, _skyboxTexture.TextureCreateDescriptor.Size.Y, 1),
+            MipLevels = (uint)(1 + MathF.Floor(MathF.Log2(MathF.Min(_skyboxTexture.TextureCreateDescriptor.Size.X, _skyboxTexture.TextureCreateDescriptor.Size.Y)))),
             TextureSampleCount = TextureSampleCount.OneSample
         };
         _skyboxConvolvedTexture = GraphicsContext.CreateTexture(skyboxTextureCreateDescriptor);
