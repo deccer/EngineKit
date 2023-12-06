@@ -1,11 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../../'))" />
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
-        <ImplicitUsings>disable</ImplicitUsings>
-        <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <PublishAot>true</PublishAot>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0' or '$(TargetFramework)' == 'net8.8'">
+        <PublishAot>true</PublishAot>        
     </PropertyGroup>
 
     <PropertyGroup>
@@ -36,17 +38,26 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\..\lib\glfw\glfw3.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <None Include="..\..\lib\glfw\glfw3.dll">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
             <Pack>true</Pack>
             <PackagePath>runtimes/win-x64/native/</PackagePath>
+            <Link>runtimes/win-x64/native/glfw3.dll</Link>
             <Visible>false</Visible>
-        </Content>
-        <Content Include="..\..\lib\ktx\ktx.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Include="..\..\lib\ktx\ktx.dll">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
             <Pack>true</Pack>
             <PackagePath>runtimes/win-x64/native/</PackagePath>
+            <Link>runtimes/win-x64/native/ktx.dll</Link>            
             <Visible>false</Visible>
-        </Content>
+        </None>
+        <None Include="..\..\lib\ktx\libktx.so.4.2.1">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <PackagePath>runtimes/linux-x64/native/</PackagePath>
+            <Link>runtimes/linux-x64/native/libktx.so.4.2.1</Link>
+            <InProject>false</InProject>
+        </None>        
     </ItemGroup>
 </Project>

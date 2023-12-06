@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_items", "_items", "{7641AC
 		.gitignore = .gitignore
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\cd.yml = .github\workflows\cd.yml
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EngineKit", "src\EngineKit\EngineKit.csproj", "{8E305337-228C-4930-B355-91F1E82C64C8}"
