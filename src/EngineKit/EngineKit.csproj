@@ -1,13 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../../'))" />
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../../'))"/>
     <PropertyGroup>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
-    </PropertyGroup>
-    
-    <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0' or '$(TargetFramework)' == 'net8.8'">
-        <PublishAot>true</PublishAot>        
+        <PublishAot>true</PublishAot>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -24,17 +21,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CSharpFunctionalExtensions" Version="2.40.0" />
-        <PackageReference Include="ImGui.NET" Version="1.89.7.1" />
-        <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+        <PackageReference Include="CSharpFunctionalExtensions" Version="2.40.0"/>
+        <PackageReference Include="ImGui.NET" Version="1.89.7.1"/>
+        <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0"/>
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Serilog" Version="3.0.1" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
-        <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0029" />
+        <PackageReference Include="Serilog" Version="3.0.1"/>
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1"/>
+        <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0029"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -49,7 +46,7 @@
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
             <Pack>true</Pack>
             <PackagePath>runtimes/win-x64/native/</PackagePath>
-            <Link>runtimes/win-x64/native/ktx.dll</Link>            
+            <Link>runtimes/win-x64/native/ktx.dll</Link>
             <Visible>false</Visible>
         </None>
         <None Include="..\..\lib\ktx\libktx.so.4.2.1">
@@ -58,6 +55,6 @@
             <PackagePath>runtimes/linux-x64/native/</PackagePath>
             <Link>runtimes/linux-x64/native/libktx.so.4.2.1</Link>
             <InProject>false</InProject>
-        </None>        
+        </None>
     </ItemGroup>
 </Project>
