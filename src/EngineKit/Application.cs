@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using EngineKit.Input;
@@ -12,7 +13,6 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using Point = EngineKit.Mathematics.Point;
 
 namespace EngineKit;
 
@@ -204,14 +204,14 @@ public class Application : IApplication
             out var monitorLeft,
             out var monitorTop);
 
-        _applicationContext.ScreenSize = new Point(screenWidth, screenHeight);
+        _applicationContext.ScreenSize = new Int2(screenWidth, screenHeight);
         _applicationContext.WindowSize = windowResizable
-            ? new Point(_windowSettings.Value.ResolutionWidth,  _windowSettings.Value.ResolutionHeight)
-            : new Point((int)(screenWidth * 0.9f), (int)(screenHeight * 0.9f));
+            ? new Int2(_windowSettings.Value.ResolutionWidth,  _windowSettings.Value.ResolutionHeight)
+            : new Int2((int)(screenWidth * 0.9f), (int)(screenHeight * 0.9f));
 
         if (!windowResizable)
         {
-            _applicationContext.WindowSize = new Point(screenWidth, screenHeight);
+            _applicationContext.WindowSize = new Int2(screenWidth, screenHeight);
         }
         monitorHandle = windowResizable || windowSettings.WindowMode == WindowMode.WindowedFullscreen
             ? nint.Zero
@@ -296,10 +296,10 @@ public class Application : IApplication
             _windowHandle,
             out var framebufferWidth,
             out var framebufferHeight);
-        _applicationContext.FramebufferSize = new Point(
+        _applicationContext.FramebufferSize = new Int2(
             framebufferWidth,
             framebufferHeight);
-        _applicationContext.ScaledFramebufferSize = new Point(
+        _applicationContext.ScaledFramebufferSize = new Int2(
             (int)(framebufferWidth * _windowSettings.Value.ResolutionScale),
             (int)(framebufferHeight * _windowSettings.Value.ResolutionScale));
 
@@ -551,7 +551,7 @@ public class Application : IApplication
         int height)
     {
         var oldWindowSize = _applicationContext.WindowSize;
-        _applicationContext.WindowSize = new Point(width, height);
+        _applicationContext.WindowSize = new Int2(width, height);
         if (_applicationContext.ShowResizeInLog)
         {
             _logger.Debug("{Category}: Window resized from {OldWidth}x{OldHeight} to {Width}x{Height}", "App", oldWindowSize.X, oldWindowSize.Y, width, height);
@@ -563,9 +563,9 @@ public class Application : IApplication
     {
         var oldFramebufferSize = _applicationContext.FramebufferSize;
         var oldScaledFramebufferSize = _applicationContext.ScaledFramebufferSize;
-        _applicationContext.FramebufferSize = new Point(width, height);
+        _applicationContext.FramebufferSize = new Int2(width, height);
 
-        _applicationContext.ScaledFramebufferSize = new Point(
+        _applicationContext.ScaledFramebufferSize = new Int2(
             (int)(width * _windowSettings.Value.ResolutionScale),
             (int)(height * _windowSettings.Value.ResolutionScale));
 

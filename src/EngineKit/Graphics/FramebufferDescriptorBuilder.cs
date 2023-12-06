@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Numerics;
 using EngineKit.Mathematics;
-using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
 
@@ -48,7 +48,7 @@ public sealed class FramebufferDescriptorBuilder
     public FramebufferDescriptorBuilder WithColorAttachment(
         ITexture colorAttachment,
         bool clear,
-        Point clearColor)
+        Int2 clearColor)
     {
         var clearValue = new ClearValue(clearColor.X, clearColor.Y, 0, 0, 1.0f, 0);
         _renderAttachments.Add(new FramebufferRenderAttachment(colorAttachment, clearValue, clear));

@@ -1,8 +1,6 @@
 ﻿using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
-using Vector2 = EngineKit.Mathematics.Vector2;
-using Vector3 = EngineKit.Mathematics.Vector3;
-using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace EngineKit;
 

@@ -1,4 +1,4 @@
-﻿using EngineKit.Mathematics;
+﻿using System.Numerics;
 using OpenSpace;
 
 namespace ComplexExample;
@@ -7,9 +7,9 @@ public interface ICamera
 {
     CameraMode CameraMode { get; set; }
 
-    Matrix ViewMatrix { get; }
+    Matrix4x4 ViewMatrix { get; }
 
-    Matrix ProjectionMatrix { get; }
+    Matrix4x4 ProjectionMatrix { get; }
 
     Vector3 Position { get; set; }
 

@@ -1,46 +1,20 @@
-﻿using System;
-using System.Globalization;
+// Copyright (c) Amer Koleci and contributors.
+// Licensed under the MIT License (MIT). See LICENSE in the repository root for more information.
+
+using System;
+using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace EngineKit.Mathematics;
 
 /// <summary>
-/// Represents a three dimensional mathematical int vector.
+/// Vector type containing three 32 bit signed integer components.
 /// </summary>
-[StructLayout(LayoutKind.Sequential, Pack = 4)]
+[DebuggerDisplay("X={X}, Y={Y}, Z={Z}")]
 public struct Int3 : IEquatable<Int3>, IFormattable
 {
-    /// <summary>
-    /// The size of the <see cref = "Int3" /> type, in bytes.
-    /// </summary>
-    public static readonly int SizeInBytes = Unsafe.SizeOf<Int3>();
-
-    /// <summary>
-    /// A <see cref = "Int3" /> with all of its components set to zero.
-    /// </summary>
-    public static readonly Int3 Zero;
-
-    /// <summary>
-    /// The X unit <see cref = "Int3" /> (1, 0, 0).
-    /// </summary>
-    public static readonly Int3 UnitX = new Int3(1, 0, 0);
-
-    /// <summary>
-    /// The Y unit <see cref = "Int3" /> (0, 1, 0).
-    /// </summary>
-    public static readonly Int3 UnitY = new Int3(0, 1, 0);
-
-    /// <summary>
-    /// The Z unit <see cref = "Int3" /> (0, 0, 1).
-    /// </summary>
-    public static readonly Int3 UnitZ = new Int3(0, 0, 1);
-
-    /// <summary>
-    /// A <see cref = "Int3" /> with all of its components set to one.
-    /// </summary>
-    public static readonly Int3 One = new Int3(1, 1, 1);
-
     /// <summary>
     /// The X component of the vector.
     /// </summary>
@@ -56,23 +30,22 @@ public struct Int3 : IEquatable<Int3>, IFormattable
     /// </summary>
     public int Z;
 
+    internal const int Count = 3;
+
     /// <summary>
-    /// Initializes a new instance of the <see cref = "Int3" /> struct.
+    /// Initializes a new instance of the <see cref="Int3"/> struct.
     /// </summary>
-    /// <param name = "value">The value that will be assigned to all components.</param>
-    public Int3(int value)
+    /// <param name="value">The value that will be assigned to all components.</param>
+    public Int3(int value) : this(value, value, value)
     {
-        X = value;
-        Y = value;
-        Z = value;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref = "Int3" /> struct.
+    /// Initializes a new instance of the <see cref="Int3" /> struct.
     /// </summary>
-    /// <param name = "x">Initial value for the X component of the vector.</param>
-    /// <param name = "y">Initial value for the Y component of the vector.</param>
-    /// <param name = "z">Initial value for the Z component of the vector.</param>
+    /// <param name="x">Initial value for the X component of the vector.</param>
+    /// <param name="y">Initial value for the Y component of the vector.</param>
+    /// <param name="z">Initial value for the Z component of the vector.</param>
     public Int3(int x, int y, int z)
     {
         X = x;
@@ -81,554 +54,213 @@ public struct Int3 : IEquatable<Int3>, IFormattable
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref = "Int3" /> struct.
+    /// Initializes a new instance of the <see cref="Int3" /> struct.
     /// </summary>
-    /// <param name = "values">The values to assign to the X, Y, Z, and W components of the vector. This must be an array with four elements.</param>
-    /// <exception cref = "ArgumentNullException">Thrown when <paramref name = "values" /> is <c>null</c>.</exception>
-    /// <exception cref = "ArgumentOutOfRangeException">Thrown when <paramref name = "values" /> contains more or less than four elements.</exception>
-    public Int3(int[] values)
+    /// <param name="xy">Initial value for the X and Y component of the vector.</param>
+    /// <param name="z">Initial value for the Z component of the vector.</param>
+    public Int3(in Int2 xy, int z)
     {
-        if (values == null)
-        {
-            throw new ArgumentNullException(nameof(values));
-        }
-
-        if (values.Length != 3)
-        {
-            throw new ArgumentOutOfRangeException(nameof(values), "There must be three and only three input values for Int3.");
-        }
-
-        X = values[0];
-        Y = values[1];
-        Z = values[2];
+        X = xy.X;
+        Y = xy.Y;
+        Z = z;
     }
 
     /// <summary>
-    /// Gets or sets the component at the specified index.
+    /// Initializes a new instance of the <see cref="Int3" /> struct.
     /// </summary>
-    /// <value>The value of the X, Y, Z, or W component, depending on the index.</value>
-    /// <param name = "index">The index of the component to access. Use 0 for the X component, 1 for the Y component, 2 for the Z component, and 3 for the W component.</param>
-    /// <returns>The value of the component at the specified index.</returns>
-    /// <exception cref = "System.ArgumentOutOfRangeException">Thrown when the <paramref name = "index" /> is out of the range [0, 3].</exception>
+    /// <param name="values">The span of elements to assign to the vector.</param>
+    public Int3(ReadOnlySpan<int> values)
+    {
+        if (values.Length < 3)
+        {
+            throw new ArgumentOutOfRangeException(nameof(values), "There must be 3 uint values.");
+        }
+
+        this = Unsafe.ReadUnaligned<Int3>(ref Unsafe.As<int, byte>(ref MemoryMarshal.GetReference(values)));
+    }
+
+    /// <summary>
+    /// A <see cref="Int3"/> with all of its components set to zero.
+    /// </summary>
+    public static Int3 Zero
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => default;
+    }
+
+    /// <summary>
+    /// The X unit <see cref="Int3"/> (1, 0, 0).
+    /// </summary>
+    public static Int3 UnitX
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => new(1, 0, 0);
+    }
+
+    /// <summary>
+    /// The Y unit <see cref="Int3"/> (0, 1, 0).
+    /// </summary>
+    public static Int3 UnitY
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => new(0, 1, 0);
+    }
+
+    /// <summary>
+    /// The Y unit <see cref="Int3"/> (0, 0, 1).
+    /// </summary>
+    public static Int3 UnitZ
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => new(0, 0, 1);
+    }
+
+    /// <summary>
+    /// A <see cref="Int3"/> with all of its components set to one.
+    /// </summary>
+    public static Int3 One
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => new(1, 1, 1);
+    }
+
+    /// <summary>Gets or sets the element at the specified index.</summary>
+    /// <param name="index">The index of the element to get or set.</param>
+    /// <returns>The the element at <paramref name="index" />.</returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> was less than zero or greater than the number of elements.</exception>
     public int this[int index]
     {
-        get
-        {
-            switch (index)
-            {
-                case 0:
-                    return X;
-                case 1:
-                    return Y;
-                case 2:
-                    return Z;
-            }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => this.GetElement(index);
 
-            throw new ArgumentOutOfRangeException(nameof(index), "Indices for Int3 run from 0 to 2, inclusive.");
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set => this = this.WithElement(index, value);
+    }
+
+    public readonly void Deconstruct(out int x, out int y, out int z)
+    {
+        x = X;
+        y = Y;
+        z = Z;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly void CopyTo(int[] array)
+    {
+        CopyTo(array, 0);
+    }
+
+    public readonly void CopyTo(int[] array, int index)
+    {
+        if (array is null)
+        {
+            throw new NullReferenceException(nameof(array));
         }
 
-        set
+        if ((index < 0) || (index >= array.Length))
         {
-            switch (index)
-            {
-                case 0:
-                    X = value;
-                    break;
-                case 1:
-                    Y = value;
-                    break;
-                case 2:
-                    Z = value;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(index), "Indices for Int3 run from 0 to 2, inclusive.");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Creates an array containing the elements of the vector.
-    /// </summary>
-    /// <returns>A four-element array containing the components of the vector.</returns>
-    public int[] ToArray()
-    {
-        return new int[] { X, Y, Z };
-    }
-
-    /// <summary>
-    /// Adds two vectors.
-    /// </summary>
-    /// <param name = "left">The first vector to add.</param>
-    /// <param name = "right">The second vector to add.</param>
-    /// <param name = "result">When the method completes, contains the sum of the two vectors.</param>
-    public static void Add(ref Int3 left, ref Int3 right, out Int3 result)
-    {
-        result = new Int3(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
-    }
-
-    /// <summary>
-    /// Adds two vectors.
-    /// </summary>
-    /// <param name = "left">The first vector to add.</param>
-    /// <param name = "right">The second vector to add.</param>
-    /// <returns>The sum of the two vectors.</returns>
-    public static Int3 Add(Int3 left, Int3 right)
-    {
-        return new Int3(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
-    }
-
-    /// <summary>
-    /// Subtracts two vectors.
-    /// </summary>
-    /// <param name = "left">The first vector to subtract.</param>
-    /// <param name = "right">The second vector to subtract.</param>
-    /// <param name = "result">When the method completes, contains the difference of the two vectors.</param>
-    public static void Subtract(ref Int3 left, ref Int3 right, out Int3 result)
-    {
-        result = new Int3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
-    }
-
-    /// <summary>
-    /// Subtracts two vectors.
-    /// </summary>
-    /// <param name = "left">The first vector to subtract.</param>
-    /// <param name = "right">The second vector to subtract.</param>
-    /// <returns>The difference of the two vectors.</returns>
-    public static Int3 Subtract(Int3 left, Int3 right)
-    {
-        return new Int3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name = "value">The vector to scale.</param>
-    /// <param name = "scale">The amount by which to scale the vector.</param>
-    /// <param name = "result">When the method completes, contains the scaled vector.</param>
-    public static void Multiply(ref Int3 value, int scale, out Int3 result)
-    {
-        result = new Int3(value.X * scale, value.Y * scale, value.Z * scale);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name = "value">The vector to scale.</param>
-    /// <param name = "scale">The amount by which to scale the vector.</param>
-    /// <returns>The scaled vector.</returns>
-    public static Int3 Multiply(Int3 value, int scale)
-    {
-        return new Int3(value.X * scale, value.Y * scale, value.Z * scale);
-    }
-
-    /// <summary>
-    /// Modulates a vector with another by performing component-wise multiplication.
-    /// </summary>
-    /// <param name = "left">The first vector to modulate.</param>
-    /// <param name = "right">The second vector to modulate.</param>
-    /// <param name = "result">When the method completes, contains the modulated vector.</param>
-    public static void Modulate(ref Int3 left, ref Int3 right, out Int3 result)
-    {
-        result = new Int3(left.X * right.X, left.Y * right.Y, left.Z * right.Z);
-    }
-
-    /// <summary>
-    /// Modulates a vector with another by performing component-wise multiplication.
-    /// </summary>
-    /// <param name = "left">The first vector to modulate.</param>
-    /// <param name = "right">The second vector to modulate.</param>
-    /// <returns>The modulated vector.</returns>
-    public static Int3 Modulate(Int3 left, Int3 right)
-    {
-        return new Int3(left.X * right.X, left.Y * right.Y, left.Z * right.Z);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name = "value">The vector to scale.</param>
-    /// <param name = "scale">The amount by which to scale the vector.</param>
-    /// <param name = "result">When the method completes, contains the scaled vector.</param>
-    public static void Divide(ref Int3 value, int scale, out Int3 result)
-    {
-        result = new Int3(value.X / scale, value.Y / scale, value.Z / scale);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name = "value">The vector to scale.</param>
-    /// <param name = "scale">The amount by which to scale the vector.</param>
-    /// <returns>The scaled vector.</returns>
-    public static Int3 Divide(Int3 value, int scale)
-    {
-        return new Int3(value.X / scale, value.Y / scale, value.Z / scale);
-    }
-
-    /// <summary>
-    /// Reverses the direction of a given vector.
-    /// </summary>
-    /// <param name = "value">The vector to negate.</param>
-    /// <param name = "result">When the method completes, contains a vector facing in the opposite direction.</param>
-    public static void Negate(ref Int3 value, out Int3 result)
-    {
-        result = new Int3(-value.X, -value.Y, -value.Z);
-    }
-
-    /// <summary>
-    /// Reverses the direction of a given vector.
-    /// </summary>
-    /// <param name = "value">The vector to negate.</param>
-    /// <returns>A vector facing in the opposite direction.</returns>
-    public static Int3 Negate(Int3 value)
-    {
-        return new Int3(-value.X, -value.Y, -value.Z);
-    }
-
-    /// <summary>
-    /// Restricts a value to be within a specified range.
-    /// </summary>
-    /// <param name = "value">The value to clamp.</param>
-    /// <param name = "min">The minimum value.</param>
-    /// <param name = "max">The maximum value.</param>
-    /// <param name = "result">When the method completes, contains the clamped value.</param>
-    public static void Clamp(ref Int3 value, ref Int3 min, ref Int3 max, out Int3 result)
-    {
-        var x = value.X;
-        x = x > max.X ? max.X : x;
-        x = x < min.X ? min.X : x;
-
-        var y = value.Y;
-        y = y > max.Y ? max.Y : y;
-        y = y < min.Y ? min.Y : y;
-
-        var z = value.Z;
-        z = z > max.Z ? max.Z : z;
-        z = z < min.Z ? min.Z : z;
-
-        result = new Int3(x, y, z);
-    }
-
-    /// <summary>
-    /// Restricts a value to be within a specified range.
-    /// </summary>
-    /// <param name = "value">The value to clamp.</param>
-    /// <param name = "min">The minimum value.</param>
-    /// <param name = "max">The maximum value.</param>
-    /// <returns>The clamped value.</returns>
-    public static Int3 Clamp(Int3 value, Int3 min, Int3 max)
-    {
-        Clamp(ref value, ref min, ref max, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name = "left">The first source vector.</param>
-    /// <param name = "right">The second source vector.</param>
-    /// <param name = "result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
-    public static void Max(ref Int3 left, ref Int3 right, out Int3 result)
-    {
-        result.X = left.X > right.X ? left.X : right.X;
-        result.Y = left.Y > right.Y ? left.Y : right.Y;
-        result.Z = left.Z > right.Z ? left.Z : right.Z;
-    }
-
-    /// <summary>
-    /// Returns a vector containing the largest components of the specified vectors.
-    /// </summary>
-    /// <param name = "left">The first source vector.</param>
-    /// <param name = "right">The second source vector.</param>
-    /// <returns>A vector containing the largest components of the source vectors.</returns>
-    public static Int3 Max(Int3 left, Int3 right)
-    {
-        Max(ref left, ref right, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name = "left">The first source vector.</param>
-    /// <param name = "right">The second source vector.</param>
-    /// <param name = "result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
-    public static void Min(ref Int3 left, ref Int3 right, out Int3 result)
-    {
-        result.X = left.X < right.X ? left.X : right.X;
-        result.Y = left.Y < right.Y ? left.Y : right.Y;
-        result.Z = left.Z < right.Z ? left.Z : right.Z;
-    }
-
-    /// <summary>
-    /// Returns a vector containing the smallest components of the specified vectors.
-    /// </summary>
-    /// <param name = "left">The first source vector.</param>
-    /// <param name = "right">The second source vector.</param>
-    /// <returns>A vector containing the smallest components of the source vectors.</returns>
-    public static Int3 Min(Int3 left, Int3 right)
-    {
-        Min(ref left, ref right, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Adds two vectors.
-    /// </summary>
-    /// <param name = "left">The first vector to add.</param>
-    /// <param name = "right">The second vector to add.</param>
-    /// <returns>The sum of the two vectors.</returns>
-    public static Int3 operator +(Int3 left, Int3 right)
-    {
-        return new Int3(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
-    }
-
-    /// <summary>
-    /// Assert a vector (return it unchanged).
-    /// </summary>
-    /// <param name = "value">The vector to assert (unchanged).</param>
-    /// <returns>The asserted (unchanged) vector.</returns>
-    public static Int3 operator +(Int3 value)
-    {
-        return value;
-    }
-
-    /// <summary>
-    /// Subtracts two vectors.
-    /// </summary>
-    /// <param name = "left">The first vector to subtract.</param>
-    /// <param name = "right">The second vector to subtract.</param>
-    /// <returns>The difference of the two vectors.</returns>
-    public static Int3 operator -(Int3 left, Int3 right)
-    {
-        return new Int3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
-    }
-
-    /// <summary>
-    /// Reverses the direction of a given vector.
-    /// </summary>
-    /// <param name = "value">The vector to negate.</param>
-    /// <returns>A vector facing in the opposite direction.</returns>
-    public static Int3 operator -(Int3 value)
-    {
-        return new Int3(-value.X, -value.Y, -value.Z);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name = "value">The vector to scale.</param>
-    /// <param name = "scale">The amount by which to scale the vector.</param>
-    /// <returns>The scaled vector.</returns>
-    public static Int3 operator *(int scale, Int3 value)
-    {
-        return new Int3(value.X * scale, value.Y * scale, value.Z * scale);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name = "value">The vector to scale.</param>
-    /// <param name = "scale">The amount by which to scale the vector.</param>
-    /// <returns>The scaled vector.</returns>
-    public static Int3 operator *(Int3 value, int scale)
-    {
-        return new Int3(value.X * scale, value.Y * scale, value.Z * scale);
-    }
-
-    /// <summary>
-    /// Scales a vector by the given value.
-    /// </summary>
-    /// <param name = "value">The vector to scale.</param>
-    /// <param name = "scale">The amount by which to scale the vector.</param>
-    /// <returns>The scaled vector.</returns>
-    public static Int3 operator /(Int3 value, int scale)
-    {
-        return new Int3(value.X / scale, value.Y / scale, value.Z / scale);
-    }
-
-    /// <summary>
-    /// Tests for equality between two objects.
-    /// </summary>
-    /// <param name = "left">The first value to compare.</param>
-    /// <param name = "right">The second value to compare.</param>
-    /// <returns><c>true</c> if <paramref name = "left" /> has the same value as <paramref name = "right" />; otherwise, <c>false</c>.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Int3 left, Int3 right)
-    {
-        return left.Equals(ref right);
-    }
-
-    /// <summary>
-    /// Tests for inequality between two objects.
-    /// </summary>
-    /// <param name = "left">The first value to compare.</param>
-    /// <param name = "right">The second value to compare.</param>
-    /// <returns><c>true</c> if <paramref name = "left" /> has a different value than <paramref name = "right" />; otherwise, <c>false</c>.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Int3 left, Int3 right)
-    {
-        return !left.Equals(ref right);
-    }
-
-    /// <summary>
-    /// Performs an explicit conversion from <see cref = "Int3" /> to <see cref = "Vector2" />.
-    /// </summary>
-    /// <param name = "value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Vector2(Int3 value)
-    {
-        return new Vector2(value.X, value.Y);
-    }
-
-    /// <summary>
-    /// Performs an explicit conversion from <see cref = "Int3" /> to <see cref = "Vector3" />.
-    /// </summary>
-    /// <param name = "value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Vector3(Int3 value)
-    {
-        return new Vector3(value.X, value.Y, value.Z);
-    }
-
-    /// <summary>
-    /// Returns a <see cref = "System.String" /> that represents this instance.
-    /// </summary>
-    /// <returns>
-    /// A <see cref = "System.String" /> that represents this instance.
-    /// </returns>
-    public override string ToString()
-    {
-        return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}", X, Y, Z);
-    }
-
-    /// <summary>
-    /// Returns a <see cref = "System.String" /> that represents this instance.
-    /// </summary>
-    /// <param name = "format">The format.</param>
-    /// <returns>
-    /// A <see cref = "System.String" /> that represents this instance.
-    /// </returns>
-    public string ToString(string format)
-    {
-        if (format == null)
-            return ToString();
-
-        return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}",
-            X.ToString(format, CultureInfo.CurrentCulture),
-            Y.ToString(format, CultureInfo.CurrentCulture),
-            Z.ToString(format, CultureInfo.CurrentCulture));
-    }
-
-    /// <summary>
-    /// Returns a <see cref = "System.String" /> that represents this instance.
-    /// </summary>
-    /// <param name = "formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref = "System.String" /> that represents this instance.
-    /// </returns>
-    public string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, "X:{0} Y:{1} Z:{2}", X, Y, Z);
-    }
-
-    /// <summary>
-    /// Returns a <see cref = "System.String" /> that represents this instance.
-    /// </summary>
-    /// <param name = "format">The format.</param>
-    /// <param name = "formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref = "System.String" /> that represents this instance.
-    /// </returns>
-    public string ToString(string? format, IFormatProvider? formatProvider)
-    {
-        if (format == null)
-        {
-            ToString(formatProvider);
+            throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        return string.Format(formatProvider, "X:{0} Y:{1} Z:{2}", X.ToString(format, formatProvider),
-            Y.ToString(format, formatProvider), Z.ToString(format, formatProvider));
-    }
-
-    /// <summary>
-    /// Returns a hash code for this instance.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        unchecked
+        if ((array.Length - index) < 3)
         {
-            var hashCode = X;
-            hashCode = (hashCode * 397) ^ Y;
-            hashCode = (hashCode * 397) ^ Z;
-            return hashCode;
+            throw new ArgumentOutOfRangeException(nameof(index));
         }
+
+        array[index] = X;
+        array[index + 1] = Y;
+        array[index + 2] = Z;
     }
 
-    /// <summary>
-    /// Determines whether the specified <see cref = "Int3" /> is equal to this instance.
-    /// </summary>
-    /// <param name = "other">The <see cref = "Int3" /> to compare with this instance.</param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref = "Int3" /> is equal to this instance; otherwise, <c>false</c>.
-    /// </returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(ref Int3 other)
+    /// <summary>Copies the vector to the given <see cref="Span{T}" />.The length of the destination span must be at least 2.</summary>
+    /// <param name="destination">The destination span which the values are copied into.</param>
+    /// <exception cref="ArgumentException">If number of elements in source vector is greater than those available in destination span.</exception>
+    public readonly void CopyTo(Span<int> destination)
     {
-        return other.X == X && other.Y == Y && other.Z == Z;
+        if (destination.Length < 3)
+        {
+            throw new ArgumentOutOfRangeException(nameof(destination));
+        }
+
+        Unsafe.WriteUnaligned(ref Unsafe.As<int, byte>(ref MemoryMarshal.GetReference(destination)), this);
     }
 
-    /// <summary>
-    /// Determines whether the specified <see cref = "Int3" /> is equal to this instance.
-    /// </summary>
-    /// <param name = "other">The <see cref = "Int3" /> to compare with this instance.</param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref = "Int3" /> is equal to this instance; otherwise, <c>false</c>.
-    /// </returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Int3 other)
+    /// <summary>Attempts to copy the vector to the given <see cref="Span{Int32}" />. The length of the destination span must be at least 2.</summary>
+    /// <param name="destination">The destination span which the values are copied into.</param>
+    /// <returns><see langword="true" /> if the source vector was successfully copied to <paramref name="destination" />. <see langword="false" /> if <paramref name="destination" /> is not large enough to hold the source vector.</returns>
+    public readonly bool TryCopyTo(Span<int> destination)
     {
-        return Equals(ref other);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref = "System.Object" /> is equal to this instance.
-    /// </summary>
-    /// <param name = "value">The <see cref = "System.Object" /> to compare with this instance.</param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref = "System.Object" /> is equal to this instance; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? value)
-    {
-        if (!(value is Int3))
+        if (destination.Length < 3)
         {
             return false;
         }
 
-        var strongValue = (Int3)value;
-        return Equals(ref strongValue);
+        Unsafe.WriteUnaligned(ref Unsafe.As<int, byte>(ref MemoryMarshal.GetReference(destination)), this);
+        return true;
     }
 
     /// <summary>
-    /// Performs an implicit conversion from <see cref="int"/> array to <see cref="Int3"/>.
+    /// Creates a new <see cref="Int3"/> value with the same value for all its components.
     /// </summary>
-    /// <param name="input">The input.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Int3(int[] input)
+    /// <param name="x">The value to use for the components of the new <see cref="Int3"/> instance.</param>
+    public static implicit operator Int3(int x) => new(x, x, x);
+
+    /// <summary>
+    /// Casts a <see cref="Int3"/> value to a <see cref="UInt3"/> one.
+    /// </summary>
+    /// <param name="xyz">The input <see cref="Int3"/> value to cast.</param>
+    public static explicit operator UInt3(Int3 xyz) => new((uint)xyz.X, (uint)xyz.Y, (uint)xyz.Z);
+
+    /// <summary>
+    /// Casts a <see cref="Int3"/> value to a <see cref="Vector3"/> one.
+    /// </summary>
+    /// <param name="xyz">The input <see cref="Int3"/> value to cast.</param>
+    public static implicit operator Vector3(Int3 xyz) => new(xyz.X, xyz.Y, xyz.Z);
+
+    /// <inheritdoc/>
+    public override readonly bool Equals(object? obj) => obj is Int3 value && Equals(value);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="Int3"/> is equal to this instance.
+    /// </summary>
+    /// <param name="other">The <see cref="Int3"/> to compare with this instance.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool Equals(Int3 other)
     {
-        return new Int3(input);
+        return X == other.X
+            && Y == other.Y
+            && Z == other.Z;
     }
 
     /// <summary>
-    /// Performs an implicit conversion from <see cref="Int3"/> to <see cref="System.Int32"/> array.
+    /// Compares two <see cref="Int3"/> objects for equality.
     /// </summary>
-    /// <param name="input">The input.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator int[](Int3 input)
-    {
-        return input.ToArray();
-    }
+    /// <param name="left">The <see cref="Int3"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="Int3"/> on the right hand of the operand.</param>
+    /// <returns>
+    /// True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator ==(Int3 left, Int3 right) => left.Equals(right);
+
+    /// <summary>
+    /// Compares two <see cref="Int3"/> objects for inequality.
+    /// </summary>
+    /// <param name="left">The <see cref="Int3"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="Int3"/> on the right hand of the operand.</param>
+    /// <returns>
+    /// True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(Int3 left, Int3 right) => !left.Equals(right);
+
+    /// <inheritdoc/>
+    public override readonly int GetHashCode() => HashCode.Combine(X, Y, Z);
+
+    /// <inheritdoc />
+    public override string ToString() => ToString(format: null, formatProvider: null);
+
+    /// <inheritdoc />
+    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+        => $"{nameof(Int3)} {{ {nameof(X)} = {X.ToString(format, formatProvider)}, {nameof(Y)} = {Y.ToString(format, formatProvider)}, {nameof(Z)} = {Z.ToString(format, formatProvider)} }}";
 }

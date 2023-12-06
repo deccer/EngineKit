@@ -1,10 +1,10 @@
-using EngineKit.Mathematics;
+using System.Numerics;
 
 namespace ComplexExample;
 
 public struct GpuObjectData
 {
-    public Matrix WorldMatrix;
+    public Matrix4x4 WorldMatrix;
     public Vector4 AabbMin;
     public Vector4 AabbMax;
     public uint VertexOffset;

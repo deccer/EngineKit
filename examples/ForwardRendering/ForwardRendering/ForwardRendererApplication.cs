@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using EngineKit;
 using EngineKit.Graphics;
@@ -11,9 +12,6 @@ using EngineKit.Native.Glfw;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
 using Serilog;
-using Num = System.Numerics;
-using Vector3 = EngineKit.Mathematics.Vector3;
-using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace ForwardRendering;
 
@@ -139,17 +137,17 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _modelMeshInstances.Add(new ModelMeshInstance
         {
             ModelMesh = _modelMeshes.First(),
-            World = Matrix.Translation(-5, 0, 0)
+            World = Matrix4x4.CreateTranslation(-5, 0, 0)
         });
         _modelMeshInstances.Add(new ModelMeshInstance
         {
             ModelMesh = _modelMeshes.First(),
-            World = Matrix.Translation(0, 0, 0)
+            World = Matrix4x4.CreateTranslation(0, 0, 0)
         });
         _modelMeshInstances.Add(new ModelMeshInstance
         {
             ModelMesh = _modelMeshes.First(),
-            World = Matrix.Translation(+5, 0, 0)
+            World = Matrix4x4.CreateTranslation(+5, 0, 0)
         });
 
         _gpuModelMeshInstanceBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuModelMeshInstance>("ModelMeshInstances");
@@ -224,7 +222,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     {
         base.FramebufferResized();
         _swapchainDescriptor = new SwapchainDescriptorBuilder()
-            .ClearColor(Color.DimGray)
+            .ClearColor(Colors.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build();
@@ -292,7 +290,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
-                ImGui.SetCursorPos(new Num.Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
+                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
                 ImGui.TextUnformatted($"Fps: {_metrics.AverageFrameTime}");
 
 
@@ -316,7 +314,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private bool LoadRenderDescriptors()
     {
         _swapchainDescriptor = new SwapchainDescriptorBuilder()
-            .ClearColor(Color.DimGray)
+            .ClearColor(Colors.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build();

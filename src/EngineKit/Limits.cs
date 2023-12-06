@@ -1,5 +1,3 @@
-using System;
-using System.Runtime.InteropServices;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
 

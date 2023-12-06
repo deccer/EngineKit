@@ -4,13 +4,13 @@ namespace EngineKit;
 
 public interface IApplicationContext
 {
-    Point ScreenSize { get; set; }
+    Int2 ScreenSize { get; set; }
 
-    Point WindowSize { get; set; }
+    Int2 WindowSize { get; set; }
 
-    Point FramebufferSize { get; set; }
+    Int2 FramebufferSize { get; set; }
 
-    Point ScaledFramebufferSize { get; set; }
+    Int2 ScaledFramebufferSize { get; set; }
 
     bool ShowResizeInLog { get; set; }
 }

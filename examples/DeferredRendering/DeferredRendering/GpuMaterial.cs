@@ -8,5 +8,5 @@ public struct GpuMaterial
 
     public ulong BaseColorTexture;
 
-    public Point _padding;
+    public Int2 _padding;
 }

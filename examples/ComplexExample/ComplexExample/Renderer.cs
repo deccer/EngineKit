@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using ComplexExample.Extensions;
 using EngineKit;
@@ -81,7 +79,7 @@ internal sealed class Renderer : IRenderer
         return _materialPool.GetOrAdd(material);
     }
     
-    public void AddToRenderQueue(PooledMesh pooledMesh, PooledMaterial pooledMaterial, Matrix worldMatrix)
+    public void AddToRenderQueue(PooledMesh pooledMesh, PooledMaterial pooledMaterial, Matrix4x4 worldMatrix)
     {
         if (!_isLoaded || _geometryInstanceBuffer == null || _geometryIndirectBuffer == null)
         {

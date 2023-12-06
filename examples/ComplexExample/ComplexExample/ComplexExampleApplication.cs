@@ -1,7 +1,7 @@
+using System.Numerics;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
-using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
 using Microsoft.Extensions.Options;

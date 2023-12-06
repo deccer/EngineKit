@@ -1,4 +1,4 @@
-using EngineKit.Mathematics;
+using System.Numerics;
 
 namespace EngineKit.Graphics;
 

@@ -1,42 +1,176 @@
-﻿using System;
+// Copyright (c) Amer Koleci and contributors.
+// Licensed under the MIT License (MIT). See LICENSE in the repository root for more information.
+
+using System;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace EngineKit.Mathematics;
 
 /// <summary>
-/// Represents a color in the form of rgb.
+/// Represents a floating-point RGB color.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
 public struct Color3 : IEquatable<Color3>, IFormattable
 {
-    private const string toStringFormat = "Red:{0} Green:{1} Blue:{2}";
+    /// <summary>
+    /// Red component of the color.
+    /// </summary>
+    public float R;
 
     /// <summary>
-    /// The Black color (0, 0, 0).
+    /// Green component of the color.
     /// </summary>
-    public static readonly Color3 Black = new Color3(0.0f, 0.0f, 0.0f);
+    public float G;
 
     /// <summary>
-    /// The White color (1, 1, 1, 1).
+    /// Blue component of the color.
     /// </summary>
-    public static readonly Color3 White = new Color3(1.0f, 1.0f, 1.0f);
+    public float B;
 
-    /// <summary>
-    /// The red component of the color.
-    /// </summary>
-    public float Red;
-
-    /// <summary>
-    /// The green component of the color.
-    /// </summary>
-    public float Green;
-
-    /// <summary>
-    /// The blue component of the color.
-    /// </summary>
-    public float Blue;
+    public static Color3 AliceBlue => new(0.941176534f, 0.972549081f, 1.0f);
+    public static Color3 AntiqueWhite => new(0.980392218f, 0.921568692f, 0.843137324f);
+    public static Color3 Aqua => new(0.0f, 1.0f, 1.0f);
+    public static Color3 Aquamarine => new(0.498039246f, 1.0f, 0.831372619f);
+    public static Color3 Azure => new(0.941176534f, 1.0f, 1.0f);
+    public static Color3 Beige => new(0.960784376f, 0.960784376f, 0.862745166f);
+    public static Color3 Bisque => new(1.0f, 0.894117713f, 0.768627524f);
+    public static Color3 Black => new(0.0f, 0.0f, 0.0f);
+    public static Color3 BlanchedAlmond => new(1.0f, 0.921568692f, 0.803921640f);
+    public static Color3 Blue => new(0.0f, 0.0f, 1.0f);
+    public static Color3 BlueViolet => new(0.541176498f, 0.168627456f, 0.886274576f);
+    public static Color3 Brown => new(0.647058845f, 0.164705887f, 0.164705887f);
+    public static Color3 BurlyWood => new(0.870588303f, 0.721568644f, 0.529411793f);
+    public static Color3 CadetBlue => new(0.372549027f, 0.619607866f, 0.627451003f);
+    public static Color3 Chartreuse => new(0.498039246f, 1.0f, 0.0f);
+    public static Color3 Chocolate => new(0.823529482f, 0.411764741f, 0.117647067f);
+    public static Color3 Coral => new(1.0f, 0.498039246f, 0.313725501f);
+    public static Color3 CornflowerBlue => new(0.392156899f, 0.584313750f, 0.929411829f);
+    public static Color3 Cornsilk => new(1.0f, 0.972549081f, 0.862745166f);
+    public static Color3 Crimson => new(0.862745166f, 0.078431375f, 0.235294133f);
+    public static Color3 Cyan => new(0.0f, 1.0f, 1.0f);
+    public static Color3 DarkBlue => new(0.0f, 0.0f, 0.545098066f);
+    public static Color3 DarkCyan => new(0.0f, 0.545098066f, 0.545098066f);
+    public static Color3 DarkGoldenrod => new(0.721568644f, 0.525490224f, 0.043137256f);
+    public static Color3 DarkGray => new(0.662745118f, 0.662745118f, 0.662745118f);
+    public static Color3 DarkGreen => new(0.0f, 0.392156899f, 0.0f);
+    public static Color3 DarkKhaki => new(0.741176486f, 0.717647076f, 0.419607878f);
+    public static Color3 DarkMagenta => new(0.545098066f, 0.0f, 0.545098066f);
+    public static Color3 DarkOliveGreen => new(0.333333343f, 0.419607878f, 0.184313729f);
+    public static Color3 DarkOrange => new(1.0f, 0.549019635f, 0.0f);
+    public static Color3 DarkOrchid => new(0.600000024f, 0.196078449f, 0.800000072f);
+    public static Color3 DarkRed => new(0.545098066f, 0.0f, 0.0f);
+    public static Color3 DarkSalmon => new(0.913725555f, 0.588235319f, 0.478431404f);
+    public static Color3 DarkSeaGreen => new(0.560784340f, 0.737254918f, 0.545098066f);
+    public static Color3 DarkSlateBlue => new(0.282352954f, 0.239215702f, 0.545098066f);
+    public static Color3 DarkSlateGray => new(0.184313729f, 0.309803933f, 0.309803933f);
+    public static Color3 DarkTurquoise => new(0.0f, 0.807843208f, 0.819607913f);
+    public static Color3 DarkViolet => new(0.580392182f, 0.0f, 0.827451050f);
+    public static Color3 DeepPink => new(1.0f, 0.078431375f, 0.576470613f);
+    public static Color3 DeepSkyBlue => new(0.0f, 0.749019623f, 1.0f);
+    public static Color3 DimGray => new(0.411764741f, 0.411764741f, 0.411764741f);
+    public static Color3 DodgerBlue => new(0.117647067f, 0.564705908f, 1.0f);
+    public static Color3 Firebrick => new(0.698039234f, 0.133333340f, 0.133333340f);
+    public static Color3 FloralWhite => new(1.0f, 0.980392218f, 0.941176534f);
+    public static Color3 ForestGreen => new(0.133333340f, 0.545098066f, 0.133333340f);
+    public static Color3 Fuchsia => new(1.0f, 0.0f, 1.0f);
+    public static Color3 Gainsboro => new(0.862745166f, 0.862745166f, 0.862745166f);
+    public static Color3 GhostWhite => new(0.972549081f, 0.972549081f, 1.0f);
+    public static Color3 Gold => new(1.0f, 0.843137324f, 0.0f);
+    public static Color3 Goldenrod => new(0.854902029f, 0.647058845f, 0.125490203f);
+    public static Color3 Gray => new(0.501960814f, 0.501960814f, 0.501960814f);
+    public static Color3 Green => new(0.0f, 0.501960814f, 0.0f);
+    public static Color3 GreenYellow => new(0.678431392f, 1.0f, 0.184313729f);
+    public static Color3 Honeydew => new(0.941176534f, 1.0f, 0.941176534f);
+    public static Color3 HotPink => new(1.0f, 0.411764741f, 0.705882370f);
+    public static Color3 IndianRed => new(0.803921640f, 0.360784322f, 0.360784322f);
+    public static Color3 Indigo => new(0.294117659f, 0.0f, 0.509803951f);
+    public static Color3 Ivory => new(1.0f, 1.0f, 0.941176534f);
+    public static Color3 Khaki => new(0.941176534f, 0.901960850f, 0.549019635f);
+    public static Color3 Lavender => new(0.901960850f, 0.901960850f, 0.980392218f);
+    public static Color3 LavenderBlush => new(1.0f, 0.941176534f, 0.960784376f);
+    public static Color3 LawnGreen => new(0.486274540f, 0.988235354f, 0.0f);
+    public static Color3 LemonChiffon => new(1.0f, 0.980392218f, 0.803921640f);
+    public static Color3 LightBlue => new(0.678431392f, 0.847058892f, 0.901960850f);
+    public static Color3 LightCoral => new(0.941176534f, 0.501960814f, 0.501960814f);
+    public static Color3 LightCyan => new(0.878431439f, 1.0f, 1.0f);
+    public static Color3 LightGoldenrodYellow => new(0.980392218f, 0.980392218f, 0.823529482f);
+    public static Color3 LightGreen => new(0.564705908f, 0.933333397f, 0.564705908f);
+    public static Color3 LightGray => new(0.827451050f, 0.827451050f, 0.827451050f);
+    public static Color3 LightPink => new(1.0f, 0.713725507f, 0.756862819f);
+    public static Color3 LightSalmon => new(1.0f, 0.627451003f, 0.478431404f);
+    public static Color3 LightSeaGreen => new(0.125490203f, 0.698039234f, 0.666666687f);
+    public static Color3 LightSkyBlue => new(0.529411793f, 0.807843208f, 0.980392218f);
+    public static Color3 LightSlateGray => new(0.466666698f, 0.533333361f, 0.600000024f);
+    public static Color3 LightSteelBlue => new(0.690196097f, 0.768627524f, 0.870588303f);
+    public static Color3 LightYellow => new(1.0f, 1.0f, 0.878431439f);
+    public static Color3 Lime => new(0.0f, 1.0f, 0.0f);
+    public static Color3 LimeGreen => new(0.196078449f, 0.803921640f, 0.196078449f);
+    public static Color3 Linen => new(0.980392218f, 0.941176534f, 0.901960850f);
+    public static Color3 Magenta => new(1.0f, 0.0f, 1.0f);
+    public static Color3 Maroon => new(0.501960814f, 0.0f, 0.0f);
+    public static Color3 MediumAquamarine => new(0.400000036f, 0.803921640f, 0.666666687f);
+    public static Color3 MediumBlue => new(0.0f, 0.0f, 0.803921640f);
+    public static Color3 MediumOrchid => new(0.729411781f, 0.333333343f, 0.827451050f);
+    public static Color3 MediumPurple => new(0.576470613f, 0.439215720f, 0.858823597f);
+    public static Color3 MediumSeaGreen => new(0.235294133f, 0.701960802f, 0.443137288f);
+    public static Color3 MediumSlateBlue => new(0.482352972f, 0.407843173f, 0.933333397f);
+    public static Color3 MediumSpringGreen => new(0.0f, 0.980392218f, 0.603921592f);
+    public static Color3 MediumTurquoise => new(0.282352954f, 0.819607913f, 0.800000072f);
+    public static Color3 MediumVioletRed => new(0.780392230f, 0.082352944f, 0.521568656f);
+    public static Color3 MidnightBlue => new(0.098039225f, 0.098039225f, 0.439215720f);
+    public static Color3 MintCream => new(0.960784376f, 1.0f, 0.980392218f);
+    public static Color3 MistyRose => new(1.0f, 0.894117713f, 0.882353008f);
+    public static Color3 Moccasin => new(1.0f, 0.894117713f, 0.709803939f);
+    public static Color3 NavajoWhite => new(1.0f, 0.870588303f, 0.678431392f);
+    public static Color3 Navy => new(0.0f, 0.0f, 0.501960814f);
+    public static Color3 OldLace => new(0.992156923f, 0.960784376f, 0.901960850f);
+    public static Color3 Olive => new(0.501960814f, 0.501960814f, 0.0f);
+    public static Color3 OliveDrab => new(0.419607878f, 0.556862772f, 0.137254909f);
+    public static Color3 Orange => new(1.0f, 0.647058845f, 0.0f);
+    public static Color3 OrangeRed => new(1.0f, 0.270588249f, 0.0f);
+    public static Color3 Orchid => new(0.854902029f, 0.439215720f, 0.839215755f);
+    public static Color3 PaleGoldenrod => new(0.933333397f, 0.909803987f, 0.666666687f);
+    public static Color3 PaleGreen => new(0.596078455f, 0.984313786f, 0.596078455f);
+    public static Color3 PaleTurquoise => new(0.686274529f, 0.933333397f, 0.933333397f);
+    public static Color3 PaleVioletRed => new(0.858823597f, 0.439215720f, 0.576470613f);
+    public static Color3 PapayaWhip => new(1.0f, 0.937254965f, 0.835294187f);
+    public static Color3 PeachPuff => new(1.0f, 0.854902029f, 0.725490212f);
+    public static Color3 Peru => new(0.803921640f, 0.521568656f, 0.247058839f);
+    public static Color3 Pink => new(1.0f, 0.752941251f, 0.796078503f);
+    public static Color3 Plum => new(0.866666734f, 0.627451003f, 0.866666734f);
+    public static Color3 PowderBlue => new(0.690196097f, 0.878431439f, 0.901960850f);
+    public static Color3 Purple => new(0.501960814f, 0.0f, 0.501960814f);
+    public static Color3 Red => new(1.0f, 0.0f, 0.0f);
+    public static Color3 RosyBrown => new(0.737254918f, 0.560784340f, 0.560784340f);
+    public static Color3 RoyalBlue => new(0.254901975f, 0.411764741f, 0.882353008f);
+    public static Color3 SaddleBrown => new(0.545098066f, 0.270588249f, 0.074509807f);
+    public static Color3 Salmon => new(0.980392218f, 0.501960814f, 0.447058856f);
+    public static Color3 SandyBrown => new(0.956862807f, 0.643137276f, 0.376470625f);
+    public static Color3 SeaGreen => new(0.180392161f, 0.545098066f, 0.341176480f);
+    public static Color3 SeaShell => new(1.0f, 0.960784376f, 0.933333397f);
+    public static Color3 Sienna => new(0.627451003f, 0.321568638f, 0.176470593f);
+    public static Color3 Silver => new(0.752941251f, 0.752941251f, 0.752941251f);
+    public static Color3 SkyBlue => new(0.529411793f, 0.807843208f, 0.921568692f);
+    public static Color3 SlateBlue => new(0.415686309f, 0.352941185f, 0.803921640f);
+    public static Color3 SlateGray => new(0.439215720f, 0.501960814f, 0.564705908f);
+    public static Color3 Snow => new(1.0f, 0.980392218f, 0.980392218f);
+    public static Color3 SpringGreen => new(0.0f, 1.0f, 0.498039246f);
+    public static Color3 SteelBlue => new(0.274509817f, 0.509803951f, 0.705882370f);
+    public static Color3 Tan => new(0.823529482f, 0.705882370f, 0.549019635f);
+    public static Color3 Teal => new(0.0f, 0.501960814f, 0.501960814f);
+    public static Color3 Thistle => new(0.847058892f, 0.749019623f, 0.847058892f);
+    public static Color3 Tomato => new(1.0f, 0.388235331f, 0.278431386f);
+    public static Color3 Turquoise => new(0.250980407f, 0.878431439f, 0.815686345f);
+    public static Color3 Violet => new(0.933333397f, 0.509803951f, 0.933333397f);
+    public static Color3 Wheat => new(0.960784376f, 0.870588303f, 0.701960802f);
+    public static Color3 White => new(1.0f, 1.0f, 1.0f);
+    public static Color3 WhiteSmoke => new(0.960784376f, 0.960784376f, 0.960784376f);
+    public static Color3 Yellow => new(1.0f, 1.0f, 0.0f);
+    public static Color3 YellowGreen => new(0.603921592f, 0.803921640f, 0.196078449f);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Color3"/> struct.
@@ -44,7 +178,7 @@ public struct Color3 : IEquatable<Color3>, IFormattable
     /// <param name="value">The value that will be assigned to all components.</param>
     public Color3(float value)
     {
-        Red = Green = Blue = value;
+        R = G = B = value;
     }
 
     /// <summary>
@@ -55,9 +189,9 @@ public struct Color3 : IEquatable<Color3>, IFormattable
     /// <param name="blue">The blue component of the color.</param>
     public Color3(float red, float green, float blue)
     {
-        Red = red;
-        Green = green;
-        Blue = blue;
+        R = red;
+        G = green;
+        B = blue;
     }
 
     /// <summary>
@@ -66,729 +200,131 @@ public struct Color3 : IEquatable<Color3>, IFormattable
     /// <param name="value">The red, green, and blue components of the color.</param>
     public Color3(Vector3 value)
     {
-        Red = value.X;
-        Green = value.Y;
-        Blue = value.Z;
+        R = value.X;
+        G = value.Y;
+        B = value.Z;
+    }
+
+    public void Deconstruct(out float r, out float g, out float b)
+    {
+        r = R;
+        g = G;
+        b = B;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Color3"/> struct.
+    /// Lerps between color source and destination by a supplied amount
     /// </summary>
-    /// <param name="rgb">A packed integer containing all three color components in RGB order.
-    /// The alpha component is ignored.</param>
-    public Color3(int rgb)
+    /// <param name="start"><see cref="Color3"/> is the initial color</param>
+    /// <param name="end"><see cref="Color3"/> is the target color</param>
+    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
+    public static Color3 Lerp(in Color3 start, in Color3 end, float amount)
     {
-        Blue = ((rgb >> 16) & 255) / 255.0f;
-        Green = ((rgb >> 8) & 255) / 255.0f;
-        Red = (rgb & 255) / 255.0f;
+        return new Color3(
+            MathHelper.Lerp(start.R, end.R, amount),
+            MathHelper.Lerp(start.G, end.G, amount),
+            MathHelper.Lerp(start.B, end.B, amount)
+            );
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Color3"/> struct.
+    /// Lerps between color source and destination by a supplied amount
     /// </summary>
-    /// <param name="values">The values to assign to the red, green, and blue components of the color. This must be an array with three elements.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than four elements.</exception>
-    public Color3(float[] values)
+    /// <param name="start"><see cref="Color3"/> is the initial color</param>
+    /// <param name="end"><see cref="Color3"/> is the target color</param>
+    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
+    /// <param name="result">return <see cref="Color3"/> of the lerp value</param>
+    public static void Lerp(in Color3 start, in Color3 end, float amount, out Color3 result)
     {
-        if (values == null)
-            throw new ArgumentNullException(nameof(values));
-        if (values.Length != 3)
-            throw new ArgumentOutOfRangeException(nameof(values), "There must be three and only three input values for Color3.");
-
-        Red = values[0];
-        Green = values[1];
-        Blue = values[2];
-    }
-
-    /// <summary>
-    /// Gets or sets the component at the specified index.
-    /// </summary>
-    /// <value>The value of the red, green, or blue component, depending on the index.</value>
-    /// <param name="index">The index of the component to access. Use 0 for the red component, 1 for the green component, and 2 for the blue component.</param>
-    /// <returns>The value of the component at the specified index.</returns>
-    /// <exception cref="System.ArgumentOutOfRangeException">Thrown when the <paramref name="index"/> is out of the range [0, 2].</exception>
-    public float this[int index]
-    {
-        get
-        {
-            switch (index)
-            {
-                case 0: return Red;
-                case 1: return Green;
-                case 2: return Blue;
-            }
-
-            throw new ArgumentOutOfRangeException(nameof(index), "Indices for Color3 run from 0 to 2, inclusive.");
-        }
-
-        set
-        {
-            switch (index)
-            {
-                case 0: Red = value; break;
-                case 1: Green = value; break;
-                case 2: Blue = value; break;
-                default: throw new ArgumentOutOfRangeException(nameof(index), "Indices for Color3 run from 0 to 2, inclusive.");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Converts the color into a packed integer.
-    /// </summary>
-    /// <returns>A packed integer containing all three color components.
-    /// The alpha channel is set to 255.</returns>
-    public int ToRgba()
-    {
-        uint a = 255;
-        var r = (uint)(Red * 255.0f) & 255;
-        var g = (uint)(Green * 255.0f) & 255;
-        var b = (uint)(Blue * 255.0f) & 255;
-
-        var value = r;
-        value |= g << 8;
-        value |= b << 16;
-        value |= a << 24;
-
-        return (int)value;
-    }
-
-    /// <summary>
-    /// Converts the color into a packed integer.
-    /// </summary>
-    /// <returns>A packed integer containing all three color components.
-    /// The alpha channel is set to 255.</returns>
-    public int ToBgra()
-    {
-        uint a = 255;
-        var r = (uint)(Red * 255.0f) & 255;
-        var g = (uint)(Green * 255.0f) & 255;
-        var b = (uint)(Blue * 255.0f) & 255;
-
-        var value = b;
-        value |= g << 8;
-        value |= r << 16;
-        value |= a << 24;
-
-        return (int)value;
+        result = new(
+            MathHelper.Lerp(start.R, end.R, amount),
+            MathHelper.Lerp(start.G, end.G, amount),
+            MathHelper.Lerp(start.B, end.B, amount)
+            );
     }
 
     /// <summary>
     /// Converts the color into a three component vector.
     /// </summary>
     /// <returns>A three component vector containing the red, green, and blue components of the color.</returns>
-    public Vector3 ToVector3()
-    {
-        return new Vector3(Red, Green, Blue);
-    }
+    public Vector3 ToVector3() => new(R, G, B);
 
     /// <summary>
     /// Creates an array containing the elements of the color.
     /// </summary>
-    /// <returns>A three-element array containing the components of the color.</returns>
-    public float[] ToArray()
-    {
-        return new float[] { Red, Green, Blue };
-    }
+    /// <returns>A four-element array containing the components of the color.</returns>
+    public float[] ToArray() => new[] { R, G, B };
 
-    /// <summary>
-    /// Adds two colors.
-    /// </summary>
-    /// <param name="left">The first color to add.</param>
-    /// <param name="right">The second color to add.</param>
-    /// <param name="result">When the method completes, completes the sum of the two colors.</param>
-    public static void Add(ref Color3 left, ref Color3 right, out Color3 result)
-    {
-        result.Red = left.Red + right.Red;
-        result.Green = left.Green + right.Green;
-        result.Blue = left.Blue + right.Blue;
-    }
-
-    /// <summary>
-    /// Adds two colors.
-    /// </summary>
-    /// <param name="left">The first color to add.</param>
-    /// <param name="right">The second color to add.</param>
-    /// <returns>The sum of the two colors.</returns>
-    public static Color3 Add(Color3 left, Color3 right)
-    {
-        return new Color3(left.Red + right.Red, left.Green + right.Green, left.Blue + right.Blue);
-    }
-
-    /// <summary>
-    /// Subtracts two colors.
-    /// </summary>
-    /// <param name="left">The first color to subtract.</param>
-    /// <param name="right">The second color to subtract.</param>
-    /// <param name="result">WHen the method completes, contains the difference of the two colors.</param>
-    public static void Subtract(ref Color3 left, ref Color3 right, out Color3 result)
-    {
-        result.Red = left.Red - right.Red;
-        result.Green = left.Green - right.Green;
-        result.Blue = left.Blue - right.Blue;
-    }
-
-    /// <summary>
-    /// Subtracts two colors.
-    /// </summary>
-    /// <param name="left">The first color to subtract.</param>
-    /// <param name="right">The second color to subtract</param>
-    /// <returns>The difference of the two colors.</returns>
-    public static Color3 Subtract(Color3 left, Color3 right)
-    {
-        return new Color3(left.Red - right.Red, left.Green - right.Green, left.Blue - right.Blue);
-    }
-
-    /// <summary>
-    /// Modulates two colors.
-    /// </summary>
-    /// <param name="left">The first color to modulate.</param>
-    /// <param name="right">The second color to modulate.</param>
-    /// <param name="result">When the method completes, contains the modulated color.</param>
-    public static void Modulate(ref Color3 left, ref Color3 right, out Color3 result)
-    {
-        result.Red = left.Red * right.Red;
-        result.Green = left.Green * right.Green;
-        result.Blue = left.Blue * right.Blue;
-    }
-
-    /// <summary>
-    /// Modulates two colors.
-    /// </summary>
-    /// <param name="left">The first color to modulate.</param>
-    /// <param name="right">The second color to modulate.</param>
-    /// <returns>The modulated color.</returns>
-    public static Color3 Modulate(Color3 left, Color3 right)
-    {
-        return new Color3(left.Red * right.Red, left.Green * right.Green, left.Blue * right.Blue);
-    }
-
-    /// <summary>
-    /// Scales a color.
-    /// </summary>
-    /// <param name="value">The color to scale.</param>
-    /// <param name="scale">The amount by which to scale.</param>
-    /// <param name="result">When the method completes, contains the scaled color.</param>
-    public static void Scale(ref Color3 value, float scale, out Color3 result)
-    {
-        result.Red = value.Red * scale;
-        result.Green = value.Green * scale;
-        result.Blue = value.Blue * scale;
-    }
-
-    /// <summary>
-    /// Scales a color.
-    /// </summary>
-    /// <param name="value">The color to scale.</param>
-    /// <param name="scale">The amount by which to scale.</param>
-    /// <returns>The scaled color.</returns>
-    public static Color3 Scale(Color3 value, float scale)
-    {
-        return new Color3(value.Red * scale, value.Green * scale, value.Blue * scale);
-    }
-
-    /// <summary>
-    /// Negates a color.
-    /// </summary>
-    /// <param name="value">The color to negate.</param>
-    /// <param name="result">When the method completes, contains the negated color.</param>
-    public static void Negate(ref Color3 value, out Color3 result)
-    {
-        result.Red = 1.0f - value.Red;
-        result.Green = 1.0f - value.Green;
-        result.Blue = 1.0f - value.Blue;
-    }
-
-    /// <summary>
-    /// Negates a color.
-    /// </summary>
-    /// <param name="value">The color to negate.</param>
-    /// <returns>The negated color.</returns>
-    public static Color3 Negate(Color3 value)
-    {
-        return new Color3(1.0f - value.Red, 1.0f - value.Green, 1.0f - value.Blue);
-    }
-
-    /// <summary>
-    /// Restricts a value to be within a specified range.
-    /// </summary>
-    /// <param name="value">The value to clamp.</param>
-    /// <param name="min">The minimum value.</param>
-    /// <param name="max">The maximum value.</param>
-    /// <param name="result">When the method completes, contains the clamped value.</param>
-    public static void Clamp(ref Color3 value, ref Color3 min, ref Color3 max, out Color3 result)
-    {
-        var red = value.Red;
-        red = red > max.Red ? max.Red : red;
-        red = red < min.Red ? min.Red : red;
-
-        var green = value.Green;
-        green = green > max.Green ? max.Green : green;
-        green = green < min.Green ? min.Green : green;
-
-        var blue = value.Blue;
-        blue = blue > max.Blue ? max.Blue : blue;
-        blue = blue < min.Blue ? min.Blue : blue;
-
-        result = new Color3(red, green, blue);
-    }
-
-    /// <summary>
-    /// Restricts a value to be within a specified range.
-    /// </summary>
-    /// <param name="value">The value to clamp.</param>
-    /// <param name="min">The minimum value.</param>
-    /// <param name="max">The maximum value.</param>
-    /// <returns>The clamped value.</returns>
-    public static Color3 Clamp(Color3 value, Color3 min, Color3 max)
-    {
-        Clamp(ref value, ref min, ref max, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Performs a linear interpolation between two colors.
-    /// </summary>
-    /// <param name="start">Start color.</param>
-    /// <param name="end">End color.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <param name="result">When the method completes, contains the linear interpolation of the two colors.</param>
-    /// <remarks>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
-    /// </remarks>
-    public static void Lerp(ref Color3 start, ref Color3 end, float amount, out Color3 result)
-    {
-        result.Red = MathUtil.Lerp(start.Red, end.Red, amount);
-        result.Green = MathUtil.Lerp(start.Green, end.Green, amount);
-        result.Blue = MathUtil.Lerp(start.Blue, end.Blue, amount);
-    }
-
-    /// <summary>
-    /// Performs a linear interpolation between two colors.
-    /// </summary>
-    /// <param name="start">Start color.</param>
-    /// <param name="end">End color.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <returns>The linear interpolation of the two colors.</returns>
-    /// <remarks>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
-    /// </remarks>
-    public static Color3 Lerp(Color3 start, Color3 end, float amount)
-    {
-        Lerp(ref start, ref end, amount, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Performs a cubic interpolation between two colors.
-    /// </summary>
-    /// <param name="start">Start color.</param>
-    /// <param name="end">End color.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <param name="result">When the method completes, contains the cubic interpolation of the two colors.</param>
-    public static void SmoothStep(ref Color3 start, ref Color3 end, float amount, out Color3 result)
-    {
-        amount = MathUtil.SmoothStep(amount);
-        Lerp(ref start, ref end, amount, out result);
-    }
-
-    /// <summary>
-    /// Performs a cubic interpolation between two colors.
-    /// </summary>
-    /// <param name="start">Start color.</param>
-    /// <param name="end">End color.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <returns>The cubic interpolation of the two colors.</returns>
-    public static Color3 SmoothStep(Color3 start, Color3 end, float amount)
-    {
-        SmoothStep(ref start, ref end, amount, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Returns a color containing the smallest components of the specified colors.
-    /// </summary>
-    /// <param name="left">The first source color.</param>
-    /// <param name="right">The second source color.</param>
-    /// <param name="result">When the method completes, contains an new color composed of the largest components of the source colors.</param>
-    public static void Max(ref Color3 left, ref Color3 right, out Color3 result)
-    {
-        result.Red = left.Red > right.Red ? left.Red : right.Red;
-        result.Green = left.Green > right.Green ? left.Green : right.Green;
-        result.Blue = left.Blue > right.Blue ? left.Blue : right.Blue;
-    }
-
-    /// <summary>
-    /// Returns a color containing the largest components of the specified colors.
-    /// </summary>
-    /// <param name="left">The first source color.</param>
-    /// <param name="right">The second source color.</param>
-    /// <returns>A color containing the largest components of the source colors.</returns>
-    public static Color3 Max(Color3 left, Color3 right)
-    {
-        Max(ref left, ref right, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Returns a color containing the smallest components of the specified colors.
-    /// </summary>
-    /// <param name="left">The first source color.</param>
-    /// <param name="right">The second source color.</param>
-    /// <param name="result">When the method completes, contains an new color composed of the smallest components of the source colors.</param>
-    public static void Min(ref Color3 left, ref Color3 right, out Color3 result)
-    {
-        result.Red = left.Red < right.Red ? left.Red : right.Red;
-        result.Green = left.Green < right.Green ? left.Green : right.Green;
-        result.Blue = left.Blue < right.Blue ? left.Blue : right.Blue;
-    }
-
-    /// <summary>
-    /// Returns a color containing the smallest components of the specified colors.
-    /// </summary>
-    /// <param name="left">The first source color.</param>
-    /// <param name="right">The second source color.</param>
-    /// <returns>A color containing the smallest components of the source colors.</returns>
-    public static Color3 Min(Color3 left, Color3 right)
-    {
-        Min(ref left, ref right, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Adjusts the contrast of a color.
-    /// </summary>
-    /// <param name="value">The color whose contrast is to be adjusted.</param>
-    /// <param name="contrast">The amount by which to adjust the contrast.</param>
-    /// <param name="result">When the method completes, contains the adjusted color.</param>
-    public static void AdjustContrast(ref Color3 value, float contrast, out Color3 result)
-    {
-        result.Red = 0.5f + contrast * (value.Red - 0.5f);
-        result.Green = 0.5f + contrast * (value.Green - 0.5f);
-        result.Blue = 0.5f + contrast * (value.Blue - 0.5f);
-    }
-
-    /// <summary>
-    /// Adjusts the contrast of a color.
-    /// </summary>
-    /// <param name="value">The color whose contrast is to be adjusted.</param>
-    /// <param name="contrast">The amount by which to adjust the contrast.</param>
-    /// <returns>The adjusted color.</returns>
-    public static Color3 AdjustContrast(Color3 value, float contrast)
-    {
-        return new Color3(
-            0.5f + contrast * (value.Red - 0.5f),
-            0.5f + contrast * (value.Green - 0.5f),
-            0.5f + contrast * (value.Blue - 0.5f));
-    }
-
-    /// <summary>
-    /// Adjusts the saturation of a color.
-    /// </summary>
-    /// <param name="value">The color whose saturation is to be adjusted.</param>
-    /// <param name="saturation">The amount by which to adjust the saturation.</param>
-    /// <param name="result">When the method completes, contains the adjusted color.</param>
-    public static void AdjustSaturation(ref Color3 value, float saturation, out Color3 result)
-    {
-        var grey = value.Red * 0.2125f + value.Green * 0.7154f + value.Blue * 0.0721f;
-
-        result.Red = grey + saturation * (value.Red - grey);
-        result.Green = grey + saturation * (value.Green - grey);
-        result.Blue = grey + saturation * (value.Blue - grey);
-    }
-
-    /// <summary>
-    /// Adjusts the saturation of a color.
-    /// </summary>
-    /// <param name="value">The color whose saturation is to be adjusted.</param>
-    /// <param name="saturation">The amount by which to adjust the saturation.</param>
-    /// <returns>The adjusted color.</returns>
-    public static Color3 AdjustSaturation(Color3 value, float saturation)
-    {
-        var grey = value.Red * 0.2125f + value.Green * 0.7154f + value.Blue * 0.0721f;
-
-        return new Color3(
-            grey + saturation * (value.Red - grey),
-            grey + saturation * (value.Green - grey),
-            grey + saturation * (value.Blue - grey));
-    }
-
-    /// <summary>
-    /// Computes the premultiplied value of the provided color.
-    /// </summary>
-    /// <param name="value">The non-premultiplied value.</param>
-    /// <param name="alpha">The color alpha.</param>
-    /// <param name="result">The premultiplied result.</param>
-    public static void Premultiply(ref Color3 value, float alpha, out Color3 result)
-    {
-        result.Red = value.Red * alpha;
-        result.Green = value.Green * alpha;
-        result.Blue = value.Blue * alpha;
-    }
-
-    /// <summary>
-    /// Computes the premultiplied value of the provided color.
-    /// </summary>
-    /// <param name="value">The non-premultiplied value.</param>
-    /// <param name="alpha">The color alpha.</param>
-    /// <returns>The premultiplied color.</returns>
-    public static Color3 Premultiply(Color3 value, float alpha)
-    {
-        Premultiply(ref value, alpha, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Adds two colors.
-    /// </summary>
-    /// <param name="left">The first color to add.</param>
-    /// <param name="right">The second color to add.</param>
-    /// <returns>The sum of the two colors.</returns>
-    public static Color3 operator +(Color3 left, Color3 right)
-    {
-        return new Color3(left.Red + right.Red, left.Green + right.Green, left.Blue + right.Blue);
-    }
-
-    /// <summary>
-    /// Assert a color (return it unchanged).
-    /// </summary>
-    /// <param name="value">The color to assert (unchanged).</param>
-    /// <returns>The asserted (unchanged) color.</returns>
-    public static Color3 operator +(Color3 value)
-    {
-        return value;
-    }
-
-    /// <summary>
-    /// Subtracts two colors.
-    /// </summary>
-    /// <param name="left">The first color to subtract.</param>
-    /// <param name="right">The second color to subtract.</param>
-    /// <returns>The difference of the two colors.</returns>
-    public static Color3 operator -(Color3 left, Color3 right)
-    {
-        return new Color3(left.Red - right.Red, left.Green - right.Green, left.Blue - right.Blue);
-    }
-
-    /// <summary>
-    /// Negates a color.
-    /// </summary>
-    /// <param name="value">The color to negate.</param>
-    /// <returns>A negated color.</returns>
-    public static Color3 operator -(Color3 value)
-    {
-        return new Color3(-value.Red, -value.Green, -value.Blue);
-    }
-
-    /// <summary>
-    /// Scales a color.
-    /// </summary>
-    /// <param name="scale">The factor by which to scale the color.</param>
-    /// <param name="value">The color to scale.</param>
-    /// <returns>The scaled color.</returns>
-    public static Color3 operator *(float scale, Color3 value)
-    {
-        return new Color3(value.Red * scale, value.Green * scale, value.Blue * scale);
-    }
-
-    /// <summary>
-    /// Scales a color.
-    /// </summary>
-    /// <param name="value">The factor by which to scale the color.</param>
-    /// <param name="scale">The color to scale.</param>
-    /// <returns>The scaled color.</returns>
-    public static Color3 operator *(Color3 value, float scale)
-    {
-        return new Color3(value.Red * scale, value.Green * scale, value.Blue * scale);
-    }
-
-    /// <summary>
-    /// Modulates two colors.
-    /// </summary>
-    /// <param name="left">The first color to modulate.</param>
-    /// <param name="right">The second color to modulate.</param>
-    /// <returns>The modulated color.</returns>
-    public static Color3 operator *(Color3 left, Color3 right)
-    {
-        return new Color3(left.Red * right.Red, left.Green * right.Green, left.Blue * right.Blue);
-    }
-
-    /// <summary>
-    /// Tests for equality between two objects.
-    /// </summary>
-    /// <param name="left">The first value to compare.</param>
-    /// <param name="right">The second value to compare.</param>
-    /// <returns><c>true</c> if <paramref name="left"/> has the same value as <paramref name="right"/>; otherwise, <c>false</c>.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Color3 left, Color3 right)
-    {
-        return left.Equals(ref right);
-    }
-
-    /// <summary>
-    /// Tests for inequality between two objects.
-    /// </summary>
-    /// <param name="left">The first value to compare.</param>
-    /// <param name="right">The second value to compare.</param>
-    /// <returns><c>true</c> if <paramref name="left"/> has a different value than <paramref name="right"/>; otherwise, <c>false</c>.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Color3 left, Color3 right)
-    {
-        return !left.Equals(ref right);
-    }
-
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="Color3"/> to <see cref="Color4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Color4(Color3 value)
-    {
-        return new Color4(value.Red, value.Green, value.Blue, 1.0f);
-    }
-
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Color3"/> to <see cref="Vector3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Vector3(Color3 value)
-    {
-        return new Vector3(value.Red, value.Green, value.Blue);
-    }
-
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Vector3"/> to <see cref="Color3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Color3(Vector3 value)
-    {
-        return new Color3(value.X, value.Y, value.Z);
-    }
-
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="System.Int32"/> to <see cref="Color3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Color3(int value)
-    {
-        return new Color3(value);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="System.String"/> that represents this instance.
-    /// </summary>
-    /// <returns>
-    /// A <see cref="System.String"/> that represents this instance.
-    /// </returns>
-    public override string ToString()
-    {
-        return ToString(CultureInfo.CurrentCulture);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="System.String"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format to apply to each channel element (float)</param>
-    /// <returns>
-    /// A <see cref="System.String"/> that represents this instance.
-    /// </returns>
-    public string ToString(string format)
-    {
-        return ToString(format, CultureInfo.CurrentCulture);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="System.String"/> that represents this instance.
-    /// </summary>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="System.String"/> that represents this instance.
-    /// </returns>
-    public string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, toStringFormat, Red, Green, Blue);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="System.String"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format to apply to each channel element (float).</param>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="System.String"/> that represents this instance.
-    /// </returns>
-    public string ToString(string? format, IFormatProvider? formatProvider)
-    {
-        if (format == null)
-            return ToString(formatProvider);
-
-        return string.Format(formatProvider,
-            toStringFormat,
-            Red.ToString(format, formatProvider),
-            Green.ToString(format, formatProvider),
-            Blue.ToString(format, formatProvider));
-    }
-
-    /// <summary>
-    /// Returns a hash code for this instance.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hashCode = Red.GetHashCode();
-            hashCode = (hashCode * 397) ^ Green.GetHashCode();
-            hashCode = (hashCode * 397) ^ Blue.GetHashCode();
-            return hashCode;
-        }
-    }
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => obj is Color3 value && Equals(ref value);
 
     /// <summary>
     /// Determines whether the specified <see cref="Color3"/> is equal to this instance.
     /// </summary>
     /// <param name="other">The <see cref="Color3"/> to compare with this instance.</param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="Color3"/> is equal to this instance; otherwise, <c>false</c>.
-    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Equals(Color3 other) => Equals(ref other);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="Color3"/> is equal to this instance.
+    /// </summary>
+    /// <param name="other">The <see cref="Color3"/> to compare with this instance.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(ref Color3 other)
     {
-        return Red == other.Red && Green == other.Green && Blue == other.Blue;
+        return R.Equals(other.R)
+            && G.Equals(other.G)
+            && B.Equals(other.B);
     }
 
     /// <summary>
-    /// Determines whether the specified <see cref="Color3"/> is equal to this instance.
+    /// Compares two <see cref="Color3"/> objects for equality.
     /// </summary>
-    /// <param name="other">The <see cref="Color3"/> to compare with this instance.</param>
+    /// <param name="left">The <see cref="Color3"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="Color3"/> on the right hand of the operand.</param>
     /// <returns>
-    /// <c>true</c> if the specified <see cref="Color3"/> is equal to this instance; otherwise, <c>false</c>.
+    /// True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
     /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Color3 other)
-    {
-        return Equals(ref other);
-    }
+    public static bool operator ==(Color3 left, Color3 right) => left.Equals(ref right);
 
     /// <summary>
-    /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
+    /// Compares two <see cref="Color3"/> objects for inequality.
     /// </summary>
-    /// <param name="value">The <see cref="System.Object"/> to compare with this instance.</param>
+    /// <param name="left">The <see cref="Color3"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="Color3"/> on the right hand of the operand.</param>
     /// <returns>
-    /// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+    /// True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
     /// </returns>
-    public override bool Equals(object? value)
-    {
-        if (!(value is Color3))
-            return false;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(Color3 left, Color3 right) => !left.Equals(ref right);
 
-        var strongValue = (Color3)value;
-        return Equals(ref strongValue);
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        {
+            hashCode.Add(R);
+            hashCode.Add(G);
+            hashCode.Add(B);
+        }
+        return hashCode.ToHashCode();
+    }
+
+    /// <inheritdoc/>
+    public override string ToString() => ToString(format: null, formatProvider: null);
+
+    /// <inheritdoc />
+    public string ToString(string? format, IFormatProvider? formatProvider)
+    {
+        string? separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
+
+        return new StringBuilder()
+            .Append('<')
+            .Append(R.ToString(format, formatProvider)).Append(separator).Append(' ')
+            .Append(G.ToString(format, formatProvider)).Append(separator).Append(' ')
+            .Append(B.ToString(format, formatProvider))
+            .Append('>')
+            .ToString();
     }
 }

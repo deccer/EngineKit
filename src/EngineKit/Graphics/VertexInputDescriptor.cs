@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
-using EngineKit.Mathematics;
 using ImGuiNET;
-using Num = System.Numerics;
 
 namespace EngineKit.Graphics;
 
@@ -24,34 +23,25 @@ public readonly record struct VertexInputDescriptor(VertexInputBindingDescriptor
         _fieldTypeToComponentCountMapping = new Dictionary<Type, int>
         {
             { typeof(float), 1 },
-            { typeof(Vector2), 2 },
-            { typeof(Num.Vector2), 2},
-            { typeof(Vector3), 3 },
-            { typeof(Num.Vector3), 3},
-            { typeof(Vector4), 4 },
-            { typeof(Num.Vector4), 4},
+            { typeof(Vector2), 2},
+            { typeof(Vector3), 3},
+            { typeof(Vector4), 4},
             { typeof(uint), 4 }
         };
         _fieldTypeToDataTypeMapping = new Dictionary<Type, DataType>
         {
             { typeof(float), DataType.Float },
             { typeof(Vector2), DataType.Float },
-            { typeof(Num.Vector2), DataType.Float },
             { typeof(Vector3), DataType.Float },
-            { typeof(Num.Vector3), DataType.Float },
             { typeof(Vector4), DataType.Float },
-            { typeof(Num.Vector4), DataType.Float },
             { typeof(uint), DataType.UnsignedByte }
         };
         _fieldTypeToNormalizedMapping = new Dictionary<Type, bool>
         {
             { typeof(float), false },
             { typeof(Vector2), false },
-            { typeof(Num.Vector2), false },
             { typeof(Vector3), false },
-            { typeof(Num.Vector3), false },
             { typeof(Vector4), false },
-            { typeof(Num.Vector4), false },
             { typeof(uint), true }
         };
         _vertexTypeToVertexInputDescriptorMapping = new Dictionary<VertexType, VertexInputDescriptor>

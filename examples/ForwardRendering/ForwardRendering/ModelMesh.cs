@@ -1,4 +1,4 @@
-using EngineKit.Mathematics;
+using System.Numerics;
 
 namespace ForwardRendering;
 
@@ -14,7 +14,7 @@ public struct ModelMesh
 
     public int IndexCount;
 
-    public Matrix WorldMatrix;
+    public Matrix4x4 WorldMatrix;
 
     public ulong TextureHandle;
 }

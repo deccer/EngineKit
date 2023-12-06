@@ -1,12 +1,12 @@
-using EngineKit.Mathematics;
+using System.Numerics;
 
 namespace ComplexExample;
 
 public struct CameraInformation
 {
-    public Matrix ProjectionMatrix;
+    public Matrix4x4 ProjectionMatrix;
     
-    public Matrix ViewMatrix;
+    public Matrix4x4 ViewMatrix;
     
     public Vector4 Viewport;
     

@@ -7,10 +7,6 @@ using System.Text;
 using System.Text.Json;
 using EngineKit.Mathematics;
 using Serilog;
-using Num = System.Numerics;
-using Vector2 = EngineKit.Mathematics.Vector2;
-using Vector3 = EngineKit.Mathematics.Vector3;
-using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace EngineKit.Graphics.Shaders;
 
@@ -148,9 +144,34 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
             return "float";
         }
 
-        if (type == typeof(Point))
+        if (type == typeof(Int2))
         {
             return "ivec2";
+        }
+        
+        if (type == typeof(Int3))
+        {
+            return "ivec3";
+        }
+        
+        if (type == typeof(Int4))
+        {
+            return "ivec4";
+        }
+        
+        if (type == typeof(UInt2))
+        {
+            return "uvec2";
+        }
+        
+        if (type == typeof(UInt3))
+        {
+            return "uvec3";
+        }
+        
+        if (type == typeof(UInt4))
+        {
+            return "uvec4";
         }
 
         if (type == typeof(Color4) || type == typeof(Color))
@@ -168,22 +189,22 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
             return "ivec4";
         }
 
-        if (type == typeof(Vector2) || type == typeof(Num.Vector2))
+        if (type == typeof(Vector2))
         {
             return "vec2";
         }
 
-        if (type == typeof(Vector3) || type == typeof(Num.Vector3) || type == typeof(Color3))
+        if (type == typeof(Vector3) || type == typeof(Color3))
         {
             return "vec3";
         }
 
-        if (type == typeof(Vector4) || type == typeof(Num.Vector4))
+        if (type == typeof(Vector4))
         {
             return "vec4";
         }
 
-        if (type == typeof(Matrix) || type == typeof(Matrix4x4))
+        if (type == typeof(Matrix4x4))
         {
             return "mat4";
         }

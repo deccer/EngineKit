@@ -1,249 +1,129 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
-// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-//
-// Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// Copyright (c) Amer Koleci and contributors.
+// Licensed under the MIT License (MIT). See LICENSE in the repository root for more information.
 
 using System;
+using System.ComponentModel;
+using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 
-namespace EngineKit.Mathematics
+namespace EngineKit.Mathematics;
+
+/// <summary>
+/// Stores an ordered pair of integer numbers describing the width, height and depth of a rectangle.
+/// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
+public struct Size3 : IEquatable<Size3>
 {
     /// <summary>
-    /// Structure providing Width, Height and Depth.
+    /// A <see cref="Size3"/> with all of its components set to zero.
     /// </summary>
-    [DataContract(Name = "!Size3")]
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Size3 : IEquatable<Size3>, IComparable<Size3>
+    public static Size3 Empty => default;
+
+    /// <summary>
+    /// A special valued <see cref="Size"/>.
+    /// </summary>
+    public static Size3 WholeSize => new(~0, ~0, ~0);
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="Size3"/> structure.
+    /// </summary>
+    /// <param name="width">The width component of the extent.</param>
+    /// <param name="height">The height component of the extent.</param>
+    /// <param name="depth">The depth component of the extent.</param>
+    public Size3(int width, int height, int depth)
     {
-        /// <summary>
-        /// A zero size with (width, height, depth) = (0,0,0)
-        /// </summary>
-        public static readonly Size3 Zero = new Size3(0, 0, 0);
-
-        /// <summary>
-        /// A one size with (width, height, depth) = (1,1,1)
-        /// </summary>
-        public static readonly Size3 One = new Size3(1, 1, 1);
-
-        /// <summary>
-        /// A zero size with (width, height, depth) = (0,0,0)
-        /// </summary>
-        public static readonly Size3 Empty = Zero;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Size3" /> struct.
-        /// </summary>
-        /// <param name="width">The x.</param>
-        /// <param name="height">The y.</param>
-        /// <param name="depth">The depth.</param>
-        public Size3(int width, int height, int depth)
-        {
-            Width = width;
-            Height = height;
-            Depth = depth;
-        }
-
-        /// <summary>
-        /// Width.
-        /// </summary>
-        [DataMember(Order = 0)]
-        public int Width;
-
-        /// <summary>
-        /// Height.
-        /// </summary>
-        [DataMember(Order = 1)]
-        public int Height;
-
-        /// <summary>
-        /// Height.
-        /// </summary>
-        [DataMember(Order = 2)]
-        public int Depth;
-
-        /// <summary>
-        /// Gets a volume size.
-        /// </summary>
-        private long VolumeSize
-        {
-            get
-            {
-                return (long)Width * Height * Depth;
-            }
-        }
-
-        /// <inheritdoc/>
-        public bool Equals(Size3 other)
-        {
-            return Width == other.Width && Height == other.Height && Depth == other.Depth;
-        }
-
-        /// <inheritdoc/>
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is Size3 && Equals((Size3)obj);
-        }
-
-        /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hashCode = Width;
-                hashCode = (hashCode * 397) ^ Height;
-                hashCode = (hashCode * 397) ^ Depth;
-                return hashCode;
-            }
-        }
-
-        /// <inheritdoc/>
-        public int CompareTo(Size3 other)
-        {
-            return Math.Sign(VolumeSize - other.VolumeSize);
-        }
-
-        /// <inheritdoc/>
-        public override string ToString()
-        {
-            return string.Format("({0},{1},{2})", Width, Height, Depth);
-        }
-
-        /// <summary>
-        /// Implements the &lt;.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
-        public static bool operator <(Size3 left, Size3 right)
-        {
-            return left.CompareTo(right) < 0;
-        }
-
-        /// <summary>
-        /// Implements the &lt;.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
-        public static bool operator <=(Size3 left, Size3 right)
-        {
-            return left.CompareTo(right) <= 0;
-        }
-
-        /// <summary>
-        /// Implements the &lt; or ==.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
-        public static bool operator >(Size3 left, Size3 right)
-        {
-            return left.CompareTo(right) > 0;
-        }
-
-        /// <summary>
-        /// Implements the &gt; or ==.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
-        public static bool operator >=(Size3 left, Size3 right)
-        {
-            return left.CompareTo(right) >= 0;
-        }
-
-        /// <summary>
-        /// Implements the ==.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
-        public static bool operator ==(Size3 left, Size3 right)
-        {
-            return left.Equals(right);
-        }
-
-        /// <summary>
-        /// Implements the !=.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
-        public static bool operator !=(Size3 left, Size3 right)
-        {
-            return !left.Equals(right);
-        }
-
-        /// <summary>
-        /// Calculates the next up mip-level (*2) of this size.
-        /// </summary>
-        /// <returns>A next up mip-level Size3.</returns>
-        public Size3 Up2(int count = 1)
-        {
-            if (count < 0)
-            {
-                throw new ArgumentOutOfRangeException("count", "Must be >= 0");
-            }
-
-            return new Size3(Math.Max(1, Width << count), Math.Max(1, Height << count), Math.Max(1, Depth << count));
-        }
-
-        /// <summary>
-        /// Calculates the next down mip-level (/2) of this size.
-        /// </summary>
-        /// <param name="count">The count.</param>
-        /// <returns>A next down mip-level Size3.</returns>
-        public Size3 Down2(int count = 1)
-        {
-            if (count < 0)
-            {
-                throw new ArgumentOutOfRangeException("count", "Must be >= 0");
-            }
-
-            return new Size3(Math.Max(1, Width >> count), Math.Max(1, Height >> count), Math.Max(1, Depth >> count));
-        }
-
-        /// <summary>
-        /// Calculates the mip size based on a direction.
-        /// </summary>
-        /// <param name="direction">The direction &lt; 0 then <see cref="Down2"/>, &gt; 0  then <see cref="Up2"/>, else this unchanged.</param>
-        /// <returns>Size3.</returns>
-        public Size3 Mip(int direction)
-        {
-            return direction == 0 ? this : direction < 0 ? Down2() : Up2();
-        }
-                
-        /// <summary>
-        /// Deconstructs the vector's components into named variables.
-        /// </summary>
-        /// <param name="width">The Width component</param>
-        /// <param name="height">The Height component</param>
-        /// <param name="depth">The Depth component</param>
-        public void Deconstruct(out int width, out int height, out int depth)
-        {
-            width = Width;
-            height = Height;
-            depth = Depth;
-        }
+        Width = width;
+        Height = height;
+        Depth = depth;
     }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="Size3"/> structure.
+    /// </summary>
+    /// <param name="size">The width and height component of the extent.</param>
+    /// <param name="depth">The depth component of the extent.</param>
+    public Size3(in Size size, int depth)
+    {
+        Width = size.Width;
+        Height = size.Height;
+        Depth = depth;
+    }
+
+    /// <summary>
+    /// The width component of the extent.
+    /// </summary>
+    public int Width;
+
+    /// <summary>
+    /// The height component of the extent.
+    /// </summary>
+    public int Height;
+
+    /// <summary>
+    /// The depth component of the extent.
+    /// </summary>
+    public int Depth;
+
+    /// <summary>
+    /// Gets a value indicating whether this <see cref="Size3"/> is empty.
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public readonly bool IsEmpty => this == Empty;
+
+    /// <summary>
+    /// Deconstructs this size into three integers.
+    /// </summary>
+    /// <param name="width">The out value for the width.</param>
+    /// <param name="height">The out value for the height.</param>
+    /// <param name="depth">The out value for the depth.</param>
+    public readonly void Deconstruct(out int width, out int height, out int depth)
+    {
+        width = Width;
+        height = Height;
+        depth = Depth;
+    }
+
+    /// <summary>
+    /// Compares two <see cref="Size3"/> objects for equality.
+    /// </summary>
+    /// <param name="left">The <see cref="Size3"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="Size3"/> on the right hand of the operand.</param>
+    /// <returns>
+    /// True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator ==(Size3 left, Size3 right) => left.Width == right.Width && left.Height == right.Height && left.Depth == right.Depth;
+
+    /// <summary>
+    /// Compares two <see cref="Size3"/> objects for inequality.
+    /// </summary>
+    /// <param name="left">The <see cref="Size3"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="Size3"/> on the right hand of the operand.</param>
+    /// <returns>
+    /// True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(Size3 left, Size3 right) => (left.Width != right.Width) || (left.Height != right.Height) || (left.Depth != right.Depth);
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => obj is Size3 other && Equals(other);
+
+    /// <inheritdoc/>
+    public readonly bool Equals(Size3 other) => this == other;
+
+    /// <inheritdoc/>
+    public override readonly int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        {
+            hashCode.Add(Width);
+            hashCode.Add(Height);
+            hashCode.Add(Depth);
+        }
+        return hashCode.ToHashCode();
+    }
+
+    /// <inheritdoc/>
+    public override readonly string ToString() => $"{{{nameof(Width)}={Width},{nameof(Height)}={Height},{nameof(Depth)}={Depth}}}";
 }

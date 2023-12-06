@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using EngineKit.Extensions;
 using EngineKit.Mathematics;
 using Serilog;
 using SharpGLTF.Schema2;
 using SharpGLTF.Validation;
-using Num = System.Numerics;
-using Vector2 = EngineKit.Mathematics.Vector2;
-using Vector3 = EngineKit.Mathematics.Vector3;
-using Vector4 = EngineKit.Mathematics.Vector4;
 
 namespace EngineKit.Graphics.MeshLoaders;
 
@@ -159,11 +156,11 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             else if (materialChannel.Key == "SpecularFactor")
             {
                 var specularFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "SpecularFactor")?.Value ?? 1.0f;
-                material.SpecularFactor = new Num.Vector3(specularFactor);
+                material.SpecularFactor = new Vector3(specularFactor);
             }
             else if (materialChannel.Key == "SpecularGlossiness")
             {
-                material.SpecularFactor = (Num.Vector3?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "SpecularFactor")?.Value ?? Num.Vector3.One;
+                material.SpecularFactor = (Vector3?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "SpecularFactor")?.Value ?? Vector3.One;
                 material.GlossinessFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "GlossinessFactor")?.Value ?? 1.0f;
 
                 if (materialChannel.TextureSampler != null)
@@ -236,9 +233,9 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             }      
             
             var meshPrimitive = new MeshPrimitive(meshName);
-            meshPrimitive.Transform = node.WorldMatrix.ToMatrix();
+            meshPrimitive.Transform = node.WorldMatrix;
             meshPrimitive.MaterialName = primitive.Material?.Name ?? (primitive.Material == null ? Material.MaterialNotFoundName : materials.ElementAt(primitive.Material.LogicalIndex)?.Name) ?? Material.MaterialNotFoundName;
-            meshPrimitive.BoundingBox = BoundingBox.FromPoints(positions.ToArray());
+            meshPrimitive.BoundingBox = BoundingBox.CreateFromPoints(positions.ToArray());
             
             var vertexType = GetVertexTypeFromVertexAccessorNames(primitive!.VertexAccessors!.Keys.ToList());
             var normalsAccessor = primitive.VertexAccessors.GetValueOrDefault(VertexAccessorName.Normal);

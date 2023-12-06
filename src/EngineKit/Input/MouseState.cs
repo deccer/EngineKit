@@ -1,5 +1,5 @@
 using System.Collections;
-using EngineKit.Mathematics;
+using System.Numerics;
 using EngineKit.Native.Glfw;
 
 namespace EngineKit.Input;

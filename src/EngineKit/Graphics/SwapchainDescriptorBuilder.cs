@@ -40,10 +40,10 @@ public sealed class SwapchainDescriptorBuilder
         _swapchainDescriptor.ClearColor = true;
         _swapchainDescriptor.ClearColorValue = new ClearColorValue();
         _swapchainDescriptor.ClearColorValue.ColorFloat = new float[4];
-        _swapchainDescriptor.ClearColorValue.ColorFloat[0] = clearValue.Red;
-        _swapchainDescriptor.ClearColorValue.ColorFloat[1] = clearValue.Green;
-        _swapchainDescriptor.ClearColorValue.ColorFloat[2] = clearValue.Blue;
-        _swapchainDescriptor.ClearColorValue.ColorFloat[3] = clearValue.Alpha;
+        _swapchainDescriptor.ClearColorValue.ColorFloat[0] = clearValue.R;
+        _swapchainDescriptor.ClearColorValue.ColorFloat[1] = clearValue.G;
+        _swapchainDescriptor.ClearColorValue.ColorFloat[2] = clearValue.B;
+        _swapchainDescriptor.ClearColorValue.ColorFloat[3] = clearValue.A;
         return this;
     }
 

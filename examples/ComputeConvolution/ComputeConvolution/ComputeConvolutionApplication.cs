@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using EngineKit.Mathematics;
 using Serilog;
 using SixLabors.ImageSharp.PixelFormats;
-using Color = EngineKit.Mathematics.Color;
 
 namespace ComputeConvolution;
 
@@ -160,7 +159,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
     {
         //TODO(deccer) hide SwapchainDescriptor in Application/also make sure to resize when window resize
         _swapchainDescriptor = new SwapchainDescriptorBuilder()
-            .ClearColor(Color.DimGray)
+            .ClearColor(Colors.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
@@ -25,7 +26,7 @@ public sealed class MeshPrimitive
 
     public string MeshName { get; set; }
 
-    public Matrix Transform { get; set; }
+    public Matrix4x4 Transform { get; set; }
 
     public List<uint> Indices => _indices;
 
@@ -139,6 +140,7 @@ public sealed class MeshPrimitive
 
     public void CalculateTangents()
     {
+        /*
         if (!_positions.Any())
         {
             return;
@@ -167,7 +169,7 @@ public sealed class MeshPrimitive
                 break;
             }
 
-            var triangle = Matrix.Identity;
+            var triangle = Matrix4x4.Identity;
             triangle.Row1 = new Vector4(_positions[i + 0], 0.0f);
             triangle.Row2 = new Vector4(_positions[i + 1], 0.0f);
             triangle.Row3 = new Vector4(_positions[i + 2], 0.0f);
@@ -221,6 +223,7 @@ public sealed class MeshPrimitive
 
             _realTangents[i] = new Vector4(realTangent, realBiTangent);
         }
+        */
     }
 
     public void AddIndices(params uint[] indices)

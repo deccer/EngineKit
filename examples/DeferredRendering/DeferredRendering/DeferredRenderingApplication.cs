@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using EngineKit;
 using EngineKit.Graphics;
@@ -12,7 +13,6 @@ using ImGuiNET;
 using Microsoft.Extensions.Options;
 using EngineKit.Mathematics;
 using Serilog;
-using Num = System.Numerics;
 
 namespace DeferredRendering;
 
@@ -206,7 +206,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
-                ImGui.SetCursorPos(new Num.Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
+                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
                 ImGui.TextUnformatted($"Fps: {_metrics.AverageFrameTime}");
 
                 ImGui.EndMenuBar();
@@ -219,9 +219,9 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                 ImGui.SliderFloat("Camera Sensitivity", ref sensitivity, 0.01f, 1.0f);
                 _camera.Sensitivity = sensitivity;
 
-                ImGui.Image((nint)_gBufferBaseColorTexture.Id, new Num.Vector2(320, 180), new Num.Vector2(0, 1), new Num.Vector2(1, 0));
-                ImGui.Image((nint)_gBufferNormalTexture.Id, new Num.Vector2(320, 180), new Num.Vector2(0, 1), new Num.Vector2(1, 0));
-                ImGui.Image((nint)_gBufferDepthTexture.Id, new Num.Vector2(320, 180), new Num.Vector2(0, 1), new Num.Vector2(1, 0));
+                ImGui.Image((nint)_gBufferBaseColorTexture.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
+                ImGui.Image((nint)_gBufferNormalTexture.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
+                ImGui.Image((nint)_gBufferDepthTexture.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
 
                 ImGui.End();
             }
@@ -294,10 +294,10 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     {
         var meshPrimitives = new List<MeshPrimitive>();
 
-        _drawCommands.Add(new DrawCommand { Name = "Cube", WorldMatrix = Matrix.Translation(-4, 0, 0) });
-        _drawCommands.Add(new DrawCommand { Name = "Cube.003", WorldMatrix = Matrix.Translation(4, 0, 0) });
-        _drawCommands.Add(new DrawCommand { Name = "Cube.004", WorldMatrix = Matrix.Translation(0, 4, 0) });
-        _drawCommands.Add(new DrawCommand { Name = "Cube.001", WorldMatrix = Matrix.Translation(0, 0, 0) });
+        _drawCommands.Add(new DrawCommand { Name = "Cube", WorldMatrix = Matrix4x4.CreateTranslation(-4, 0, 0) });
+        _drawCommands.Add(new DrawCommand { Name = "Cube.003", WorldMatrix = Matrix4x4.CreateTranslation(4, 0, 0) });
+        _drawCommands.Add(new DrawCommand { Name = "Cube.004", WorldMatrix = Matrix4x4.CreateTranslation(0, 4, 0) });
+        _drawCommands.Add(new DrawCommand { Name = "Cube.001", WorldMatrix = Matrix4x4.CreateTranslation(0, 0, 0) });
 
         foreach (var drawCommand in _drawCommands)
         {

@@ -42,7 +42,7 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         // Act
         var globalMatrices = new GpuMaterial
         {
-            BaseColorFactor = Color.Red.ToVector4()
+            BaseColorFactor = Colors.Red.ToVector4()
         };
         uniformBuffer.Update(globalMatrices,  0);
 
@@ -72,7 +72,7 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         // Act
         var globalMatrices = new GpuMaterial
         {
-            BaseColorFactor = Color.Red.ToVector4()
+            BaseColorFactor = Colors.Red.ToVector4()
         };
         uniformBuffer.Update(globalMatrices,  0);
 

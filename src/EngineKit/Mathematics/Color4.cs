@@ -1,47 +1,25 @@
-﻿using System;
+// Copyright (c) Amer Koleci and contributors.
+// Licensed under the MIT License (MIT). See LICENSE in the repository root for more information.
+
+using System;
+using System.Diagnostics;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using System.Text;
+using static EngineKit.Mathematics.VectorUtilities;
 
 namespace EngineKit.Mathematics;
 
 /// <summary>
-/// Represents a color in the form of rgba.
+/// Represents a floating-point RGBA color.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct Color4 : IEquatable<Color4>, IFormattable
+public readonly struct Color4 : IEquatable<Color4>, IFormattable
 {
-    private const string toStringFormat = "Alpha:{0} Red:{1} Green:{2} Blue:{3}";
-
-    /// <summary>
-    /// The Black color (0, 0, 0, 1).
-    /// </summary>
-    public static readonly Color4 Black = new Color4(0.0f, 0.0f, 0.0f, 1.0f);
-
-    /// <summary>
-    /// The White color (1, 1, 1, 1).
-    /// </summary>
-    public static readonly Color4 White = new Color4(1.0f, 1.0f, 1.0f, 1.0f);
-
-    /// <summary>
-    /// The red component of the color.
-    /// </summary>
-    public float Red;
-
-    /// <summary>
-    /// The green component of the color.
-    /// </summary>
-    public float Green;
-
-    /// <summary>
-    /// The blue component of the color.
-    /// </summary>
-    public float Blue;
-
-    /// <summary>
-    /// The alpha component of the color.
-    /// </summary>
-    public float Alpha;
+    private readonly Vector128<float> _value;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Color4"/> struct.
@@ -49,7 +27,18 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// <param name="value">The value that will be assigned to all components.</param>
     public Color4(float value)
     {
-        Alpha = Red = Green = Blue = value;
+        _value = Vector128.Create(value, value, value, value);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Color4"/> struct.
+    /// </summary>
+    /// <param name="red">The red component of the color.</param>
+    /// <param name="green">The green component of the color.</param>
+    /// <param name="blue">The blue component of the color.</param>
+    public Color4(float red, float green, float blue)
+    {
+        _value = Vector128.Create(red, green, blue, 1.0f);
     }
 
     /// <summary>
@@ -61,22 +50,16 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// <param name="alpha">The alpha component of the color.</param>
     public Color4(float red, float green, float blue, float alpha)
     {
-        Red = red;
-        Green = green;
-        Blue = blue;
-        Alpha = alpha;
+        _value = Vector128.Create(red, green, blue, alpha);
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Color4"/> struct.
     /// </summary>
     /// <param name="value">The red, green, blue, and alpha components of the color.</param>
-    public Color4(Vector4 value)
+    public Color4(in Vector4 value)
     {
-        Red = value.X;
-        Green = value.Y;
-        Blue = value.Z;
-        Alpha = value.W;
+        _value = value.AsVector128();
     }
 
     /// <summary>
@@ -84,116 +67,129 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// </summary>
     /// <param name="value">The red, green, and blue components of the color.</param>
     /// <param name="alpha">The alpha component of the color.</param>
-    public Color4(Vector3 value, float alpha)
+    public Color4(in Vector3 value, float alpha)
     {
-        Red = value.X;
-        Green = value.Y;
-        Blue = value.Z;
-        Alpha = alpha;
+        _value = Vector128.Create(value.X, value.Y, value.Z, alpha);
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Color4"/> struct.
     /// </summary>
-    /// <param name="rgba">A packed integer containing all four color components in RGBA order.</param>
-    public Color4(uint rgba)
-    {
-        Alpha = ((rgba >> 24) & 255) / 255.0f;
-        Blue = ((rgba >> 16) & 255) / 255.0f;
-        Green = ((rgba >> 8) & 255) / 255.0f;
-        Red = (rgba & 255) / 255.0f;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Color4"/> struct.
-    /// </summary>
-    /// <param name="rgba">A packed integer containing all four color components in RGBA order.</param>
-    public Color4(int rgba)
-    {
-        Alpha = ((rgba >> 24) & 255) / 255.0f;
-        Blue = ((rgba >> 16) & 255) / 255.0f;
-        Green = ((rgba >> 8) & 255) / 255.0f;
-        Red = (rgba & 255) / 255.0f;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Color4"/> struct.
-    /// </summary>
-    /// <param name="values">The values to assign to the red, green, blue, and alpha components of the color. This must be an array with four elements.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than four elements.</exception>
-    public Color4(float[] values)
-    {
-        if (values == null)
-            throw new ArgumentNullException(nameof(values));
-        if (values.Length != 4)
-            throw new ArgumentOutOfRangeException(nameof(values), "There must be four and only four input values for Color4.");
-
-        Red = values[0];
-        Green = values[1];
-        Blue = values[2];
-        Alpha = values[3];
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Color4"/> struct.
-    /// </summary>
-    /// <param name="color"><see cref="Color3"/> used to initialize the color.</param>
-    public Color4(Color3 color)
-    {
-        Red = color.Red;
-        Green = color.Green;
-        Blue = color.Blue;
-        Alpha = 1.0f;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Color4"/> struct.
-    /// </summary>
-    /// <param name="color"><see cref="Color3"/> used to initialize the color.</param>
+    /// <param name="value">The red, green, and blue components of the color.</param>
     /// <param name="alpha">The alpha component of the color.</param>
-    public Color4(Color3 color, float alpha)
+    public Color4(in Color3 value, float alpha)
     {
-        Red = color.Red;
-        Green = color.Green;
-        Blue = color.Blue;
-        Alpha = alpha;
+        _value = Vector128.Create(value.R, value.G, value.B, alpha);
     }
 
     /// <summary>
-    /// Gets or sets the component at the specified index.
+    /// Initializes a new instance of the <see cref="Color4"/> struct.
     /// </summary>
-    /// <value>The value of the red, green, blue, and alpha components, depending on the index.</value>
-    /// <param name="index">The index of the component to access. Use 0 for the alpha component, 1 for the red component, 2 for the green component, and 3 for the blue component.</param>
-    /// <returns>The value of the component at the specified index.</returns>
-    /// <exception cref="System.ArgumentOutOfRangeException">Thrown when the <paramref name="index"/> is out of the range [0, 3].</exception>
-    public float this[int index]
+    /// <param name="r">Red component.</param>
+    /// <param name="g">Green component.</param>
+    /// <param name="b">Blue component.</param>
+    /// <param name="a">Alpha component.</param>
+    public Color4(byte r, byte g, byte b, byte a = 255)
     {
+        _value = Vector128.Create(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Color4"/> struct.
+    /// </summary>
+    /// <param name="color"><see cref="Color"/> used to initialize the color.</param>
+    public Color4(in Color color)
+    {
+        _value = Vector128.Create(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Color4" /> struct.
+    /// </summary>
+    /// <param name="values">The span of elements to assign to the vector.</param>
+    public Color4(ReadOnlySpan<float> values)
+    {
+        if (values.Length < 4)
+        {
+            throw new ArgumentOutOfRangeException(nameof(values), "There must be 4 uint values.");
+        }
+
+        this = Unsafe.ReadUnaligned<Color4>(ref Unsafe.As<float, byte>(ref MemoryMarshal.GetReference(values)));
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Color" /> struct.
+    /// </summary>
+    /// <param name="value">The value of the vector.</param>
+    public Color4(Vector128<float> value)
+    {
+        _value = value;
+    }
+
+    /// <summary>
+    /// Red component of the color.
+    /// </summary>
+    public readonly float R
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            switch (index)
-            {
-                case 0: return Red;
-                case 1: return Green;
-                case 2: return Blue;
-                case 3: return Alpha;
-            }
-
-            throw new ArgumentOutOfRangeException(nameof(index), "Indices for Color4 run from 0 to 3, inclusive.");
-        }
-
-        set
-        {
-            switch (index)
-            {
-                case 0: Red = value; break;
-                case 1: Green = value; break;
-                case 2: Blue = value; break;
-                case 3: Alpha = value; break;
-                default: throw new ArgumentOutOfRangeException(nameof(index), "Indices for Color4 run from 0 to 3, inclusive.");
-            }
+            return _value.GetX();
         }
     }
+
+    /// <summary>
+    /// Green component of the color.
+    /// </summary>
+    public readonly float G
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get
+        {
+            return _value.GetY();
+        }
+    }
+
+    /// <summary>
+    /// Blue component of the color.
+    /// </summary>
+    public readonly float B
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get
+        {
+            return _value.GetZ();
+        }
+    }
+
+    /// <summary>
+    /// Alpha component of the color.
+    /// </summary>
+    public readonly float A
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get
+        {
+            return _value.GetW();
+        }
+    }
+    
+    public readonly float this[int index] => GetElement(this, index);
+
+    /// <summary>
+    /// Return sum of RGB components.
+    /// </summary>
+    public readonly float SumRGB => R + G + B;
+
+    /// <summary>
+    /// Return average value of the RGB channels.
+    /// </summary>
+    public readonly float Average => (R + G + B) / 3.0f;
+
+    /// <summary>
+    /// Return the 'grayscale' representation of RGB values, as used by JPEG and PAL/NTSC among others.
+    /// </summary>
+    public readonly float Luma => R * 0.299f + G * 0.587f + B * 0.114f;
 
     /// <summary>
     /// Converts the color into a packed integer.
@@ -201,12 +197,12 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// <returns>A packed integer containing all four color components.</returns>
     public int ToBgra()
     {
-        var a = (uint)(Alpha * 255.0f) & 255;
-        var r = (uint)(Red * 255.0f) & 255;
-        var g = (uint)(Green * 255.0f) & 255;
-        var b = (uint)(Blue * 255.0f) & 255;
+        uint a = (uint)(A * 255.0f) & 255;
+        uint r = (uint)(R * 255.0f) & 255;
+        uint g = (uint)(G * 255.0f) & 255;
+        uint b = (uint)(B * 255.0f) & 255;
 
-        var value = b;
+        uint value = b;
         value |= g << 8;
         value |= r << 16;
         value |= a << 24;
@@ -220,10 +216,10 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// <returns>A packed integer containing all four color components.</returns>
     public void ToBgra(out byte r, out byte g, out byte b, out byte a)
     {
-        a = (byte)(Alpha * 255.0f);
-        r = (byte)(Red * 255.0f);
-        g = (byte)(Green * 255.0f);
-        b = (byte)(Blue * 255.0f);
+        b = (byte)(B * 255.0f);
+        g = (byte)(G * 255.0f);
+        r = (byte)(R * 255.0f);
+        a = (byte)(A * 255.0f);
     }
 
     /// <summary>
@@ -232,12 +228,12 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// <returns>A packed integer containing all four color components.</returns>
     public int ToRgba()
     {
-        var a = (uint)(Alpha * 255.0f) & 255;
-        var r = (uint)(Red * 255.0f) & 255;
-        var g = (uint)(Green * 255.0f) & 255;
-        var b = (uint)(Blue * 255.0f) & 255;
+        uint r = (uint)(R * 255.0f) & 255;
+        uint g = (uint)(G * 255.0f) & 255;
+        uint b = (uint)(B * 255.0f) & 255;
+        uint a = (uint)(A * 255.0f) & 255;
 
-        var value = r;
+        uint value = r;
         value |= g << 8;
         value |= b << 16;
         value |= a << 24;
@@ -246,181 +242,35 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     }
 
     /// <summary>
-    /// Converts the color into a three component vector.
+    /// Converts the color into a packed integer.
     /// </summary>
-    /// <returns>A three component vector containing the red, green, and blue components of the color.</returns>
-    public Vector3 ToVector3()
+    /// <returns>A packed integer containing all four color components.</returns>
+    public void ToRgba(out byte r, out byte g, out byte b, out byte a)
     {
-        return new Vector3(Red, Green, Blue);
+        r = (byte)(R * 255.0f);
+        g = (byte)(G * 255.0f);
+        b = (byte)(B * 255.0f);
+        a = (byte)(A * 255.0f);
     }
 
     /// <summary>
-    /// Converts the color into a four component vector.
+    /// Determines the negative RGB color value of a color.
     /// </summary>
-    /// <returns>A four component vector containing all four color components.</returns>
-    public Vector4 ToVector4()
+    /// <param name="color">The color value</param>
+    /// <returns>The negative color</returns>
+    public static Color4 Negative(in Color4 color)
     {
-        return new Vector4(Red, Green, Blue, Alpha);
+        return new Color4(1.0f - color.R, 1.0f - color.G, 1.0f - color.B, color.A);
     }
 
     /// <summary>
-    /// Creates an array containing the elements of the color.
+    /// Blends two colors by multiplying corresponding components together.
     /// </summary>
-    /// <returns>A four-element array containing the components of the color.</returns>
-    public float[] ToArray()
+    /// <param name="color1">The first color.</param>
+    /// <param name="color2">The second color.</param>
+    public static Color4 Modulate(in Color4 color1, in Color4 color2)
     {
-        return new float[] { Red, Green, Blue, Alpha };
-    }
-
-    /// <summary>
-    /// Adds two colors.
-    /// </summary>
-    /// <param name="left">The first color to add.</param>
-    /// <param name="right">The second color to add.</param>
-    /// <param name="result">When the method completes, completes the sum of the two colors.</param>
-    public static void Add(ref Color4 left, ref Color4 right, out Color4 result)
-    {
-        result.Alpha = left.Alpha + right.Alpha;
-        result.Red = left.Red + right.Red;
-        result.Green = left.Green + right.Green;
-        result.Blue = left.Blue + right.Blue;
-    }
-
-    /// <summary>
-    /// Adds two colors.
-    /// </summary>
-    /// <param name="left">The first color to add.</param>
-    /// <param name="right">The second color to add.</param>
-    /// <returns>The sum of the two colors.</returns>
-    public static Color4 Add(Color4 left, Color4 right)
-    {
-        return new Color4(left.Red + right.Red, left.Green + right.Green, left.Blue + right.Blue, left.Alpha + right.Alpha);
-    }
-
-    /// <summary>
-    /// Subtracts two colors.
-    /// </summary>
-    /// <param name="left">The first color to subtract.</param>
-    /// <param name="right">The second color to subtract.</param>
-    /// <param name="result">WHen the method completes, contains the difference of the two colors.</param>
-    public static void Subtract(ref Color4 left, ref Color4 right, out Color4 result)
-    {
-        result.Alpha = left.Alpha - right.Alpha;
-        result.Red = left.Red - right.Red;
-        result.Green = left.Green - right.Green;
-        result.Blue = left.Blue - right.Blue;
-    }
-
-    /// <summary>
-    /// Subtracts two colors.
-    /// </summary>
-    /// <param name="left">The first color to subtract.</param>
-    /// <param name="right">The second color to subtract</param>
-    /// <returns>The difference of the two colors.</returns>
-    public static Color4 Subtract(Color4 left, Color4 right)
-    {
-        return new Color4(left.Red - right.Red, left.Green - right.Green, left.Blue - right.Blue, left.Alpha - right.Alpha);
-    }
-
-    /// <summary>
-    /// Modulates two colors.
-    /// </summary>
-    /// <param name="left">The first color to modulate.</param>
-    /// <param name="right">The second color to modulate.</param>
-    /// <param name="result">When the method completes, contains the modulated color.</param>
-    public static void Modulate(ref Color4 left, ref Color4 right, out Color4 result)
-    {
-        result.Alpha = left.Alpha * right.Alpha;
-        result.Red = left.Red * right.Red;
-        result.Green = left.Green * right.Green;
-        result.Blue = left.Blue * right.Blue;
-    }
-
-    /// <summary>
-    /// Modulates two colors.
-    /// </summary>
-    /// <param name="left">The first color to modulate.</param>
-    /// <param name="right">The second color to modulate.</param>
-    /// <returns>The modulated color.</returns>
-    public static Color4 Modulate(Color4 left, Color4 right)
-    {
-        return new Color4(left.Red * right.Red, left.Green * right.Green, left.Blue * right.Blue, left.Alpha * right.Alpha);
-    }
-
-    /// <summary>
-    /// Scales a color.
-    /// </summary>
-    /// <param name="value">The color to scale.</param>
-    /// <param name="scale">The amount by which to scale.</param>
-    /// <param name="result">When the method completes, contains the scaled color.</param>
-    public static void Scale(ref Color4 value, float scale, out Color4 result)
-    {
-        result.Alpha = value.Alpha * scale;
-        result.Red = value.Red * scale;
-        result.Green = value.Green * scale;
-        result.Blue = value.Blue * scale;
-    }
-
-    /// <summary>
-    /// Scales a color.
-    /// </summary>
-    /// <param name="value">The color to scale.</param>
-    /// <param name="scale">The amount by which to scale.</param>
-    /// <returns>The scaled color.</returns>
-    public static Color4 Scale(Color4 value, float scale)
-    {
-        return new Color4(value.Red * scale, value.Green * scale, value.Blue * scale, value.Alpha * scale);
-    }
-
-    /// <summary>
-    /// Negates a color.
-    /// </summary>
-    /// <param name="value">The color to negate.</param>
-    /// <param name="result">When the method completes, contains the negated color.</param>
-    public static void Negate(ref Color4 value, out Color4 result)
-    {
-        result.Alpha = 1.0f - value.Alpha;
-        result.Red = 1.0f - value.Red;
-        result.Green = 1.0f - value.Green;
-        result.Blue = 1.0f - value.Blue;
-    }
-
-    /// <summary>
-    /// Negates a color.
-    /// </summary>
-    /// <param name="value">The color to negate.</param>
-    /// <returns>The negated color.</returns>
-    public static Color4 Negate(Color4 value)
-    {
-        return new Color4(1.0f - value.Red, 1.0f - value.Green, 1.0f - value.Blue, 1.0f - value.Alpha);
-    }
-
-    /// <summary>
-    /// Restricts a value to be within a specified range.
-    /// </summary>
-    /// <param name="value">The value to clamp.</param>
-    /// <param name="min">The minimum value.</param>
-    /// <param name="max">The maximum value.</param>
-    /// <param name="result">When the method completes, contains the clamped value.</param>
-    public static void Clamp(ref Color4 value, ref Color4 min, ref Color4 max, out Color4 result)
-    {
-        var alpha = value.Alpha;
-        alpha = alpha > max.Alpha ? max.Alpha : alpha;
-        alpha = alpha < min.Alpha ? min.Alpha : alpha;
-
-        var red = value.Red;
-        red = red > max.Red ? max.Red : red;
-        red = red < min.Red ? min.Red : red;
-
-        var green = value.Green;
-        green = green > max.Green ? max.Green : green;
-        green = green < min.Green ? min.Green : green;
-
-        var blue = value.Blue;
-        blue = blue > max.Blue ? max.Blue : blue;
-        blue = blue < min.Blue ? min.Blue : blue;
-
-        result = new Color4(red, green, blue, alpha);
+        return Multiply(color1, color2);
     }
 
     /// <summary>
@@ -430,44 +280,41 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// <param name="min">The minimum value.</param>
     /// <param name="max">The maximum value.</param>
     /// <returns>The clamped value.</returns>
-    public static Color4 Clamp(Color4 value, Color4 min, Color4 max)
+    public static Color4 Clamp(in Color4 value, in Color4 min, in Color4 max)
     {
-        Clamp(ref value, ref min, ref max, out var result);
-        return result;
+        float alpha = value.A;
+        alpha = (alpha > max.A) ? max.A : alpha;
+        alpha = (alpha < min.A) ? min.A : alpha;
+
+        float red = value.R;
+        red = (red > max.R) ? max.R : red;
+        red = (red < min.R) ? min.R : red;
+
+        float green = value.G;
+        green = (green > max.G) ? max.G : green;
+        green = (green < min.G) ? min.G : green;
+
+        float blue = value.B;
+        blue = (blue > max.B) ? max.B : blue;
+        blue = (blue < min.B) ? min.B : blue;
+
+        return new Color4(red, green, blue, alpha);
     }
 
     /// <summary>
-    /// Performs a linear interpolation between two colors.
+    /// Lerps between color source and destination by a supplied amount
     /// </summary>
-    /// <param name="start">Start color.</param>
-    /// <param name="end">End color.</param>
+    /// <param name="start"><see cref="Color4"/> is the initial color</param>
+    /// <param name="end"><see cref="Color4"/> is the target color</param>
     /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <param name="result">When the method completes, contains the linear interpolation of the two colors.</param>
-    /// <remarks>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
-    /// </remarks>
-    public static void Lerp(ref Color4 start, ref Color4 end, float amount, out Color4 result)
+    public static Color4 Lerp(in Color4 start, in Color4 end, float amount)
     {
-        result.Red = MathUtil.Lerp(start.Red, end.Red, amount);
-        result.Green = MathUtil.Lerp(start.Green, end.Green, amount);
-        result.Blue = MathUtil.Lerp(start.Blue, end.Blue, amount);
-        result.Alpha = MathUtil.Lerp(start.Alpha, end.Alpha, amount);
-    }
-
-    /// <summary>
-    /// Performs a linear interpolation between two colors.
-    /// </summary>
-    /// <param name="start">Start color.</param>
-    /// <param name="end">End color.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <returns>The linear interpolation of the two colors.</returns>
-    /// <remarks>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
-    /// </remarks>
-    public static Color4 Lerp(Color4 start, Color4 end, float amount)
-    {
-        Lerp(ref start, ref end, amount, out var result);
-        return result;
+        return new(
+            MathHelper.Lerp(start.R, end.R, amount),
+            MathHelper.Lerp(start.G, end.G, amount),
+            MathHelper.Lerp(start.B, end.B, amount),
+            MathHelper.Lerp(start.A, end.A, amount)
+            );
     }
 
     /// <summary>
@@ -476,24 +323,11 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// <param name="start">Start color.</param>
     /// <param name="end">End color.</param>
     /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <param name="result">When the method completes, contains the cubic interpolation of the two colors.</param>
-    public static void SmoothStep(ref Color4 start, ref Color4 end, float amount, out Color4 result)
+    /// <returns>When the method completes, contains the cubic interpolation of the two colors.</returns>
+    public static Color4 SmoothStep(in Color4 start, in Color4 end, float amount)
     {
-        amount = MathUtil.SmoothStep(amount);
-        Lerp(ref start, ref end, amount, out result);
-    }
-
-    /// <summary>
-    /// Performs a cubic interpolation between two colors.
-    /// </summary>
-    /// <param name="start">Start color.</param>
-    /// <param name="end">End color.</param>
-    /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-    /// <returns>The cubic interpolation of the two colors.</returns>
-    public static Color4 SmoothStep(Color4 start, Color4 end, float amount)
-    {
-        SmoothStep(ref start, ref end, amount, out var result);
-        return result;
+        amount = MathHelper.SmoothStep(amount);
+        return Lerp(start, end, amount);
     }
 
     /// <summary>
@@ -501,25 +335,15 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// </summary>
     /// <param name="left">The first source color.</param>
     /// <param name="right">The second source color.</param>
-    /// <param name="result">When the method completes, contains an new color composed of the largest components of the source colors.</param>
-    public static void Max(ref Color4 left, ref Color4 right, out Color4 result)
+    /// <returns>When the method completes, contains an new color composed of the largest components of the source colors.</returns>
+    public static Color4 Max(in Color4 left, in Color4 right)
     {
-        result.Alpha = left.Alpha > right.Alpha ? left.Alpha : right.Alpha;
-        result.Red = left.Red > right.Red ? left.Red : right.Red;
-        result.Green = left.Green > right.Green ? left.Green : right.Green;
-        result.Blue = left.Blue > right.Blue ? left.Blue : right.Blue;
-    }
-
-    /// <summary>
-    /// Returns a color containing the largest components of the specified colors.
-    /// </summary>
-    /// <param name="left">The first source color.</param>
-    /// <param name="right">The second source color.</param>
-    /// <returns>A color containing the largest components of the source colors.</returns>
-    public static Color4 Max(Color4 left, Color4 right)
-    {
-        Max(ref left, ref right, out var result);
-        return result;
+        return new(
+            (left.R > right.R) ? left.R : right.G,
+            (left.G > right.G) ? left.G : right.G,
+            (left.B > right.B) ? left.B : right.B,
+            (left.A > right.A) ? left.A : right.A
+            );
     }
 
     /// <summary>
@@ -527,100 +351,15 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// </summary>
     /// <param name="left">The first source color.</param>
     /// <param name="right">The second source color.</param>
-    /// <param name="result">When the method completes, contains an new color composed of the smallest components of the source colors.</param>
-    public static void Min(ref Color4 left, ref Color4 right, out Color4 result)
+    /// <returns>When the method completes, contains an new color composed of the smallest components of the source colors.</returns>
+    public static Color4 Min(in Color4 left, in Color4 right)
     {
-        result.Alpha = left.Alpha < right.Alpha ? left.Alpha : right.Alpha;
-        result.Red = left.Red < right.Red ? left.Red : right.Red;
-        result.Green = left.Green < right.Green ? left.Green : right.Green;
-        result.Blue = left.Blue < right.Blue ? left.Blue : right.Blue;
-    }
-
-    /// <summary>
-    /// Returns a color containing the smallest components of the specified colors.
-    /// </summary>
-    /// <param name="left">The first source color.</param>
-    /// <param name="right">The second source color.</param>
-    /// <returns>A color containing the smallest components of the source colors.</returns>
-    public static Color4 Min(Color4 left, Color4 right)
-    {
-        Min(ref left, ref right, out var result);
-        return result;
-    }
-
-    /// <summary>
-    /// Adjusts the contrast of a color.
-    /// </summary>
-    /// <param name="value">The color whose contrast is to be adjusted.</param>
-    /// <param name="contrast">The amount by which to adjust the contrast.</param>
-    /// <param name="result">When the method completes, contains the adjusted color.</param>
-    public static void AdjustContrast(ref Color4 value, float contrast, out Color4 result)
-    {
-        result.Alpha = value.Alpha;
-        result.Red = 0.5f + contrast * (value.Red - 0.5f);
-        result.Green = 0.5f + contrast * (value.Green - 0.5f);
-        result.Blue = 0.5f + contrast * (value.Blue - 0.5f);
-    }
-
-    /// <summary>
-    /// Adjusts the contrast of a color.
-    /// </summary>
-    /// <param name="value">The color whose contrast is to be adjusted.</param>
-    /// <param name="contrast">The amount by which to adjust the contrast.</param>
-    /// <returns>The adjusted color.</returns>
-    public static Color4 AdjustContrast(Color4 value, float contrast)
-    {
-        return new Color4(
-            0.5f + contrast * (value.Red - 0.5f),
-            0.5f + contrast * (value.Green - 0.5f),
-            0.5f + contrast * (value.Blue - 0.5f),
-            value.Alpha);
-    }
-
-    /// <summary>
-    /// Adjusts the saturation of a color.
-    /// </summary>
-    /// <param name="value">The color whose saturation is to be adjusted.</param>
-    /// <param name="saturation">The amount by which to adjust the saturation.</param>
-    /// <param name="result">When the method completes, contains the adjusted color.</param>
-    public static void AdjustSaturation(ref Color4 value, float saturation, out Color4 result)
-    {
-        var grey = value.Red * 0.2125f + value.Green * 0.7154f + value.Blue * 0.0721f;
-
-        result.Alpha = value.Alpha;
-        result.Red = grey + saturation * (value.Red - grey);
-        result.Green = grey + saturation * (value.Green - grey);
-        result.Blue = grey + saturation * (value.Blue - grey);
-    }
-
-    /// <summary>
-    /// Adjusts the saturation of a color.
-    /// </summary>
-    /// <param name="value">The color whose saturation is to be adjusted.</param>
-    /// <param name="saturation">The amount by which to adjust the saturation.</param>
-    /// <returns>The adjusted color.</returns>
-    public static Color4 AdjustSaturation(Color4 value, float saturation)
-    {
-        var grey = value.Red * 0.2125f + value.Green * 0.7154f + value.Blue * 0.0721f;
-
-        return new Color4(
-            grey + saturation * (value.Red - grey),
-            grey + saturation * (value.Green - grey),
-            grey + saturation * (value.Blue - grey),
-            value.Alpha);
-    }
-
-    /// <summary>
-    /// Computes the premultiplied value of the provided color.
-    /// </summary>
-    /// <param name="value">The non-premultiplied value.</param>
-    /// <param name="result">The premultiplied result.</param>
-    public static void Premultiply(ref Color4 value, out Color4 result)
-    {
-        result.Alpha = value.Alpha;
-        result.Red = value.Red * value.Alpha;
-        result.Green = value.Green * value.Alpha;
-        result.Blue = value.Blue * value.Alpha;
+        return new(
+            (left.R < right.R) ? left.R : right.R,
+            (left.G < right.G) ? left.G : right.G,
+            (left.B < right.B) ? left.B : right.B,
+            (left.A < right.A) ? left.A : right.A
+            );
     }
 
     /// <summary>
@@ -628,11 +367,341 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// </summary>
     /// <param name="value">The non-premultiplied value.</param>
     /// <returns>The premultiplied result.</returns>
-    public static Color4 Premultiply(Color4 value)
+    public static Color4 Premultiply(in Color4 value)
     {
-        Premultiply(ref value, out var result);
-        return result;
+        return new(
+            value.R * value.A,
+            value.G * value.A,
+            value.B * value.A,
+            value.A
+            );
     }
+
+    /// <summary>
+    /// Return the colorfulness relative to the brightness of a similarly illuminated white.
+    /// </summary>
+    /// <returns></returns>
+    public float Chroma()
+    {
+        Bounds(out float min, out float max, true);
+
+        return max - min;
+    }
+
+    /// <summary>
+    /// Return hue mapped to range [0, 1.0).
+    /// </summary>
+    /// <returns></returns>
+    public float Hue()
+    {
+        Bounds(out float min, out float max, true);
+        return Hue(min, max);
+    }
+
+    /// Return saturation as defined for HSL.
+    public float SaturationHSL()
+    {
+        Bounds(out float min, out float max, true);
+        return SaturationHSL(min, max);
+    }
+
+    /// Return saturation as defined for HSV.
+    public float SaturationHSV()
+    {
+        Bounds(out float min, out float max, true);
+        return SaturationHSV(min, max);
+    }
+
+    /// <summary>
+    /// Converts this color from gamma space to linear space.
+    /// </summary>
+    /// <returns>A Color in linear space.</returns>
+    public Color4 GammaToLinear()
+    {
+        return new(
+            MathHelper.GammaToLinear(R),
+            MathHelper.GammaToLinear(G),
+            MathHelper.GammaToLinear(B),
+            A);
+    }
+
+    /// <summary>
+    /// Converts this color from linear space to sRGB space.
+    /// </summary>
+    /// <returns>A <see cref="Color4"/> in sRGB space.</returns>
+    public Color4 LinearToGamma()
+    {
+        return new(
+            MathHelper.LinearToGamma(R),
+            MathHelper.LinearToGamma(G),
+            MathHelper.LinearToGamma(B),
+            A);
+    }
+
+    /// <summary>
+    /// Stores the values of least and greatest RGB component at specified pointer addresses, optionally clipping those values to [0, 1] range.
+    /// </summary>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    /// <param name="clipped"></param>
+    public void Bounds(out float min, out float max, bool clipped = false)
+    {
+        if (R > G)
+        {
+            if (B > B) // r > g > b
+            {
+                max = R;
+                min = B;
+            }
+            else // r > g && g <= b
+            {
+                max = R > B ? R : B;
+                min = G;
+            }
+        }
+        else
+        {
+            if (B > G) // r <= g < b
+            {
+                max = B;
+                min = R;
+            }
+            else // r <= g && b <= g
+            {
+                max = G;
+                min = R < B ? R : B;
+            }
+        }
+
+        if (clipped)
+        {
+            max = max > 1.0f ? 1.0f : (max < 0.0f ? 0.0f : max);
+            min = min > 1.0f ? 1.0f : (min < 0.0f ? 0.0f : min);
+        }
+    }
+
+    /// <summary>
+    /// Return HSV color-space representation as a Vector3;
+    /// the RGB values are clipped before conversion but not changed in the process.
+    /// </summary>
+    /// <returns></returns>
+    public Vector3 ToHSV()
+    {
+        Bounds(out float min, out float max, true);
+
+        float h = Hue(min, max);
+        float s = SaturationHSV(min, max);
+        float v = max;
+
+        return new Vector3(h, s, v);
+    }
+
+    /// <summary>
+    /// /// Return hue value given greatest and least RGB component, value-wise.
+    /// </summary>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    /// <returns></returns>
+    private float Hue(float min, float max)
+    {
+        float chroma = max - min;
+
+        // If chroma equals zero, hue is undefined
+        if (chroma <= MathHelper.NearZeroEpsilon)
+            return 0.0f;
+
+        // Calculate and return hue
+        if (MathHelper.CompareEqual(G, max))
+            return (B + 2.0f * chroma - R) / (6.0f * chroma);
+        else if (MathHelper.CompareEqual(B, max))
+            return (4.0f * chroma - G + R) / (6.0f * chroma);
+        else
+        {
+            float r = (G - B) / (6.0f * chroma);
+            return (r < 0.0f) ? 1.0f + r : ((r >= 1.0f) ? r - 1.0f : r);
+        }
+    }
+
+    /// <summary>
+    /// Return saturation (HSV) given greatest and least RGB component, value-wise.
+    /// </summary>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    /// <returns></returns>
+    private static float SaturationHSV(float min, float max)
+    {
+        // Avoid div-by-zero: result undefined
+        if (max <= MathHelper.NearZeroEpsilon)
+            return 0.0f;
+
+        // Saturation equals chroma:value ratio
+        return 1.0f - (min / max);
+    }
+
+    /// <summary>
+    /// Return saturation (HSL) given greatest and least RGB component, value-wise.
+    /// </summary>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    /// <returns></returns>
+    private static float SaturationHSL(float min, float max)
+    {
+        // Avoid div-by-zero: result undefined
+        if (max <= MathHelper.NearZeroEpsilon || min >= 1.0f - MathHelper.NearZeroEpsilon)
+            return 0.0f;
+
+        // Chroma = max - min, lightness = (max + min) * 0.5
+        float hl = (max + min);
+        if (hl <= 1.0f)
+            return (max - min) / hl;
+        else
+            return (min - max) / (hl - 2.0f);
+    }
+
+    public void Deconstruct(out float red, out float green, out float blue, out float alpha)
+    {
+        red = R;
+        green = G;
+        blue = B;
+        alpha = A;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly void CopyTo(float[] array)
+    {
+        CopyTo(array, 0);
+    }
+
+    public readonly void CopyTo(float[] array, int index)
+    {
+        if (array is null)
+        {
+            throw new NullReferenceException(nameof(array));
+        }
+
+        if ((index < 0) || (index >= array.Length))
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        if ((array.Length - index) < 4)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        array[index] = R;
+        array[index + 1] = G;
+        array[index + 2] = B;
+        array[index + 3] = A;
+    }
+
+    /// <summary>Copies the vector to the given <see cref="Span{T}" />.The length of the destination span must be at least 2.</summary>
+    /// <param name="destination">The destination span which the values are copied into.</param>
+    /// <exception cref="ArgumentException">If number of elements in source vector is greater than those available in destination span.</exception>
+    public readonly void CopyTo(Span<float> destination)
+    {
+        if (destination.Length < 4)
+        {
+            throw new ArgumentOutOfRangeException(nameof(destination));
+        }
+
+        Unsafe.WriteUnaligned(ref Unsafe.As<float, byte>(ref MemoryMarshal.GetReference(destination)), this);
+    }
+
+    /// <summary>Attempts to copy the vector to the given <see cref="Span{Int32}" />. The length of the destination span must be at least 2.</summary>
+    /// <param name="destination">The destination span which the values are copied into.</param>
+    /// <returns><see langword="true" /> if the source vector was successfully copied to <paramref name="destination" />. <see langword="false" /> if <paramref name="destination" /> is not large enough to hold the source vector.</returns>
+    public readonly bool TryCopyTo(Span<float> destination)
+    {
+        if (destination.Length < 4)
+        {
+            return false;
+        }
+
+        Unsafe.WriteUnaligned(ref Unsafe.As<float, byte>(ref MemoryMarshal.GetReference(destination)), this);
+        return true;
+    }
+
+    /// <summary>
+    /// Returns a new color whose values are the product of each pair of elements in two specified colors.
+    /// </summary>
+    /// <param name="left">The first color.</param>
+    /// <param name="right">The second color.</param>
+    /// <returns>The element-wise product vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color4 Multiply(Color4 left, Color4 right)
+    {
+        Vector128<float> result = VectorUtilities.Multiply(left._value, right._value);
+        return new Color4(result);
+    }
+
+    /// <summary>Multiplies a color by a specified scalar.</summary>
+    /// <param name="left">The color to multiply.</param>
+    /// <param name="right">The scalar value.</param>
+    /// <returns>The scaled color.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color4 Multiply(Color4 left, float right)
+    {
+        Vector128<float> result = VectorUtilities.Multiply(left._value, right);
+        return new Color4(result);
+    }
+
+    /// <summary>Multiplies a scalar value by a specified color.</summary>
+    /// <param name="left">The scaled value.</param>
+    /// <param name="right">The color.</param>
+    /// <returns>The scaled color.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color4 Multiply(float left, Color4 right)
+    {
+        Vector128<float> result = VectorUtilities.Multiply(right._value, left);
+        return new Color4(result);
+    }
+
+    /// <summary>
+    /// Converts the color to <see cref="Vector3"/>.
+    /// </summary>
+    /// <returns>An instance of <see cref="Vector3"/> with R, G, B component.</returns>
+    public Vector3 ToVector3() => new(R, G, B);
+
+    /// <summary>
+    /// Converts the color to <see cref="Vector4"/>
+    /// </summary>
+    /// <returns>An instance of <see cref="Vector4"/> with R, G, B, A component.</returns>
+    public Vector4 ToVector4() => new(R, G, B, A);
+
+    /// <summary>
+    /// Performs an explicit conversion from <see cref="Color4"/> to <see cref="Vector3"/>.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <returns>The result of the conversion.</returns>
+    public static explicit operator Vector3(Color4 value) => new(value.R, value.G, value.B);
+
+    /// <summary>
+    /// Performs an implicit conversion from <see cref="Color4"/> to <see cref="Vector4"/>.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <returns>The result of the conversion.</returns>
+    public static implicit operator Vector4(Color4 value) => new(value.R, value.G, value.B, value.A);
+
+    /// <summary>
+    /// Performs an explicit conversion from <see cref="Vector3"/> to <see cref="Color4"/>.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <returns>The result of the conversion.</returns>
+    public static explicit operator Color4(Vector3 value) => new(value.X, value.Y, value.Z, 1.0f);
+
+    /// <summary>
+    /// Performs an explicit conversion from <see cref="Vector4"/> to <see cref="Color4"/>.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <returns>The result of the conversion.</returns>
+    public static explicit operator Color4(Vector4 value) => new(value.X, value.Y, value.Z, value.W);
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj) => obj is Color4 other && Equals(other);
+
+    /// <inheritdoc />
+    public bool Equals(Color4 other) => this == other;
 
     /// <summary>
     /// Adds two colors.
@@ -642,7 +711,7 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// <returns>The sum of the two colors.</returns>
     public static Color4 operator +(Color4 left, Color4 right)
     {
-        return new Color4(left.Red + right.Red, left.Green + right.Green, left.Blue + right.Blue, left.Alpha + right.Alpha);
+        return new(left.R + right.R, left.G + right.G, left.B + right.B, left.A + right.A);
     }
 
     /// <summary>
@@ -650,10 +719,7 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// </summary>
     /// <param name="value">The color to assert (unchanged).</param>
     /// <returns>The asserted (unchanged) color.</returns>
-    public static Color4 operator +(Color4 value)
-    {
-        return value;
-    }
+    public static Color4 operator +(Color4 value) => value;
 
     /// <summary>
     /// Subtracts two colors.
@@ -663,7 +729,7 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// <returns>The difference of the two colors.</returns>
     public static Color4 operator -(Color4 left, Color4 right)
     {
-        return new Color4(left.Red - right.Red, left.Green - right.Green, left.Blue - right.Blue, left.Alpha - right.Alpha);
+        return new Color4(left.R - right.R, left.G - right.G, left.B - right.B, left.A - right.A);
     }
 
     /// <summary>
@@ -673,273 +739,113 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// <returns>A negated color.</returns>
     public static Color4 operator -(Color4 value)
     {
-        return new Color4(-value.Red, -value.Green, -value.Blue, -value.Alpha);
+        return new Color4(-value.R, -value.G, -value.B, -value.A);
     }
 
-    /// <summary>
-    /// Scales a color.
-    /// </summary>
-    /// <param name="scale">The factor by which to scale the color.</param>
-    /// <param name="value">The color to scale.</param>
-    /// <returns>The scaled color.</returns>
-    public static Color4 operator *(float scale, Color4 value)
+    /// <summary>Computes the product of a color and a float.</summary>
+    /// <param name="left">The vector to multiply by <paramref name="right" />.</param>
+    /// <param name="right">The float which is used to multiply <paramref name="left" />.</param>
+    /// <returns>The product of <paramref name="left" /> multipled by <paramref name="right" />.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color4 operator *(float left, Color4 right)
     {
-        return new Color4(value.Red * scale, value.Green * scale, value.Blue * scale, value.Alpha * scale);
+        return Multiply(left, right);
     }
 
-    /// <summary>
-    /// Scales a color.
-    /// </summary>
-    /// <param name="value">The factor by which to scale the color.</param>
-    /// <param name="scale">The color to scale.</param>
-    /// <returns>The scaled color.</returns>
-    public static Color4 operator *(Color4 value, float scale)
+    /// <summary>Computes the product of a color and a float.</summary>
+    /// <param name="left">The vector to multiply by <paramref name="right" />.</param>
+    /// <param name="right">The float which is used to multiply <paramref name="left" />.</param>
+    /// <returns>The product of <paramref name="left" /> multipled by <paramref name="right" />.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color4 operator *(Color4 left, float right)
     {
-        return new Color4(value.Red * scale, value.Green * scale, value.Blue * scale, value.Alpha * scale);
+        Vector128<float> result = VectorUtilities.Multiply(left._value, right);
+        return new Color4(result);
     }
 
-    /// <summary>
-    /// Modulates two colors.
-    /// </summary>
-    /// <param name="left">The first color to modulate.</param>
-    /// <param name="right">The second color to modulate.</param>
-    /// <returns>The modulated color.</returns>
+    /// <summary>Computes the product of two colors.</summary>
+    /// <param name="left">The color to multiply by <paramref name="right" />.</param>
+    /// <param name="right">The color which is used to multiply <paramref name="left" />.</param>
+    /// <returns>The product of <paramref name="left" /> multipled by <paramref name="right" />.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Color4 operator *(Color4 left, Color4 right)
     {
-        return new Color4(left.Red * right.Red, left.Green * right.Green, left.Blue * right.Blue, left.Alpha * right.Alpha);
+        Vector128<float> result = VectorUtilities.Multiply(left._value, right._value);
+        return new Color4(result);
     }
 
     /// <summary>
-    /// Tests for equality between two objects.
+    /// Compares two <see cref="Color4"/> objects for equality.
     /// </summary>
-    /// <param name="left">The first value to compare.</param>
-    /// <param name="right">The second value to compare.</param>
-    /// <returns><c>true</c> if <paramref name="left"/> has the same value as <paramref name="right"/>; otherwise, <c>false</c>.</returns>
+    /// <param name="left">The <see cref="Color4"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="Color4"/> on the right hand of the operand.</param>
+    /// <returns>
+    /// True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
+    /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(Color4 left, Color4 right)
     {
-        return left.Equals(ref right);
+        return CompareEqualAll(left._value, right._value);
     }
 
     /// <summary>
-    /// Tests for inequality between two objects.
+    /// Compares two <see cref="Color4"/> objects for inequality.
     /// </summary>
-    /// <param name="left">The first value to compare.</param>
-    /// <param name="right">The second value to compare.</param>
-    /// <returns><c>true</c> if <paramref name="left"/> has a different value than <paramref name="right"/>; otherwise, <c>false</c>.</returns>
+    /// <param name="left">The <see cref="Color4"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="Color4"/> on the right hand of the operand.</param>
+    /// <returns>
+    /// True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
+    /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(Color4 left, Color4 right)
     {
-        return !left.Equals(ref right);
+        return CompareNotEqualAny(left._value, right._value);
     }
 
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="Color4"/> to <see cref="Color3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Color3(Color4 value)
-    {
-        return new Color3(value.Red, value.Green, value.Blue);
-    }
+    /// <inheritdoc/>
+    public override int GetHashCode() => HashCode.Combine(R, G, B, A);
 
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="Color4"/> to <see cref="Vector3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Vector3(Color4 value)
-    {
-        return new Vector3(value.Red, value.Green, value.Blue);
-    }
+    /// <inheritdoc/>
+    public override string ToString() => ToString(format: null, formatProvider: null);
 
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Color4"/> to <see cref="Vector4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Vector4(Color4 value)
-    {
-        return new Vector4(value.Red, value.Green, value.Blue, value.Alpha);
-    }
-
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="Vector3"/> to <see cref="Color4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Color4(Vector3 value)
-    {
-        return new Color4(value.X, value.Y, value.Z, 1.0f);
-    }
-
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="Vector4"/> to <see cref="Color4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Color4(Vector4 value)
-    {
-        return new Color4(value.X, value.Y, value.Z, value.W);
-    }
-
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="Vector3"/> to <see cref="Color4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Color4(ColorBgra value)
-    {
-        return new Color4(value.R, value.G, value.B, value.A);
-    }
-
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="Vector4"/> to <see cref="Color4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator ColorBgra(Color4 value)
-    {
-        return new ColorBgra(value.Red, value.Green, value.Blue, value.Alpha);
-    }
-
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="Color4"/> to <see cref="System.Int32"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>
-    /// The result of the conversion.
-    /// </returns>
-    public static explicit operator int(Color4 value)
-    {
-        return value.ToRgba();
-    }
-
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="System.Int32"/> to <see cref="Color4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>
-    /// The result of the conversion.
-    /// </returns>
-    public static explicit operator Color4(int value)
-    {
-        return new Color4(value);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="System.String"/> that represents this instance.
-    /// </summary>
-    /// <returns>
-    /// A <see cref="System.String"/> that represents this instance.
-    /// </returns>
-    public override string ToString()
-    {
-        return ToString(CultureInfo.CurrentCulture);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="System.String"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format to apply to each channel (float).</param>
-    /// <returns>
-    /// A <see cref="System.String"/> that represents this instance.
-    /// </returns>
-    public string ToString(string format)
-    {
-        return ToString(format, CultureInfo.CurrentCulture);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="System.String"/> that represents this instance.
-    /// </summary>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="System.String"/> that represents this instance.
-    /// </returns>
-    public string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, toStringFormat, Alpha, Red, Green, Blue);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="System.String"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format to apply to each channel (float).</param>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="System.String"/> that represents this instance.
-    /// </returns>
+    /// <inheritdoc />
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
-        if (format == null)
-            return ToString(formatProvider);
+        string? separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
 
-        return string.Format(formatProvider,
-            toStringFormat,
-            Alpha.ToString(format, formatProvider),
-            Red.ToString(format, formatProvider),
-            Green.ToString(format, formatProvider),
-            Blue.ToString(format, formatProvider));
+        return new StringBuilder(9 + separator.Length * 3)
+            .Append('<')
+            .Append(R.ToString(format, formatProvider))
+            .Append(separator)
+            .Append(' ')
+            .Append(G.ToString(format, formatProvider))
+            .Append(separator)
+            .Append(' ')
+            .Append(B.ToString(format, formatProvider))
+            .Append(separator)
+            .Append(' ')
+            .Append(A.ToString(format, formatProvider))
+            .Append('>')
+            .ToString();
     }
 
-    /// <summary>
-    /// Returns a hash code for this instance.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
-    /// </returns>
-    public override int GetHashCode()
+    internal const int Count = 4;
+
+    internal static float GetElement(Color4 vector, int index)
     {
-        unchecked
+        if (index >= Count)
         {
-            var hashCode = Red.GetHashCode();
-            hashCode = (hashCode * 397) ^ Green.GetHashCode();
-            hashCode = (hashCode * 397) ^ Blue.GetHashCode();
-            hashCode = (hashCode * 397) ^ Alpha.GetHashCode();
-            return hashCode;
+            throw new ArgumentOutOfRangeException(nameof(index));
         }
+
+        return GetElementUnsafe(ref vector, index);
     }
 
-    /// <summary>
-    /// Determines whether the specified <see cref="Color4"/> is equal to this instance.
-    /// </summary>
-    /// <param name="other">The <see cref="Color4"/> to compare with this instance.</param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="Color4"/> is equal to this instance; otherwise, <c>false</c>.
-    /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(ref Color4 other)
+    private static float GetElementUnsafe(ref Color4 vector, int index)
     {
-        return Alpha == other.Alpha && Red == other.Red && Green == other.Green && Blue == other.Blue;
-    }
+        Debug.Assert(index is >= 0 and < Count);
 
-    /// <summary>
-    /// Determines whether the specified <see cref="Color4"/> is equal to this instance.
-    /// </summary>
-    /// <param name="other">The <see cref="Color4"/> to compare with this instance.</param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="Color4"/> is equal to this instance; otherwise, <c>false</c>.
-    /// </returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Color4 other)
-    {
-        return Equals(ref other);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
-    /// </summary>
-    /// <param name="value">The <see cref="System.Object"/> to compare with this instance.</param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? value)
-    {
-        if (!(value is Color4))
-            return false;
-
-        var strongValue = (Color4)value;
-        return Equals(ref strongValue);
+        return Unsafe.Add(ref Unsafe.As<Color4, float>(ref vector), index);
     }
 }

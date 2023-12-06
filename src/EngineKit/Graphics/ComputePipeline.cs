@@ -1,4 +1,3 @@
-using System;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Native.OpenGL;
 

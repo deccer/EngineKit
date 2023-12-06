@@ -1,5 +1,5 @@
+using System.Numerics;
 using System.Runtime.InteropServices;
-using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 

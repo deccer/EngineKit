@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Numerics;
 using EngineKit;
 using EngineKit.Input;
 using EngineKit.Mathematics;
 using OpenSpace;
+using MathHelper = EngineKit.Mathematics.MathHelper;
 
 namespace ComplexExample;
 
@@ -36,9 +38,9 @@ internal sealed class Camera : ICamera
     private float _backupFarPlane;
     private float _aspectRatio;
 
-    public Matrix ViewMatrix { get; private set; }
+    public Matrix4x4 ViewMatrix { get; private set; }
 
-    public Matrix ProjectionMatrix { get; private set; }
+    public Matrix4x4 ProjectionMatrix { get; private set; }
     
     public float AspectRatio => _aspectRatio;
 
@@ -169,9 +171,9 @@ internal sealed class Camera : ICamera
         _right = Vector3.Normalize(Vector3.Cross(_front, _worldUp));
         _up = Vector3.Normalize(Vector3.Cross(_right, _front));
 
-        ViewMatrix = Matrix.LookAtRH(_position, _position + _front, _up);
+        ViewMatrix = Matrix4x4.CreateLookAt(_position, _position + _front, _up);
         _aspectRatio = _applicationContext.ScaledFramebufferSize.X / (float)_applicationContext.ScaledFramebufferSize.Y;
-        ProjectionMatrix = Matrix.PerspectiveFovRH(
+        ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
             MathHelper.ToRadians(FieldOfView),
             _aspectRatio,
             NearPlane,
@@ -191,12 +193,12 @@ internal sealed class Camera : ICamera
         _right = Vector3.Normalize(Vector3.Cross(_front, _worldUp));
         _up = Vector3.Normalize(Vector3.Cross(_right, _front));
 
-        ViewMatrix = Matrix.LookAtRH(_position, _position + _front, _up);
+        ViewMatrix = Matrix4x4.CreateLookAt(_position, _position + _front, _up);
         _aspectRatio = 1.0f;
 
         var width = _applicationContext.ScaledFramebufferSize.X;
         var height = _applicationContext.ScaledFramebufferSize.Y;
-        ProjectionMatrix = Matrix.OrthoOffCenterRH(
+        ProjectionMatrix = Matrix4x4.CreateOrthographicOffCenter(
             -width / 2.0f * Zoom,
             width / 2.0f * Zoom,
             -height / 2.0f * Zoom,

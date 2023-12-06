@@ -1,8 +1,7 @@
-﻿using EngineKit;
+﻿using System.Numerics;
+using EngineKit;
 using EngineKit.Extensions;
-using EngineKit.Graphics;
 using EngineKit.Input;
-using EngineKit.Mathematics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;

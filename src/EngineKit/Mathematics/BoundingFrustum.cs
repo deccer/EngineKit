@@ -1,109 +1,233 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
-// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+﻿// Copyright © Amer Koleci and Contributors.
+// Licensed under the MIT License (MIT). See LICENSE in the repository root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace EngineKit.Mathematics
+namespace EngineKit.Mathematics;
+
+public readonly struct BoundingFrustum : IEquatable<BoundingFrustum>
 {
-    /// <summary>
-    /// A bounding frustum.
-    /// </summary>
-    public struct BoundingFrustum
+    public const int CornerCount = 8;
+
+    private readonly Plane[] _planes;
+    private readonly Vector3[] _corners;
+
+    public BoundingFrustum(in Matrix4x4 viewProjection)
     {
-        /// <summary>
-        /// The left plane of this frustum.
-        /// </summary>
-        public Plane LeftPlane;
-
-        /// <summary>
-        /// The right plane of this frustum.
-        /// </summary>
-        public Plane RightPlane;
-
-        /// <summary>
-        /// The top  plane of this frustum.
-        /// </summary>
-        public Plane TopPlane;
-
-        /// <summary>
-        /// The bottom plane of this frustum.
-        /// </summary>
-        public Plane BottomPlane;
-
-        /// <summary>
-        /// The near plane of this frustum.
-        /// </summary>
-        public Plane NearPlane;
-
-        /// <summary>
-        /// The far plane of this frustum.
-        /// </summary>
-        public Plane FarPlane;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BoundingFrustum"/> struct from a matrix view-projection.
-        /// </summary>
-        /// <param name="matrix">The matrix view projection.</param>
-        public BoundingFrustum(ref Matrix matrix)
+        _planes = new Plane[]
         {
-            // Left
-            Plane.Normalize(
-                matrix.M14 + matrix.M11,
-                matrix.M24 + matrix.M21,
-                matrix.M34 + matrix.M31,
-                matrix.M44 + matrix.M41,
-                out LeftPlane);
+            Plane.Normalize(new Plane(-viewProjection.M13, -viewProjection.M23, -viewProjection.M33, -viewProjection.M43)),
+            Plane.Normalize(new Plane(viewProjection.M13 - viewProjection.M14, viewProjection.M23 - viewProjection.M24, viewProjection.M33 - viewProjection.M34, viewProjection.M43 - viewProjection.M44)),
+            Plane.Normalize(new Plane(-viewProjection.M14 - viewProjection.M11, -viewProjection.M24 - viewProjection.M21, -viewProjection.M34 - viewProjection.M31, -viewProjection.M44 - viewProjection.M41)),
+            Plane.Normalize(new Plane(viewProjection.M11 - viewProjection.M14, viewProjection.M21 - viewProjection.M24, viewProjection.M31 - viewProjection.M34, viewProjection.M41 - viewProjection.M44)),
+            Plane.Normalize(new Plane(viewProjection.M12 - viewProjection.M14, viewProjection.M22 - viewProjection.M24, viewProjection.M32 - viewProjection.M34, viewProjection.M42 - viewProjection.M44)),
+            Plane.Normalize(new Plane(-viewProjection.M14 - viewProjection.M12, -viewProjection.M24 - viewProjection.M22, -viewProjection.M34 - viewProjection.M32, -viewProjection.M44 - viewProjection.M42)),
+        };
 
-            // Right
-            Plane.Normalize(
-                matrix.M14 - matrix.M11,
-                matrix.M24 - matrix.M21,
-                matrix.M34 - matrix.M31,
-                matrix.M44 - matrix.M41,
-                out RightPlane);
+        _corners = new Vector3[]
+        {
+            IntersectionPoint(_planes[0], _planes[2], _planes[4]),
+            IntersectionPoint(_planes[0], _planes[3], _planes[4]),
+            IntersectionPoint(_planes[0], _planes[3], _planes[5]),
+            IntersectionPoint(_planes[0], _planes[2], _planes[5]),
+            IntersectionPoint(_planes[1], _planes[2], _planes[4]),
+            IntersectionPoint(_planes[1], _planes[3], _planes[4]),
+            IntersectionPoint(_planes[1], _planes[3], _planes[5]),
+            IntersectionPoint(_planes[1], _planes[2], _planes[5]),
+        };
+    }
 
-            // Top
-            Plane.Normalize(
-                matrix.M14 - matrix.M12,
-                matrix.M24 - matrix.M22,
-                matrix.M34 - matrix.M32,
-                matrix.M44 - matrix.M42,
-                out TopPlane);
+    /// <summary>
+    /// The near plane of this frustum.
+    /// </summary>
+    public ref readonly Plane Near => ref _planes[0];
 
-            // Bottom
-            Plane.Normalize(
-                matrix.M14 + matrix.M12,
-                matrix.M24 + matrix.M22,
-                matrix.M34 + matrix.M32,
-                matrix.M44 + matrix.M42,
-                out BottomPlane);
+    /// <summary>
+    /// The far plane of this frustum.
+    /// </summary>
+    public ref readonly Plane Far => ref _planes[1];
 
-            // Near
-            Plane.Normalize(
-                matrix.M13,
-                matrix.M23,
-                matrix.M33,
-                matrix.M43,
-                out NearPlane);
+    /// <summary>
+    /// The left plane of this frustum.
+    /// </summary>
+    public ref readonly Plane Left => ref _planes[2];
 
-            // Far
-            Plane.Normalize(
-                matrix.M14 - matrix.M13,
-                matrix.M24 - matrix.M23,
-                matrix.M34 - matrix.M33,
-                matrix.M44 - matrix.M43,
-                out FarPlane);
+    /// <summary>
+    /// The right plane of this frustum.
+    /// </summary>
+    public ref readonly Plane Right => ref _planes[3];
+
+    /// <summary>
+    /// The top  plane of this frustum.
+    /// </summary>
+    public ref readonly Plane Top => ref _planes[4];
+
+    /// <summary>
+    /// The bottom plane of this frustum.
+    /// </summary>
+    public ref readonly Plane Bottom => ref _planes[5];
+
+    public IReadOnlyList<Vector3> Corners => _corners;
+
+    /// <summary>
+    /// Checks whether the current <see cref="BoundingFrustum"/> intersects with a specified <see cref="BoundingBox"/>.
+    /// </summary>
+    /// <param name="box">The <see cref="BoundingBox"/> to check for intersection with the current <see cref="BoundingFrustum"/>.</param>
+    /// <returns>True if intersects, false otherwise.</returns>
+    public bool Intersects(in BoundingBox box)
+    {
+        for (int i = 0; i < _planes.Length; i++)
+        {
+            Plane plane = _planes[i];
+            PlaneIntersectionType intersection = box.Intersects(in plane);
+
+            if (intersection == PlaneIntersectionType.Front)
+            {
+                return false;
+            }
         }
 
-        /// <summary>
-        /// Check whether this frustum contains the specified <see cref="BoundingBoxExt"/>.
-        /// </summary>
-        /// <param name="boundingBoxExt">The bounding box.</param>
-        /// <returns><c>true</c> if this frustum contains the specified bounding box.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(ref BoundingBoxExt boundingBoxExt)
+        return true;
+    }
+
+    /// <summary>
+    /// Checks whether the current <see cref="BoundingFrustum"/> intersects with a specified <see cref="BoundingSphere"/>.
+    /// </summary>
+    /// <param name="sphere">The <see cref="BoundingSphere"/> to check for intersection with the current <see cref="BoundingFrustum"/>.</param>
+    /// <returns>True if intersects, false otherwise.</returns>
+    public bool Intersects(in BoundingSphere sphere)
+    {
+        for (int i = 0; i < _planes.Length; i++)
         {
-            return CollisionHelper.FrustumContainsBox(ref this, ref boundingBoxExt);
+            Plane plane = _planes[i];
+            PlaneIntersectionType intersection = sphere.Intersects(in plane);
+
+            if (intersection == PlaneIntersectionType.Front)
+            {
+                return false;
+            }
         }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Retrieves the eight corners of the bounding frustum.
+    /// </summary>
+    /// <returns>An array of points representing the eight corners of the bounding frustum.</returns>
+    public Vector3[] GetCorners()
+    {
+        Vector3[] results = new Vector3[CornerCount];
+        GetCorners(results);
+        return results;
+    }
+
+    /// <summary>
+    /// Retrieves the eight corners of the bounding frustum.
+    /// </summary>
+    /// <returns>An array of points representing the eight corners of the bounding frustum.</returns>
+    public readonly void GetCorners(Vector3[] corners)
+    {
+        if (corners == null)
+        {
+            throw new ArgumentNullException(nameof(corners));
+        }
+
+        if (corners.Length < CornerCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(corners), $"GetCorners need at least {CornerCount} elements to copy corners.");
+        }
+
+        _corners.CopyTo(corners, 0);
+    }
+
+    /// <summary>
+    /// Retrieves the eight corners of the bounding frustum.
+    /// </summary>
+    /// <returns>An array of points representing the eight corners of the bounding frustum.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly void GetCorners(Span<Vector3> corners)
+    {
+        if (corners.Length < CornerCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(corners), $"GetCorners need at least {CornerCount} elements to copy corners.");
+        }
+
+        _corners.AsSpan().CopyTo(corners);
+    }
+
+    /// <inheritdoc/>
+    public override readonly bool Equals(object? obj) => obj is BoundingFrustum value && Equals(value);
+
+    /// <summary>
+    /// Determines whether the specified <see cref="BoundingFrustum"/> is equal to this instance.
+    /// </summary>
+    /// <param name="other">The <see cref="Int4"/> to compare with this instance.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool Equals(BoundingFrustum other)
+    {
+        for (int i = 0; i < _planes.Length; i++)
+        {
+            if (!_planes[i].Equals(other._planes[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Compares two <see cref="BoundingFrustum"/> objects for equality.
+    /// </summary>
+    /// <param name="left">The <see cref="BoundingFrustum"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="BoundingFrustum"/> on the right hand of the operand.</param>
+    /// <returns>
+    /// True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator ==(BoundingFrustum left, BoundingFrustum right) => left.Equals(right);
+
+    /// <summary>
+    /// Compares two <see cref="BoundingFrustum"/> objects for inequality.
+    /// </summary>
+    /// <param name="left">The <see cref="BoundingFrustum"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="BoundingFrustum"/> on the right hand of the operand.</param>
+    /// <returns>
+    /// True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(BoundingFrustum left, BoundingFrustum right) => !left.Equals(right);
+
+    /// <inheritdoc/>
+    public override int GetHashCode() => HashCode.Combine(_corners[0], _corners[1], _corners[2], _corners[3], _corners[4], _corners[5], _corners[6], _corners[7]);
+
+    /// <inheritdoc />
+    public override string ToString() => $"{nameof(BoundingFrustum)}";
+    
+    private static Vector3 IntersectionPoint(Plane a, Plane b, Plane c)
+    {
+        var cross = Vector3.Cross(b.Normal, c.Normal);
+
+        float f = Vector3.Dot(a.Normal, cross);
+        f *= -1.0f;
+
+        var v1 = Vector3.Multiply(cross, a.D);
+
+        cross = Vector3.Cross(c.Normal, a.Normal);
+        var v2 = Vector3.Multiply(cross, b.D);
+
+        cross = Vector3.Cross(a.Normal, b.Normal);
+        var v3 = Vector3.Multiply(cross, c.D);
+
+        Vector3 result;
+        result.X = (v1.X + v2.X + v3.X) / f;
+        result.Y = (v1.Y + v2.Y + v3.Y) / f;
+        result.Z = (v1.Z + v2.Z + v3.Z) / f;
+
+        return result;
     }
 }

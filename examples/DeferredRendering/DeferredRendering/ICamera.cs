@@ -1,12 +1,12 @@
-﻿using EngineKit.Mathematics;
+﻿using System.Numerics;
 
 namespace DeferredRendering;
 
 public interface ICamera
 {
-    Matrix ViewMatrix { get; }
+    Matrix4x4 ViewMatrix { get; }
 
-    Matrix ProjectionMatrix { get; }
+    Matrix4x4 ProjectionMatrix { get; }
 
     Vector3 Position { get; }
 

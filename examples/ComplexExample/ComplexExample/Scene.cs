@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using Arch.Core;
 using Arch.Core.Extensions;
 using ComplexExample.Ecs;
@@ -11,13 +12,12 @@ using EngineKit.Mathematics;
 using EngineKit.UI;
 using ImGuiNET;
 using Serilog;
-using Num = System.Numerics;
 
 namespace ComplexExample;
 
 public class Scene : IScene
 {
-    private static readonly Num.Vector4 HeaderSelectedColor = new Num.Vector4(0.8f, 0.6f, 0.1f, 1.0f);
+    private static readonly Vector4 HeaderSelectedColor = new Vector4(0.8f, 0.6f, 0.1f, 1.0f);
     private readonly ILogger _logger;
     private readonly IGraphicsContext _graphicsContext;
     private readonly IApplicationContext _applicationContext;
@@ -78,7 +78,7 @@ public class Scene : IScene
         }
 
         _swapchainDescriptor = new SwapchainDescriptorBuilder()
-            .ClearColor(Color4.Black)
+            .ClearColor(Colors.Black)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build();
@@ -137,7 +137,7 @@ public class Scene : IScene
 
     private void RenderUiAssets()
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Num.Vector2.Zero);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         if (ImGui.Begin($" {MaterialDesignIcons.WhiteBalanceSunny} Assets"))
         {
             var tableFlags = ImGuiTableFlags.BordersV | 
@@ -223,7 +223,7 @@ public class Scene : IScene
 
     private void RenderUiScene()
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Num.Vector2.Zero);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         if (ImGui.Begin($" {MaterialDesignIcons.AllInclusive} Scene", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
         {
             _renderer.ShowScene();
@@ -233,7 +233,7 @@ public class Scene : IScene
 
     private void RenderUiSceneOutline()
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Num.Vector2.Zero);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         if (ImGui.Begin($" {MaterialDesignIcons.Application} Outline"))
         {
 
@@ -366,18 +366,18 @@ public class Scene : IScene
                         ImGui.TableNextColumn();
                         ImGui.TextUnformatted("Position");
                         ImGui.TableNextColumn();
-                        var position = transformComponent.Position.ToNumVector3();
+                        var position = transformComponent.Position;
                         ImGui.InputFloat3($"###Position{transformComponent.GetHashCode()}", ref position);
 
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
                         ImGui.TextUnformatted("Rotation");
                         ImGui.TableNextColumn();
-                        var rotation = new Vector3().ToNumVector3();
+                        var rotation = new Vector3();
                         ImGui.InputFloat3($"###Rotation{transformComponent.GetHashCode()}", ref rotation);
                         
                         ImGui.TextUnformatted("Scale");
-                        var scale = transformComponent.Scale.ToNumVector3();
+                        var scale = transformComponent.Scale;
                         ImGui.InputFloat3($"###Scale{transformComponent.GetHashCode()}", ref scale);
 
                         ImGui.EndTable();
@@ -426,7 +426,7 @@ public class Scene : IScene
     private void AddModelInstance(Model model)
     {
         var entity = _ecsWorld.Create();
-        entity.Add(new TransformComponent(Matrix.Identity));
+        entity.Add(new TransformComponent(Matrix4x4.Identity));
         entity.Add(new NameComponent(model.Name));
         _rootEntity.AddRelationship(entity, new ParentOf());
 

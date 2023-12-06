@@ -1,6 +1,6 @@
 using System;
+using System.Numerics;
 using EngineKit.Graphics;
-using EngineKit.Mathematics;
 
 namespace ComplexExample;
 
@@ -10,7 +10,7 @@ public interface IRenderer : IDisposable
 
     PooledMaterial AddMaterial(Material material);
     
-    void AddToRenderQueue(PooledMesh meshPrimitive, PooledMaterial material, Matrix worldMatrix);
+    void AddToRenderQueue(PooledMesh meshPrimitive, PooledMaterial material, Matrix4x4 worldMatrix);
     
     void RenderWorld(ICamera camera);
 

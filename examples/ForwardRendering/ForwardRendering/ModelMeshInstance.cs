@@ -1,4 +1,4 @@
-using EngineKit.Mathematics;
+using System.Numerics;
 
 namespace ForwardRendering;
 
@@ -6,5 +6,5 @@ public struct ModelMeshInstance
 {
     public ModelMesh ModelMesh;
 
-    public Matrix World;
+    public Matrix4x4 World;
 }

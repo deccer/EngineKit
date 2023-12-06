@@ -80,9 +80,9 @@ internal sealed class MaterialLibrary : IMaterialLibrary
     {
         var notFoundMaterial = new Material(Material.MaterialNotFoundName)
         {
-            BaseColor = Color.Firebrick,
+            BaseColor = Colors.Firebrick,
             BaseColorImage = new ImageInformation("NotFound.BaseColor", null, null, "Data/Default/T_Red_D.png"),
-            EmissiveColor = Color.Firebrick
+            EmissiveColor = Colors.Firebrick
         };
 
         _materials.Add(notFoundMaterial.Name, notFoundMaterial);

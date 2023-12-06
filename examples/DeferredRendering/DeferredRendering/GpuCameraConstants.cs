@@ -1,8 +1,8 @@
-using EngineKit.Mathematics;
+using System.Numerics;
 
 namespace DeferredRendering;
 
 public struct GpuCameraConstants
 {
-    public Matrix ViewProjection;
+    public Matrix4x4 ViewProjection;
 }

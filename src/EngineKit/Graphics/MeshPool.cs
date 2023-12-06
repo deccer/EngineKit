@@ -44,8 +44,8 @@ internal sealed class MeshPool : IMeshPool
             (uint)indexOffset,
             vertexCount,
             vertexOffset,
-            meshPrimitive.BoundingBox.Maximum,
-            meshPrimitive.BoundingBox.Minimum,
+            meshPrimitive.BoundingBox.Max,
+            meshPrimitive.BoundingBox.Min,
             meshPrimitive.MaterialName);
 
         var vertices = meshPrimitive.GetVertices();

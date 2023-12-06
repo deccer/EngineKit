@@ -1,544 +1,394 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
-// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-//
-// -----------------------------------------------------------------------------
-// Original code from SlimMath project. http://code.google.com/p/slimmath/
-// Greetings to SlimDX Group. Original code published with the following license:
-// -----------------------------------------------------------------------------
-/*
-* Copyright (c) 2007-2011 SlimDX Group
-* 
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-* 
-* The above copyright notice and this permission notice shall be included in
-* all copies or substantial portions of the Software.
-* 
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-* THE SOFTWARE.
-*/
+﻿// Copyright (c) Amer Koleci and contributors.
+// Licensed under the MIT License (MIT). See LICENSE in the repository root for more information.
+
+// Copyright © Tanner Gooding and Contributors. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
+
+// This file includes code based on code from https://github.com/microsoft/DirectXMath
+// The original code is Copyright © Microsoft. All rights reserved. Licensed under the MIT License (MIT).
 
 using System;
-using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 
-namespace EngineKit.Mathematics
+namespace EngineKit.Mathematics;
+
+/// <summary>
+/// Defines an sphere in three dimensional space.
+/// </summary>
+public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable
 {
     /// <summary>
-    /// Represents a bounding sphere in three dimensional space.
+    /// Gets a bounding sphere with zero radius.
     /// </summary>
-    [DataContract]
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable, IIntersectableWithRay, IIntersectableWithPlane
+    public static BoundingSphere Zero => new(Vector3.Zero, 0.0f);
+
+    private Vector3 _center;
+    private float _radius;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BoundingSphere"/> struct.
+    /// </summary>
+    /// <param name="center">The center of the sphere.</param>
+    /// <param name="radius">The radius of the sphere.</param>
+    public BoundingSphere(Vector3 center, float radius)
     {
-        /// <summary>
-        /// An empty bounding sphere (Center = 0 and Radius = 0).
-        /// </summary>
-        public static readonly BoundingSphere Empty = new BoundingSphere();
+        _center = center;
+        _radius = radius;
+    }
 
-        /// <summary>
-        /// The center of the sphere in three dimensional space.
-        /// </summary>
-        public Vector3 Center;
+    /// <summary>
+    /// Gets or sets the center of the bounding sphere.
+    /// </summary>
+    public Vector3 Center
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => _center;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set => _center = value;
+    }
 
-        /// <summary>
-        /// The radius of the sphere.
-        /// </summary>
-        public float Radius;
+    /// <summary>
+    /// Gets or sets the radius of the bounding sphere.
+    /// </summary>
+    public float Radius
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => _radius;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set => _radius = value;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BoundingSphere"/> struct.
-        /// </summary>
-        /// <param name="center">The center of the sphere in three dimensional space.</param>
-        /// <param name="radius">The radius of the sphere.</param>
-        public BoundingSphere(Vector3 center, float radius)
+    public static BoundingSphere CreateFromPoints(Vector3[] points)
+    {
+        Span<Vector3> span = [.. points];
+        return CreateFromPoints(span);
+    }
+
+    public static BoundingSphere CreateFromPoints(Span<Vector3> points)
+    {
+        Vector3 MinX, MaxX, MinY, MaxY, MinZ, MaxZ;
+        MinX = MaxX = MinY = MaxY = MinZ = MaxZ = points[0];
+
+        for (int i = 0; i < points.Length; ++i)
         {
-            Center = center;
-            Radius = radius;
+            Vector3 point = points[i];
+            if (point.X < MinX.X)
+                MinX = point;
+
+            if (point.X > MaxX.X)
+                MaxX = point;
+
+            if (point.Y < MinY.Y)
+                MinY = point;
+
+            if (point.Y > MaxY.Y)
+                MaxY = point;
+
+            if (point.Z < MinZ.Z)
+                MinZ = point;
+
+            if (point.Z > MaxZ.Z)
+                MaxZ = point;
         }
 
-        /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Ray"/>.
-        /// </summary>
-        /// <param name="ray">The ray to test.</param>
-        /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray)
-        {
-            float distance;
-            return CollisionHelper.RayIntersectsSphere(ref ray, ref this, out distance);
-        }
+        // Use the min/max pair that are farthest apart to form the initial sphere.
+        Vector3 DeltaX = Vector3.Subtract(MaxX, MinX);
+        Vector3 DeltaY = Vector3.Subtract(MaxY, MinY);
+        Vector3 DeltaZ = Vector3.Subtract(MaxZ, MinZ);
 
-        /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Ray"/>.
-        /// </summary>
-        /// <param name="ray">The ray to test.</param>
-        /// <param name="distance">When the method completes, contains the distance of the intersection,
-        /// or 0 if there was no intersection.</param>
-        /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray, out float distance)
-        {
-            return CollisionHelper.RayIntersectsSphere(ref ray, ref this, out distance);
-        }
+        float DistX = DeltaX.Length();
+        float DistY = DeltaY.Length();
+        float DistZ = DeltaZ.Length();
 
-        /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Ray"/>.
-        /// </summary>
-        /// <param name="ray">The ray to test.</param>
-        /// <param name="point">When the method completes, contains the point of intersection,
-        /// or <see cref="Vector3.Zero"/> if there was no intersection.</param>
-        /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray, out Vector3 point)
-        {
-            return CollisionHelper.RayIntersectsSphere(ref ray, ref this, out point);
-        }
+        Vector3 center;
+        float radius;
 
-        /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Plane"/>.
-        /// </summary>
-        /// <param name="plane">The plane to test.</param>
-        /// <returns>Whether the two objects intersected.</returns>
-        public PlaneIntersectionType Intersects(ref Plane plane)
+        if (DistX > DistY)
         {
-            return CollisionHelper.PlaneIntersectsSphere(ref plane, ref this);
-        }
-
-        /// <summary>
-        /// Determines if there is an intersection between the current object and a triangle.
-        /// </summary>
-        /// <param name="vertex1">The first vertex of the triangle to test.</param>
-        /// <param name="vertex2">The second vertex of the triagnle to test.</param>
-        /// <param name="vertex3">The third vertex of the triangle to test.</param>
-        /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
-        {
-            return CollisionHelper.SphereIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3);
-        }
-
-        /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="BoundingBox"/>.
-        /// </summary>
-        /// <param name="box">The box to test.</param>
-        /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingBox box)
-        {
-            return CollisionHelper.BoxIntersectsSphere(ref box, ref this);
-        }
-
-        /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="BoundingSphere"/>.
-        /// </summary>
-        /// <param name="sphere">The sphere to test.</param>
-        /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingSphere sphere)
-        {
-            return CollisionHelper.SphereIntersectsSphere(ref this, ref sphere);
-        }
-
-        /// <summary>
-        /// Determines whether the current objects contains a point.
-        /// </summary>
-        /// <param name="point">The point to test.</param>
-        /// <returns>The type of containment the two objects have.</returns>
-        public ContainmentType Contains(ref Vector3 point)
-        {
-            return CollisionHelper.SphereContainsPoint(ref this, ref point);
-        }
-
-        /// <summary>
-        /// Determines whether the current objects contains a triangle.
-        /// </summary>
-        /// <param name="vertex1">The first vertex of the triangle to test.</param>
-        /// <param name="vertex2">The second vertex of the triagnle to test.</param>
-        /// <param name="vertex3">The third vertex of the triangle to test.</param>
-        /// <returns>The type of containment the two objects have.</returns>
-        public ContainmentType Contains(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
-        {
-            return CollisionHelper.SphereContainsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3);
-        }
-
-        /// <summary>
-        /// Determines whether the current objects contains a <see cref="BoundingBox"/>.
-        /// </summary>
-        /// <param name="box">The box to test.</param>
-        /// <returns>The type of containment the two objects have.</returns>
-        public ContainmentType Contains(ref BoundingBox box)
-        {
-            return CollisionHelper.SphereContainsBox(ref this, ref box);
-        }
-
-        /// <summary>
-        /// Determines whether the current objects contains a <see cref="BoundingSphere"/>.
-        /// </summary>
-        /// <param name="sphere">The sphere to test.</param>
-        /// <returns>The type of containment the two objects have.</returns>
-        public ContainmentType Contains(ref BoundingSphere sphere)
-        {
-            return CollisionHelper.SphereContainsSphere(ref this, ref sphere);
-        }
-
-        /// <summary>
-        /// Constructs a <see cref="BoundingSphere"/> that fully contains the given points.
-        /// </summary>
-        /// <param name="points">The points that will be contained by the sphere.</param>
-        /// <param name="result">When the method completes, contains the newly constructed bounding sphere.</param>
-        public static unsafe void FromPoints(Vector3[] points, out BoundingSphere result)
-        {
-            if (points == null) throw new ArgumentNullException("points");
-            if (points.Length == 0) throw new ArgumentException("Array cannot be empty or null.", nameof(points));
-            fixed (void* pointsPtr = points)
+            if (DistX > DistZ)
             {
-                FromPoints((IntPtr)pointsPtr, 0, points.Length, Unsafe.SizeOf<Vector3>(), out result);
+                // Use min/max x.
+                center = Vector3.Lerp(MaxX, MinX, 0.5f);
+                radius = DistX * 0.5f;
+            }
+            else
+            {
+                // Use min/max z.
+                center = Vector3.Lerp(MaxZ, MinZ, 0.5f);
+                radius = DistZ * 0.5f;
+            }
+        }
+        else // Y >= X
+        {
+            if (DistY > DistZ)
+            {
+                // Use min/max y.
+                center = Vector3.Lerp(MaxY, MinY, 0.5f);
+                radius = DistY * 0.5f;
+            }
+            else
+            {
+                // Use min/max z.
+                center = Vector3.Lerp(MaxZ, MinZ, 0.5f);
+                radius = DistZ * 0.5f;
             }
         }
 
-        /// <summary>
-        /// Constructs a <see cref="BoundingSphere" /> that fully contains the given unmanaged points.
-        /// </summary>
-        /// <param name="vertexBufferPtr">A pointer to of vertices containing points.</param>
-        /// <param name="vertexPositionOffsetInBytes">The point offset in bytes starting from the vertex structure.</param>
-        /// <param name="vertexCount">The verterx vertexCount.</param>
-        /// <param name="vertexStride">The vertex stride (size of vertex).</param>
-        /// <param name="result">When the method completes, contains the newly constructed bounding sphere.</param>
-        public static unsafe void FromPoints(IntPtr vertexBufferPtr, int vertexPositionOffsetInBytes, int vertexCount, int vertexStride, out BoundingSphere result)
+        // Add any points not inside the sphere.
+        for (int i = 0; i < points.Length; ++i)
         {
-            if (vertexBufferPtr == IntPtr.Zero)
+            Vector3 point = points[i];
+
+            Vector3 Delta = Vector3.Subtract(point, center);
+            float Dist = Delta.Length();
+
+            if (Dist > radius)
             {
-                throw new ArgumentNullException("vertexBufferPtr");
+                // Adjust sphere to include the new point.
+                radius = (radius + Dist) * 0.5f;
+                center += (1.0f - (radius / Dist)) * Delta;
             }
+        }
 
-            var startPoint = (byte*)vertexBufferPtr + vertexPositionOffsetInBytes;
+        return new BoundingSphere(center, radius);
+    }
 
-            //Find the center of all points.
-            Vector3 center = Vector3.Zero;
-            var nextPoint = startPoint;
-            for (int i = 0; i < vertexCount; ++i)
+    /// <summary>
+    /// Creates the smallest <see cref="BoundingSphere"/> that can contain a specified <see cref="BoundingBox"/>.
+    /// </summary>
+    /// <param name="box">The <see cref="BoundingBox"/> to create the <see cref="BoundingSphere"/> from.</param>
+    /// <returns>The created <see cref="BoundingSphere"/>.</returns>
+    public static BoundingSphere CreateFromBoundingBox(in BoundingBox box)
+    {
+        BoundingSphere result;
+
+        result._center = Vector3.Lerp(box.Min, box.Max, 0.5f);
+        result._radius = Vector3.Distance(box.Min, box.Max) * 0.5f;
+
+        return result;
+    }
+
+    public static BoundingSphere CreateMerged(in BoundingSphere original, in BoundingSphere additional)
+    {
+        Vector3 center1 = original._center;
+        float r1 = original._radius;
+
+        Vector3 center2 = additional._center;
+        float r2 = additional._radius;
+
+        Vector3 V = Vector3.Subtract(center2, center1);
+
+        float d = V.Length();
+
+        if (r1 + r2 >= d)
+        {
+            if (r1 - r2 >= d)
             {
-                Vector3.Add(ref *(Vector3*)nextPoint, ref center, out center);
-                nextPoint += vertexStride;
+                return original;
             }
-
-            //This is the center of our sphere.
-            center /= (float)vertexCount;
-
-            //Find the radius of the sphere
-            float radius = 0f;
-            nextPoint = startPoint;
-            for (int i = 0; i < vertexCount; ++i)
+            else if (r2 - r1 >= d)
             {
-                //We are doing a relative distance comparasin to find the maximum distance
-                //from the center of our sphere.
-                float distance;
-                Vector3.DistanceSquared(ref center, ref *(Vector3*)nextPoint, out distance);
-
-                if (distance > radius)
-                    radius = distance;
-                nextPoint += vertexStride;
+                return additional;
             }
-
-            //Find the real distance from the DistanceSquared.
-            radius = MathF.Sqrt(radius);
-
-            //Construct the sphere.
-            result.Center = center;
-            result.Radius = radius;
         }
 
-        /// <summary>
-        /// Constructs a <see cref="BoundingSphere"/> that fully contains the given points.
-        /// </summary>
-        /// <param name="points">The points that will be contained by the sphere.</param>
-        /// <returns>The newly constructed bounding sphere.</returns>
-        public static BoundingSphere FromPoints(Vector3[] points)
+        Vector3 N = Vector3.Divide(V, d);
+
+        float t1 = MathF.Min(-r1, d - r2);
+        float t2 = MathF.Max(r1, d + r2);
+        float t_5 = (t2 - t1) * 0.5f;
+
+        Vector3 NCenter = Vector3.Add(center1, N * (t_5 + t1));
+        return new(NCenter, t_5);
+    }
+
+    /// <summary>
+    /// Translates and scales given <see cref="BoundingSphere"/> using a given <see cref="Matrix4x4"/>.
+    /// </summary>
+    /// <param name="sphere">The source <see cref="BoundingSphere"/>.</param>
+    /// <param name="transform">A transformation matrix that might include translation, rotation, or uniform scaling.</param>
+    /// <returns>The transformed BoundingSphere.</returns>
+    public static BoundingSphere Transform(in BoundingSphere sphere, in Matrix4x4 transform)
+    {
+        Transform(sphere, transform, out BoundingSphere result);
+        return result;
+    }
+
+    /// <summary>
+    /// Translates and scales given <see cref="BoundingSphere"/> using a given <see cref="Matrix4x4"/>.
+    /// </summary>
+    /// <param name="sphere">The source <see cref="BoundingSphere"/>.</param>
+    /// <param name="transform">A transformation matrix that might include translation, rotation, or uniform scaling.</param>
+    /// <param name="result">The transformed BoundingSphere.</param>
+    public static void Transform(in BoundingSphere sphere, in Matrix4x4 transform, out BoundingSphere result)
+    {
+        Vector3 center = Vector3.Transform(sphere.Center, transform);
+
+        float majorAxisLengthSquared = Math.Max(
+           (transform.M11 * transform.M11) + (transform.M12 * transform.M12) + (transform.M13 * transform.M13), Math.Max(
+           (transform.M21 * transform.M21) + (transform.M22 * transform.M22) + (transform.M23 * transform.M23),
+           (transform.M31 * transform.M31) + (transform.M32 * transform.M32) + (transform.M33 * transform.M33)));
+
+        float radius = sphere.Radius * (float)Math.Sqrt(majorAxisLengthSquared);
+        result = new BoundingSphere(center, radius);
+    }
+
+    public readonly ContainmentType Contains(in Vector3 point)
+    {
+        if (Vector3.DistanceSquared(point, Center) <= Radius * Radius)
         {
-            BoundingSphere result;
-            FromPoints(points, out result);
-            return result;
+            return ContainmentType.Contains;
         }
 
-        /// <summary>
-        /// Constructs a <see cref="BoundingSphere"/> from a given box.
-        /// </summary>
-        /// <param name="box">The box that will designate the extents of the sphere.</param>
-        /// <param name="result">When the method completes, the newly constructed bounding sphere.</param>
-        public static void FromBox(ref BoundingBox box, out BoundingSphere result)
+        return ContainmentType.Disjoint;
+    }
+
+    public readonly ContainmentType Contains(in BoundingBox box)
+    {
+        return box.Contains(this);
+    }
+
+    public readonly ContainmentType Contains(in BoundingSphere sphere)
+    {
+        float distance = Vector3.Distance(Center, sphere.Center);
+
+        if (Radius + sphere.Radius < distance)
+            return ContainmentType.Disjoint;
+
+        if (Radius - sphere.Radius < distance)
+            return ContainmentType.Intersects;
+
+        return ContainmentType.Contains;
+    }
+
+    public readonly float? Intersects(in Ray ray)
+    {
+        //Source: Real-Time Collision Detection by Christer Ericson
+        //Reference: Page 177
+
+        Vector3 m = Vector3.Subtract(ray.Position, Center);
+
+        float b = Vector3.Dot(m, ray.Direction);
+        float c = Vector3.Dot(m, m) - (Radius * Radius);
+
+        if (c > 0f && b > 0f)
         {
-            Vector3.Lerp(ref box.Minimum, ref box.Maximum, 0.5f, out result.Center);
-
-            float x = box.Minimum.X - box.Maximum.X;
-            float y = box.Minimum.Y - box.Maximum.Y;
-            float z = box.Minimum.Z - box.Maximum.Z;
-
-            float distance = MathF.Sqrt((x * x) + (y * y) + (z * z));
-            result.Radius = distance * 0.5f;
+            return null;
         }
 
-        /// <summary>
-        /// Constructs a <see cref="BoundingSphere"/> from a given box.
-        /// </summary>
-        /// <param name="box">The box that will designate the extents of the sphere.</param>
-        /// <returns>The newly constructed bounding sphere.</returns>
-        public static BoundingSphere FromBox(BoundingBox box)
+        float discriminant = b * b - c;
+
+        if (discriminant < 0f)
         {
-            BoundingSphere result;
-            FromBox(ref box, out result);
-            return result;
+            return null;
         }
 
-        /// <summary>
-        /// Transforms a bounding bounding sphere, yielding the bounding sphere of all points contained by the original one, transformed by the specified transform.
-        /// </summary>
-        /// <param name="value">The original bounding sphere.</param>
-        /// <param name="transform">The transform to apply to the bounding sphere.</param>
-        /// <param name="result">The transformed bounding sphere.</param>
-        public static void Transform(ref BoundingSphere value, ref Matrix transform, out BoundingSphere result)
-        {
-            Vector3.TransformPosition(ref value.Center, ref transform, out result.Center);
+        float distance = -b - (float)Math.Sqrt(discriminant);
 
-            var majorAxisLengthSquared = MathF.Max(
-                (transform.M11 * transform.M11) + (transform.M12 * transform.M12) + (transform.M13 * transform.M13), MathF.Max(
-                (transform.M21 * transform.M21) + (transform.M22 * transform.M22) + (transform.M23 * transform.M23),
-                (transform.M31 * transform.M31) + (transform.M32 * transform.M32) + (transform.M33 * transform.M33)));
+        if (distance < 0f)
+            distance = 0f;
 
-            result.Radius = value.Radius * MathF.Sqrt(majorAxisLengthSquared);
-        }
+        return distance;
+    }
 
-        /// <summary>
-        /// Constructs a <see cref="BoundingSphere"/> that is the as large as the total combined area of the two specified spheres.
-        /// </summary>
-        /// <param name="value1">The first sphere to merge.</param>
-        /// <param name="value2">The second sphere to merge.</param>
-        /// <param name="result">When the method completes, contains the newly constructed bounding sphere.</param>
-        public static void Merge(ref BoundingSphere value1, ref BoundingSphere value2, out BoundingSphere result)
-        {
-            // Pre-exit if one of the bounding sphere by assuming that a merge with an empty sphere is equivalent at taking the non-empty sphere
-            if (value1 == Empty)
-            {
-                result = value2;
-                return;
-            } 
-            
-            if (value2 == Empty)
-            {
-                result = value1;
-                return;
-            }
+    /// <summary>
+    /// Checks whether the current <see cref="BoundingSphere"/> intersects with a specified <see cref="BoundingBox"/>.
+    /// </summary>
+    /// <param name="box">The <see cref="BoundingBox"/> to check for intersection with the current <see cref="BoundingSphere"/>.</param>
+    /// <returns>True if intersects, false otherwise.</returns>
+    public readonly bool Intersects(in BoundingBox box)
+    {
+        Vector3 clampedVector = Vector3.Clamp(Center, box.Min, box.Max);
+        float distance = Vector3.DistanceSquared(Center, clampedVector);
+        return distance <= Radius * Radius;
+    }
 
-            Vector3 difference = value2.Center - value1.Center;
+    /// <summary>
+    /// Checks whether the current <see cref="BoundingSphere"/> intersects with a specified <see cref="BoundingBox"/>.
+    /// </summary>
+    /// <param name="sphere">The <see cref="BoundingSphere"/> to check for intersection with the current <see cref="BoundingSphere"/>.</param>
+    /// <returns>True if intersects, false otherwise.</returns>
+    public readonly bool Intersects(in BoundingSphere sphere)
+    {
+        float radiisum = Radius + sphere.Radius;
+        return Vector3.DistanceSquared(Center, sphere.Center) <= radiisum * radiisum;
+    }
 
-            float length = difference.Length();
-            float radius = value1.Radius;
-            float radius2 = value2.Radius;
+    /// <summary>
+    /// Checks whether the current <see cref="BoundingSphere"/> intersects with a specified <see cref="BoundingBox"/>.
+    /// </summary>
+    /// <param name="plane">The <see cref="Plane"/> to check for intersection with the current <see cref="Plane"/>.</param>
+    /// <returns>True if intersects, false otherwise.</returns>
+    public readonly PlaneIntersectionType Intersects(in Plane plane)
+    {
+        //Source: Real-Time Collision Detection by Christer Ericson
+        //Reference: Page 160
 
-            if (radius + radius2 >= length)
-            {
-                if (radius - radius2 >= length)
-                {
-                    result = value1;
-                    return;
-                }
+        float distance = Vector3.Dot(plane.Normal, Center);
+        distance += plane.D;
 
-                if (radius2 - radius >= length)
-                {
-                    result = value2;
-                    return;
-                }
-            }
+        if (distance > Radius)
+            return PlaneIntersectionType.Front;
 
-            Vector3 vector = difference * (1.0f / length);
-            float min = MathF.Min(-radius, length - radius2);
-            float max = (MathF.Max(radius, length + radius2) - min) * 0.5f;
+        if (distance < -Radius)
+            return PlaneIntersectionType.Back;
 
-            result.Center = value1.Center + vector * (max + min);
-            result.Radius = max;
-        }
+        return PlaneIntersectionType.Intersecting;
+    }
 
-        /// <summary>
-        /// Constructs a <see cref="BoundingSphere"/> that is the as large as the total combined area of the two specified spheres.
-        /// </summary>
-        /// <param name="value1">The first sphere to merge.</param>
-        /// <param name="value2">The second sphere to merge.</param>
-        /// <returns>The newly constructed bounding sphere.</returns>
-        public static BoundingSphere Merge(BoundingSphere value1, BoundingSphere value2)
-        {
-            BoundingSphere result;
-            Merge(ref value1, ref value2, out result);
-            return result;
-        }
+    /// <inheritdoc/>
+    public override readonly bool Equals(object? obj) => (obj is BoundingSphere other) && Equals(other);
 
-        /// <summary>
-        /// Tests for equality between two objects.
-        /// </summary>
-        /// <param name="left">The first value to compare.</param>
-        /// <param name="right">The second value to compare.</param>
-        /// <returns><c>true</c> if <paramref name="left"/> has the same value as <paramref name="right"/>; otherwise, <c>false</c>.</returns>
-        public static bool operator ==(BoundingSphere left, BoundingSphere right)
-        {
-            return left.Equals(right);
-        }
+    /// <summary>
+    /// Determines whether the specified <see cref="BoundingSphere"/> is equal to this instance.
+    /// </summary>
+    /// <param name="other">The <see cref="Int4"/> to compare with this instance.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly bool Equals(BoundingSphere other)
+    {
+        return _center.Equals(other._center)
+            && _radius.Equals(other._radius);
+    }
 
-        /// <summary>
-        /// Tests for inequality between two objects.
-        /// </summary>
-        /// <param name="left">The first value to compare.</param>
-        /// <param name="right">The second value to compare.</param>
-        /// <returns><c>true</c> if <paramref name="left"/> has a different value than <paramref name="right"/>; otherwise, <c>false</c>.</returns>
-        public static bool operator !=(BoundingSphere left, BoundingSphere right)
-        {
-            return !left.Equals(right);
-        }
+    /// <summary>
+    /// Compares two <see cref="BoundingSphere"/> objects for equality.
+    /// </summary>
+    /// <param name="left">The <see cref="BoundingSphere"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="BoundingSphere"/> on the right hand of the operand.</param>
+    /// <returns>
+    /// True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator ==(BoundingSphere left, BoundingSphere right)
+    {
+        return (left._center == right._center)
+            && (left._radius == right._radius);
+    }
 
-        /// <summary>
-        /// Returns a <see cref="string"/> that represents this instance.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="string"/> that represents this instance.
-        /// </returns>
-        public override string ToString()
-        {
-            return string.Format(CultureInfo.CurrentCulture, "Center:{0} Radius:{1}", Center.ToString(), Radius.ToString());
-        }
+    /// <summary>
+    /// Compares two <see cref="BoundingSphere"/> objects for inequality.
+    /// </summary>
+    /// <param name="left">The <see cref="BoundingSphere"/> on the left hand of the operand.</param>
+    /// <param name="right">The <see cref="BoundingSphere"/> on the right hand of the operand.</param>
+    /// <returns>
+    /// True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(BoundingSphere left, BoundingSphere right)
+    {
+        return (left._center != right._center)
+            || (left._radius != right._radius);
+    }
 
-        /// <summary>
-        /// Returns a <see cref="string"/> that represents this instance.
-        /// </summary>
-        /// <param name="format">The format.</param>
-        /// <returns>
-        /// A <see cref="string"/> that represents this instance.
-        /// </returns>
-        public string ToString(string format)
-        {
-            if (format == null)
-                return ToString();
+    /// <inheritdoc/>
+    public override int GetHashCode() => HashCode.Combine(_center, _radius);
 
-            return string.Format(CultureInfo.CurrentCulture, "Center:{0} Radius:{1}", Center.ToString(format, CultureInfo.CurrentCulture),
-                Radius.ToString(format, CultureInfo.CurrentCulture));
-        }
+    /// <inheritdoc />
+    public override string ToString() => ToString(format: null, formatProvider: null);
 
-        /// <summary>
-        /// Returns a <see cref="string"/> that represents this instance.
-        /// </summary>
-        /// <param name="formatProvider">The format provider.</param>
-        /// <returns>
-        /// A <see cref="string"/> that represents this instance.
-        /// </returns>
-        public string ToString(IFormatProvider formatProvider)
-        {
-            return string.Format(formatProvider, "Center:{0} Radius:{1}", Center.ToString(), Radius.ToString());
-        }
-
-        /// <summary>
-        /// Returns a <see cref="string"/> that represents this instance.
-        /// </summary>
-        /// <param name="format">The format.</param>
-        /// <param name="formatProvider">The format provider.</param>
-        /// <returns>
-        /// A <see cref="string"/> that represents this instance.
-        /// </returns>
-        public string ToString(string? format, IFormatProvider formatProvider)
-        {
-            if (format == null)
-            {
-                return ToString(formatProvider);
-            }
-
-            return string.Format(formatProvider, "Center:{0} Radius:{1}", Center.ToString(format, formatProvider),
-                Radius.ToString(format, formatProvider));
-        }
-
-        /// <summary>
-        /// Returns a hash code for this instance.
-        /// </summary>
-        /// <returns>
-        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
-        /// </returns>
-        public override int GetHashCode()
-        {
-            return Center.GetHashCode() + Radius.GetHashCode();
-        }
-
-        /// <summary>
-        /// Determines whether the specified <see cref="Vector4"/> is equal to this instance.
-        /// </summary>
-        /// <param name="value">The <see cref="Vector4"/> to compare with this instance.</param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="Vector4"/> is equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public bool Equals(BoundingSphere value)
-        {
-            return Center == value.Center && Math.Abs(Radius - value.Radius) < MathUtil.ZeroTolerance;
-        }
-
-        /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal to this instance.
-        /// </summary>
-        /// <param name="value">The <see cref="object"/> to compare with this instance.</param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public override bool Equals(object? value)
-        {
-            if (value == null)
-                return false;
-
-            if (value.GetType() != GetType())
-                return false;
-
-            return Equals((BoundingSphere)value);
-        }
-
-#if SlimDX1xInterop
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.BoundingSphere"/> to <see cref="SlimDX.BoundingSphere"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator SlimDX.BoundingSphere(BoundingSphere value)
-        {
-            return new SlimDX.BoundingSphere(value.Center, value.Radius);
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="SlimDX.BoundingSphere"/> to <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator BoundingSphere(SlimDX.BoundingSphere value)
-        {
-            return new BoundingSphere(value.Center, value.Radius);
-        }
-#endif
-
-#if SlimDX1xInterop
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.BoundingSphere"/> to <see cref="Microsoft.Xna.Framework.BoundingSphere"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator Microsoft.Xna.Framework.BoundingSphere(BoundingSphere value)
-        {
-            return new Microsoft.Xna.Framework.BoundingSphere(value.Center, value.Radius);
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.BoundingSphere"/> to <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator BoundingSphere(Microsoft.Xna.Framework.BoundingSphere value)
-        {
-            return new BoundingSphere(value.Center, value.Radius);
-        }
-#endif
+    /// <inheritdoc />
+    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    {
+        return $"{nameof(BoundingSphere)} {{ {nameof(Center)} = {_center.ToString(format, formatProvider)}, {nameof(Radius)} = {_radius.ToString(format, formatProvider)} }}";
     }
 }
