@@ -4,9 +4,9 @@ namespace DeferredRendering;
 
 public class DrawCommand
 {
-    public string Name { get; set; }
+    public string Name { get; init; }
 
-    public Matrix WorldMatrix { get; set; }
+    public Matrix WorldMatrix { get; init; }
 
     public int IndexCount;
 
