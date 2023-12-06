@@ -100,7 +100,7 @@ public class Scene : IScene
     public void Render()
     {
         // update transform hierarchies
-        _ecsWorld.Query(in _updateTransformQuery, (in Entity entity) =>
+        _ecsWorld.Query<Entity>(in _updateTransformQuery, (ref Entity entity) =>
         {
             ref var parentOfRelation = ref entity.GetRelationships<ParentOf>();
             ref var parentTransform = ref _ecsWorld.Get<TransformComponent>(entity);
@@ -250,7 +250,7 @@ public class Scene : IScene
                 ImGui.TableSetupColumn($"{MaterialDesignIcons.EyeOutline}", ImGuiTableColumnFlags.WidthFixed, 72);
                 ImGui.TableHeadersRow();
 
-                _ecsWorld.Query(_sceneHierarchyQuery, (in Entity entity) =>
+                _ecsWorld.Query<Entity>(_sceneHierarchyQuery, (ref Entity entity) =>
                 {
                     ref var nameComponent = ref entity.Get<NameComponent>();
                     var name = string.IsNullOrEmpty(nameComponent.Name)
