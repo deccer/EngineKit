@@ -167,10 +167,10 @@ public sealed class MeshPrimitive
                 break;
             }
 
-            var triangle = Matrix3x3.Identity;
-            triangle.Row1 = _positions[i + 0];
-            triangle.Row2 = _positions[i + 1];
-            triangle.Row3 = _positions[i + 2];
+            var triangle = Matrix.Identity;
+            triangle.Row1 = new Vector4(_positions[i + 0], 0.0f);
+            triangle.Row2 = new Vector4(_positions[i + 1], 0.0f);
+            triangle.Row3 = new Vector4(_positions[i + 2], 0.0f);
 
             var uv0 = _uvs[i + 1] - _uvs[i + 0];
             var uv1 = _uvs[i + 2] - _uvs[i + 0];

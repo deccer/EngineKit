@@ -11,7 +11,8 @@ public static class ToGLExtensions
         return blitFramebufferFilter switch
         {
             BlitFramebufferFilter.Linear => GL.BlitFramebufferFilter.Linear,
-            BlitFramebufferFilter.Nearest => GL.BlitFramebufferFilter.Nearest
+            BlitFramebufferFilter.Nearest => GL.BlitFramebufferFilter.Nearest,
+            _ => throw new ArgumentOutOfRangeException(nameof(blitFramebufferFilter))
         };
     }
     

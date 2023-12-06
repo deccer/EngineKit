@@ -1,3 +1,4 @@
+using System;
 using EngineKit.Extensions;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Native.OpenGL;
@@ -6,18 +7,19 @@ namespace EngineKit.Graphics;
 
 public abstract class Pipeline : IPipeline
 {
-    protected ShaderProgram? ShaderProgram;
+    protected ShaderProgram ShaderProgram;
     
     public Label Label { get; protected set; }
 
     public virtual void Bind()
     {
-        ShaderProgram?.Use();
+        ShaderProgram.Use();
     }
 
     public virtual void Dispose()
     {
-        ShaderProgram?.Dispose();
+        ShaderProgram.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     public void BindImage(
@@ -62,13 +64,19 @@ public abstract class Pipeline : IPipeline
         GL.BindTextureUnit(bindingIndex, texture.Id);
     }
 
-    public void BindSampledTexture(ISampler sampler, ITexture texture, uint bindingIndex)
+    public void BindSampledTexture(
+        ISampler sampler,
+        ITexture texture,
+        uint bindingIndex)
     {
         GL.BindTextureUnit(bindingIndex, texture.Id);
         GL.BindSampler(bindingIndex, sampler.Id);
     }
 
-    public void BindSampledTexture(ISampler sampler, uint textureId, uint bindingIndex)
+    public void BindSampledTexture(
+        ISampler sampler,
+        uint textureId,
+        uint bindingIndex)
     {
         GL.BindTextureUnit(bindingIndex, textureId);
         GL.BindSampler(bindingIndex, sampler.Id);

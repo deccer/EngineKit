@@ -11,7 +11,7 @@ internal sealed class ComputePipeline : Pipeline, IComputePipeline
     internal ComputePipeline(ComputePipelineDescriptor computePipelineDescriptor, ShaderProgram shaderProgram)
     {
         _computePipelineDescriptor = computePipelineDescriptor;
-        ShaderProgram = shaderProgram ?? throw new ArgumentNullException(nameof(shaderProgram));
+        ShaderProgram = shaderProgram;
         Label = computePipelineDescriptor.PipelineProgramLabel;
     }
 
@@ -28,6 +28,6 @@ internal sealed class ComputePipeline : Pipeline, IComputePipeline
 
     public void Uniform(int location, float value)
     {
-        GL.ProgramUniform((int)ShaderProgram.ComputeShader.Id, location, value);
+        GL.ProgramUniform(ShaderProgram.ComputeShader.Id, location, value);
     }
 }

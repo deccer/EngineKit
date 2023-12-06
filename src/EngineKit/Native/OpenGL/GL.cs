@@ -838,10 +838,10 @@ public static unsafe partial class GL
     public static void Viewport(Viewport viewport)
     {
         _glViewportDelegate(
-            viewport.X,
-            viewport.Y,
-            viewport.Width,
-            viewport.Height);
+            (int)viewport.X,
+            (int)viewport.Y,
+            (int)viewport.Width,
+            (int)viewport.Height);
     }
     
     public static void Viewport(Int4 viewport)
@@ -856,10 +856,10 @@ public static unsafe partial class GL
     public static void Scissor(Viewport viewport)
     {
         _glScissorDelegate(
-            viewport.X,
-            viewport.Y,
-            viewport.Width,
-            viewport.Height);
+            (int)viewport.X,
+            (int)viewport.Y,
+            (int)viewport.Width,
+            (int)viewport.Height);
     }
     
     public static void Scissor(Int4 viewport)
@@ -1478,12 +1478,12 @@ public static unsafe partial class GL
         }
     }
 
-    public static void ProgramUniform(int program, int location, float value)
+    public static void ProgramUniform(uint program, int location, float value)
     {
         _glProgramUniform1fDelegate(program, location, value);
     }
     
-    public static void ProgramUniform(int program, int location, int value)
+    public static void ProgramUniform(uint program, int location, int value)
     {
         _glProgramUniform1iDelegate(program, location, value);
     }

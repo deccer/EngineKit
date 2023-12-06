@@ -183,11 +183,6 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
             return "vec4";
         }
 
-        if (type == typeof(Matrix3x3))
-        {
-            return "mat3";
-        }
-
         if (type == typeof(Matrix) || type == typeof(Matrix4x4))
         {
             return "mat4";

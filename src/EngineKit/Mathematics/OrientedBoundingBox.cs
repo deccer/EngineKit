@@ -594,7 +594,7 @@ public struct OrientedBoundingBox : IEquatable<OrientedBoundingBox>, IFormattabl
 
         // Perform a regular ray to BoundingBox check
         var bb = new BoundingBox(-Extents, Extents);
-        var intersects = Collision.RayIntersectsBox(ref bRay, ref bb, out point);
+        var intersects = CollisionHelper.RayIntersectsBox(ref bRay, ref bb, out point);
 
         // Put the result intersection back to world
         if (intersects)

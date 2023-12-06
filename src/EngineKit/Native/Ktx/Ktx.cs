@@ -9,7 +9,7 @@ public static partial class Ktx
 {
     private static nint _nativeLibraryHandle = nint.Zero;
 
-    private const string SR_LibKtxNotInitialized =
+    private const string SrLibKtxNotInitialized =
         "Ktx not initialized. Call Ktx.Init somewhere in your application startup first";
 
     public static bool Init()
@@ -36,7 +36,7 @@ public static partial class Ktx
     {
         if (_nativeLibraryHandle == nint.Zero)
         {
-            throw new InvalidOperationException(SR_LibKtxNotInitialized);
+            throw new InvalidOperationException(SrLibKtxNotInitialized);
         }
         KtxTexture* ktxTexture = null;
         var createFlagBits = KtxTextureCreateFlagBits.LoadImageDataBit;
@@ -48,7 +48,7 @@ public static partial class Ktx
     {
         if (_nativeLibraryHandle == nint.Zero)
         {
-            throw new InvalidOperationException(SR_LibKtxNotInitialized);
+            throw new InvalidOperationException(SrLibKtxNotInitialized);
         }
         var fileNamePtr = Marshal.StringToHGlobalAnsi(fileName);
         KtxTexture* ktxTexture = null;
@@ -62,7 +62,7 @@ public static partial class Ktx
     {
         if (_nativeLibraryHandle == nint.Zero)
         {
-            throw new InvalidOperationException(SR_LibKtxNotInitialized);
+            throw new InvalidOperationException(SrLibKtxNotInitialized);
         }
         _ktxTexture2DestroyDelegate(texture);
     }
@@ -71,7 +71,7 @@ public static partial class Ktx
     {
         if (_nativeLibraryHandle == nint.Zero)
         {
-            throw new InvalidOperationException(SR_LibKtxNotInitialized);
+            throw new InvalidOperationException(SrLibKtxNotInitialized);
         }
         return _ktxTexture2NeedsTranscodingDelegate(texture) == 1;
     }
@@ -80,7 +80,7 @@ public static partial class Ktx
     {
         if (_nativeLibraryHandle == nint.Zero)
         {
-            throw new InvalidOperationException(SR_LibKtxNotInitialized);
+            throw new InvalidOperationException(SrLibKtxNotInitialized);
         }
         return _ktxTexture2TranscodeBasisDelegate(texture, transcodeFormat, transcodeFlagBits);
     }
@@ -89,7 +89,7 @@ public static partial class Ktx
     {
         if (_nativeLibraryHandle == nint.Zero)
         {
-            throw new InvalidOperationException(SR_LibKtxNotInitialized);
+            throw new InvalidOperationException(SrLibKtxNotInitialized);
         }
         return _ktxTexture2GetNumComponentsDelegate(texture);
     }
@@ -98,7 +98,7 @@ public static partial class Ktx
     {
         if (_nativeLibraryHandle == nint.Zero)
         {
-            throw new InvalidOperationException(SR_LibKtxNotInitialized);
+            throw new InvalidOperationException(SrLibKtxNotInitialized);
         }
         uint imageOffset = 0;
         var result = _ktxTexture2GetImageOffsetDelegate(texture, mipLevel, layer, faceIndex, &imageOffset);
@@ -114,7 +114,7 @@ public static partial class Ktx
     {
         if (_nativeLibraryHandle == nint.Zero)
         {
-            throw new InvalidOperationException(SR_LibKtxNotInitialized);
+            throw new InvalidOperationException(SrLibKtxNotInitialized);
         }
         return _ktxTexture2GetImageSizeDelegate(texture, mipLevel);
     }

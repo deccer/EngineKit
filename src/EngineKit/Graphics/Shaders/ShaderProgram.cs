@@ -4,7 +4,7 @@ using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics.Shaders;
 
-public class ShaderProgram : IDisposable
+public sealed class ShaderProgram : IDisposable
 {
     private readonly string? _computeShaderSource;
     private readonly string? _vertexShaderSource;
@@ -21,27 +21,41 @@ public class ShaderProgram : IDisposable
 
     public ShaderProgram(Label label, string computeShaderSource)
     {
+        if (string.IsNullOrEmpty(computeShaderSource))
+        {
+            throw new ArgumentNullException(nameof(computeShaderSource));
+        }
         _label = label;
-        _computeShaderSource = computeShaderSource ?? throw new ArgumentNullException(nameof(computeShaderSource));
+        _computeShaderSource = computeShaderSource;
         _vertexShaderSource = null!;
         _fragmentShaderSource = null!;
     }
 
     public ShaderProgram(
         Label label,
-        string? vertexShaderSource,
-        string? fragmentShaderSource)
+        string vertexShaderSource,
+        string fragmentShaderSource)
     {
+        if (string.IsNullOrEmpty(vertexShaderSource))
+        {
+            throw new ArgumentNullException(nameof(vertexShaderSource));
+        }
+
+        if (string.IsNullOrEmpty(fragmentShaderSource))
+        {
+            throw new ArgumentNullException(nameof(fragmentShaderSource));
+        }
+        
         _label = label;
         _computeShaderSource = null!;
-        _vertexShaderSource = vertexShaderSource ?? throw new ArgumentNullException(nameof(vertexShaderSource));
-        _fragmentShaderSource = fragmentShaderSource ?? throw new ArgumentNullException(nameof(fragmentShaderSource));
+        _vertexShaderSource = vertexShaderSource;
+        _fragmentShaderSource = fragmentShaderSource;
     }
 
     public Result Link()
     {
         ProgramPipelineId = GL.CreateProgramPipeline();
-        GL.ObjectLabel(GL.ObjectIdentifier.ProgramPipeline, ProgramPipelineId, "ProgramPipeline-" + _label);
+        GL.ObjectLabel(GL.ObjectIdentifier.ProgramPipeline, ProgramPipelineId, $"ProgramPipeline-{_label}");
 
         var compilationResult = CreateShaders();
         if (compilationResult.IsFailure)
@@ -130,14 +144,14 @@ public class ShaderProgram : IDisposable
             return Result.Failure($"File {_vertexShaderSource} does not exist");
         }
 
-        VertexShader = new Shader(ShaderType.VertexShader, _vertexShaderSource, "Shader-VS-" + _label);
+        VertexShader = new Shader(ShaderType.VertexShader, _vertexShaderSource, $"Shader-VS-{_label}");
 
         if (string.IsNullOrEmpty(_fragmentShaderSource))
         {
             return Result.Failure($"File {_fragmentShaderSource} does not exist");
         }
 
-        FragmentShader = new Shader(ShaderType.FragmentShader, _fragmentShaderSource, "Shader-FS-" + _label);
+        FragmentShader = new Shader(ShaderType.FragmentShader, _fragmentShaderSource, $"Shader-FS-{_label}");
 
         return Result.Success();
     }

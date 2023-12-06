@@ -39,7 +39,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref Vector3 point)
     {
-        return Collision.RayIntersectsPoint(ref this, ref point);
+        return CollisionHelper.RayIntersectsPoint(ref this, ref point);
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref Ray ray)
     {
-        return Collision.RayIntersectsRay(ref this, ref ray, out var point);
+        return CollisionHelper.RayIntersectsRay(ref this, ref ray, out var point);
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref Ray ray, out Vector3 point)
     {
-        return Collision.RayIntersectsRay(ref this, ref ray, out point);
+        return CollisionHelper.RayIntersectsRay(ref this, ref ray, out point);
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref Plane plane)
     {
-        return Collision.RayIntersectsPlane(ref this, ref plane, out float distance);
+        return CollisionHelper.RayIntersectsPlane(ref this, ref plane, out float distance);
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref Plane plane, out float distance)
     {
-        return Collision.RayIntersectsPlane(ref this, ref plane, out distance);
+        return CollisionHelper.RayIntersectsPlane(ref this, ref plane, out distance);
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref Plane plane, out Vector3 point)
     {
-        return Collision.RayIntersectsPlane(ref this, ref plane, out point);
+        return CollisionHelper.RayIntersectsPlane(ref this, ref plane, out point);
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
     {
-        return Collision.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out float distance);
+        return CollisionHelper.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out float distance);
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out float distance)
     {
-        return Collision.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out distance);
+        return CollisionHelper.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out distance);
     }
 
     /// <summary>
@@ -135,7 +135,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out Vector3 point)
     {
-        return Collision.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out point);
+        return CollisionHelper.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out point);
     }
 
     /// <summary>
@@ -145,7 +145,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref BoundingBox box)
     {
-        return Collision.RayIntersectsBox(ref this, ref box, out float distance);
+        return CollisionHelper.RayIntersectsBox(ref this, ref box, out float distance);
     }
 
     /// <summary>
@@ -167,7 +167,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref BoundingBox box, out float distance)
     {
-        return Collision.RayIntersectsBox(ref this, ref box, out distance);
+        return CollisionHelper.RayIntersectsBox(ref this, ref box, out distance);
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref BoundingBox box, out Vector3 point)
     {
-        return Collision.RayIntersectsBox(ref this, ref box, out point);
+        return CollisionHelper.RayIntersectsBox(ref this, ref box, out point);
     }
 
     /// <summary>
@@ -189,7 +189,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref BoundingSphere sphere)
     {
-        return Collision.RayIntersectsSphere(ref this, ref sphere, out float distance);
+        return CollisionHelper.RayIntersectsSphere(ref this, ref sphere, out float distance);
     }
 
     /// <summary>
@@ -211,7 +211,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref BoundingSphere sphere, out float distance)
     {
-        return Collision.RayIntersectsSphere(ref this, ref sphere, out distance);
+        return CollisionHelper.RayIntersectsSphere(ref this, ref sphere, out distance);
     }
 
     /// <summary>
@@ -223,7 +223,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>Whether the two objects intersected.</returns>
     public bool Intersects(ref BoundingSphere sphere, out Vector3 point)
     {
-        return Collision.RayIntersectsSphere(ref this, ref sphere, out point);
+        return CollisionHelper.RayIntersectsSphere(ref this, ref sphere, out point);
     }
 
     /// <summary>

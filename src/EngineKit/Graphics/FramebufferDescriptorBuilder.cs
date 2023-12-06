@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using EngineKit.Mathematics;
+using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
 
@@ -16,7 +17,9 @@ public sealed class FramebufferDescriptorBuilder
 
     public FramebufferDescriptorBuilder WithViewport(int width, int height, float minDepthRange = -1.0f, float maxDepthRange = 1.0f)
     {
-        _framebufferDescriptor.Viewport = new Viewport(0, 0, width, height, minDepthRange, maxDepthRange);
+        _framebufferDescriptor.Viewport = new Viewport(0, 0, width, height);
+        _framebufferDescriptor.Viewport.MinDepth = minDepthRange;
+        _framebufferDescriptor.Viewport.MaxDepth = maxDepthRange;
         return this;
     }
 
