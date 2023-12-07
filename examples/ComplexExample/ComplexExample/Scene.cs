@@ -5,7 +5,6 @@ using Arch.Core;
 using Arch.Core.Extensions;
 using ComplexExample.Ecs;
 using ComplexExample.Ecs.ArchExtended;
-using ComplexExample.Extensions;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Mathematics;

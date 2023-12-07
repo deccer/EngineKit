@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using CSharpFunctionalExtensions;
 using EngineKit.Extensions;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Mathematics;

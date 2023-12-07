@@ -2,7 +2,6 @@
 using System.Numerics;
 using EngineKit;
 using EngineKit.Input;
-using EngineKit.Mathematics;
 using OpenSpace;
 using MathHelper = EngineKit.Mathematics.MathHelper;
 
