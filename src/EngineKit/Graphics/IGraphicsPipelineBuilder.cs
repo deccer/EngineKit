@@ -12,9 +12,9 @@ public interface IGraphicsPipelineBuilder
         string vertexShaderSource,
         string fragmentShaderSource);
 
-    IGraphicsPipelineBuilder WithVertexInput(VertexInputDescriptor vertexInputDescriptor);
+    IGraphicsPipelineBuilder WithVertexAttributesFromDescriptor(VertexInputDescriptor vertexInputDescriptor);
     
-    IGraphicsPipelineBuilder WithVertexAttributesForVertexType(VertexType vertexType);
+    IGraphicsPipelineBuilder WithVertexAttributesFromVertexType(VertexType vertexType);
 
     IGraphicsPipelineBuilder WithTopology(
         PrimitiveTopology primitiveTopology,
@@ -24,29 +24,29 @@ public interface IGraphicsPipelineBuilder
 
     Result<IGraphicsPipeline> Build(Label label);
 
-    IGraphicsPipelineBuilder DisableCulling();
+    IGraphicsPipelineBuilder WithCullingDisabled();
 
-    IGraphicsPipelineBuilder EnableCulling(CullMode cullMode);
+    IGraphicsPipelineBuilder WithCullingEnabled(CullMode cullMode);
 
     IGraphicsPipelineBuilder WithFillMode(FillMode fillMode);
 
     IGraphicsPipelineBuilder WithFaceWinding(FaceWinding faceWinding);
 
-    IGraphicsPipelineBuilder EnableDepthTest(CompareFunction compareFunction = CompareFunction.Less);
+    IGraphicsPipelineBuilder WithDepthTestEnabled(CompareFunction compareFunction = CompareFunction.Less);
 
-    IGraphicsPipelineBuilder EnableDepthWrite();
+    IGraphicsPipelineBuilder WithDepthWriteEnabled();
 
-    IGraphicsPipelineBuilder EnableDepthBias(float constantFactor, float slopeFactor);
+    IGraphicsPipelineBuilder WithDepthBiasEnabled(float constantFactor, float slopeFactor);
 
-    IGraphicsPipelineBuilder EnableBlending(ColorBlendAttachmentDescriptor colorBlendAttachmentDescriptor);
+    IGraphicsPipelineBuilder WithBlendingEnabled(ColorBlendAttachmentDescriptor colorBlendAttachmentDescriptor);
 
-    IGraphicsPipelineBuilder DisableDepthTest();
+    IGraphicsPipelineBuilder WithDepthTestDisabled();
 
-    IGraphicsPipelineBuilder DisableDepthWrite();
+    IGraphicsPipelineBuilder WithDepthWriteDisabled();
 
-    IGraphicsPipelineBuilder DisableDepthBias();
+    IGraphicsPipelineBuilder WithDepthBiasDisabled();
 
-    IGraphicsPipelineBuilder DisableBlending();
+    IGraphicsPipelineBuilder WithBlendingDisabled();
     
     IGraphicsPipelineBuilder ClearResourceBindingsOnBind();
 }

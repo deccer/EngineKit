@@ -19,13 +19,13 @@ internal sealed class VertexBuffer<TVertex> : Buffer<TVertex>, IVertexBuffer whe
             Stride);
     }
 
-    public void Bind(IInputLayout inputLayout, uint bindingIndex, uint offset)
+    public void Bind(IInputLayout inputLayout, uint bindingIndex, int offset)
     {
         GL.VertexArrayVertexBuffer(
             inputLayout.Id,
             bindingIndex,
             Id,
-            (nint)offset,
+            offset,
             Stride);
     }
 }

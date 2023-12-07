@@ -326,7 +326,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     {
         var graphicsPipelineResult = GraphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromFiles("Shaders/Scene.vs.glsl", "Shaders/Scene.fs.glsl")
-            .WithVertexInput(new VertexInputDescriptorBuilder()
+            .WithVertexAttributesFromDescriptor(new VertexInputDescriptorBuilder()
                 .AddAttribute(0, Format.R32G32B32Float, 0)
                 .AddAttribute(0, Format.R32G32B32Float, 12)
                 .AddAttribute(0, Format.R32G32Float, 24)
@@ -334,8 +334,8 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
                 .Build(nameof(VertexPositionNormalUvTangent)))
             .WithTopology(PrimitiveTopology.Triangles)
             .WithFaceWinding(FaceWinding.CounterClockwise)
-            .EnableCulling(CullMode.Back)
-            .EnableDepthTest()
+            .WithCullingEnabled(CullMode.Back)
+            .WithDepthTestEnabled()
             .Build("ScenePipeline");
 
         if (graphicsPipelineResult.IsFailure)

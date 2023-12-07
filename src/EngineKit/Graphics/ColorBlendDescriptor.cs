@@ -1,5 +1,5 @@
 namespace EngineKit.Graphics;
 
-public record struct ColorBlendDescriptor(
+internal record struct ColorBlendDescriptor(
     ColorBlendAttachmentDescriptor[] ColorBlendAttachmentDescriptors,
     float[] BlendConstants);

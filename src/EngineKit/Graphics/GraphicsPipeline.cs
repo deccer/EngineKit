@@ -34,10 +34,9 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
         _currentInputLayout.Bind();
     }
 
-    public void BindVertexBuffer(
-        IVertexBuffer? vertexBuffer,
+    public void BindVertexBuffer(IVertexBuffer? vertexBuffer,
         uint binding,
-        uint offset)
+        int offset)
     {
         if (_currentVertexBuffer != vertexBuffer)
         {

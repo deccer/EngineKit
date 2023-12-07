@@ -68,6 +68,24 @@ public readonly record struct VertexInputDescriptor(VertexInputBindingDescriptor
         throw new ArgumentOutOfRangeException($"VertexType {vertexType} has no vertex input descriptor mapping");
     }
 
+    public override int GetHashCode()
+    {
+        var hashCode = 13;
+        foreach (var vertexBindingDescriptor in VertexBindingDescriptors)
+        {
+            hashCode = HashCode.Combine(
+                hashCode,
+                vertexBindingDescriptor.Location,
+                vertexBindingDescriptor.Binding,
+                vertexBindingDescriptor.Offset,
+                vertexBindingDescriptor.ComponentCount,
+                vertexBindingDescriptor.DataType,
+                vertexBindingDescriptor.IsNormalized);
+        }
+
+        return hashCode;
+    }
+
     private static VertexInputDescriptor BuildVertexInputDescriptorFor<TVertexType>()
     {
         var vertexType = typeof(TVertexType);

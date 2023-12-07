@@ -1,5 +1,5 @@
 namespace EngineKit.Graphics;
 
-public record struct InputAssemblyDescriptor(
+internal record struct InputAssemblyDescriptor(
     PrimitiveTopology PrimitiveTopology,
     bool IsPrimitiveRestartEnabled);

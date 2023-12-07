@@ -5,7 +5,7 @@ public interface IGraphicsPipeline : IPipeline
     void BindVertexBuffer(
         IVertexBuffer? vertexBuffer,
         uint binding,
-        uint offset);
+        int offset);
 
     void BindIndexBuffer(IIndexBuffer? indexBuffer);
 

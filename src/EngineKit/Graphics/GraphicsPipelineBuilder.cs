@@ -58,13 +58,13 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         };
     }
 
-    public IGraphicsPipelineBuilder WithVertexInput(VertexInputDescriptor vertexInputDescriptor)
+    public IGraphicsPipelineBuilder WithVertexAttributesFromDescriptor(VertexInputDescriptor vertexInputDescriptor)
     {
         _graphicsPipelineDescriptor.VertexInput = vertexInputDescriptor;
         return this;
     }
 
-    public IGraphicsPipelineBuilder WithVertexAttributesForVertexType(VertexType vertexType)
+    public IGraphicsPipelineBuilder WithVertexAttributesFromVertexType(VertexType vertexType)
     {
         _graphicsPipelineDescriptor.VertexInput = VertexInputDescriptor.ForVertexType(vertexType);
         return this;
@@ -90,13 +90,13 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
-    public IGraphicsPipelineBuilder DisableCulling()
+    public IGraphicsPipelineBuilder WithCullingDisabled()
     {
         _graphicsPipelineDescriptor.RasterizationDescriptor.IsCullingEnabled = false;
         return this;
     }
 
-    public IGraphicsPipelineBuilder EnableCulling(CullMode cullMode)
+    public IGraphicsPipelineBuilder WithCullingEnabled(CullMode cullMode)
     {
         _graphicsPipelineDescriptor.RasterizationDescriptor.IsCullingEnabled = true;
         _graphicsPipelineDescriptor.RasterizationDescriptor.CullMode = cullMode;
@@ -130,20 +130,20 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
-    public IGraphicsPipelineBuilder EnableDepthTest(CompareFunction compareFunction = CompareFunction.Less)
+    public IGraphicsPipelineBuilder WithDepthTestEnabled(CompareFunction compareFunction = CompareFunction.Less)
     {
         _graphicsPipelineDescriptor.DepthStencilDescriptor.IsDepthTestEnabled = true;
         _graphicsPipelineDescriptor.DepthStencilDescriptor.DepthCompareFunction = compareFunction;
         return this;
     }
 
-    public IGraphicsPipelineBuilder EnableDepthWrite()
+    public IGraphicsPipelineBuilder WithDepthWriteEnabled()
     {
         _graphicsPipelineDescriptor.DepthStencilDescriptor.IsDepthWriteEnabled = true;
         return this;
     }
 
-    public IGraphicsPipelineBuilder EnableDepthBias(float constantFactor, float slopeFactor)
+    public IGraphicsPipelineBuilder WithDepthBiasEnabled(float constantFactor, float slopeFactor)
     {
         _graphicsPipelineDescriptor.RasterizationDescriptor.IsDepthBiasEnabled = true;
         _graphicsPipelineDescriptor.RasterizationDescriptor.DepthBiasConstantFactor = constantFactor;
@@ -151,13 +151,13 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
-    public IGraphicsPipelineBuilder DisableDepthTest()
+    public IGraphicsPipelineBuilder WithDepthTestDisabled()
     {
         _graphicsPipelineDescriptor.DepthStencilDescriptor.IsDepthTestEnabled = false;
         return this;
     }
 
-    public IGraphicsPipelineBuilder DisableDepthBias()
+    public IGraphicsPipelineBuilder WithDepthBiasDisabled()
     {
         _graphicsPipelineDescriptor.RasterizationDescriptor.IsDepthBiasEnabled = false;
         _graphicsPipelineDescriptor.RasterizationDescriptor.DepthBiasConstantFactor = 0.0f;
@@ -165,13 +165,13 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
-    public IGraphicsPipelineBuilder DisableDepthWrite()
+    public IGraphicsPipelineBuilder WithDepthWriteDisabled()
     {
         _graphicsPipelineDescriptor.DepthStencilDescriptor.IsDepthWriteEnabled = false;
         return this;
     }
 
-    public IGraphicsPipelineBuilder DisableBlending()
+    public IGraphicsPipelineBuilder WithBlendingDisabled()
     {
         var blendAttachmentCount = _graphicsPipelineDescriptor.ColorBlendDescriptor.ColorBlendAttachmentDescriptors.Length;
         var opaque = ColorBlendAttachmentDescriptor.Opaque;
@@ -184,7 +184,7 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
-    public IGraphicsPipelineBuilder EnableBlending(ColorBlendAttachmentDescriptor colorBlendAttachmentDescriptor)
+    public IGraphicsPipelineBuilder WithBlendingEnabled(ColorBlendAttachmentDescriptor colorBlendAttachmentDescriptor)
     {
         _graphicsPipelineDescriptor.ColorBlendDescriptor.ColorBlendAttachmentDescriptors = new[]
         {
@@ -202,9 +202,11 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
 
     public Result<IGraphicsPipeline> Build(Label label)
     {
-        if (!_graphicsPipelineDescriptor.VertexInput.VertexBindingDescriptors.Any())
+        var vertexInputHashCode = _graphicsPipelineDescriptor.VertexInput.GetHashCode();
+        if (!_inputLayoutCache.TryGetValue(vertexInputHashCode, out var inputLayout))
         {
-            return Result.Failure<IGraphicsPipeline>("VertexBindingDescriptors not found. Did you forget adding Attributes?");
+            inputLayout = new InputLayout(_graphicsPipelineDescriptor.VertexInput);
+            _inputLayoutCache.Add(vertexInputHashCode, inputLayout);
         }
 
         if (_shadersFromFiles)
@@ -237,13 +239,6 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         _graphicsPipelineDescriptor.VertexShaderSource = _vertexShaderSource;
         _graphicsPipelineDescriptor.FragmentShaderSource = _fragmentShaderSource;
         _graphicsPipelineDescriptor.PipelineProgramLabel = label;
-
-        var vertexInputHashCode = _graphicsPipelineDescriptor.VertexInput.VertexBindingDescriptors.GetHashCode();
-        if (!_inputLayoutCache.TryGetValue(vertexInputHashCode, out var inputLayout))
-        {
-            inputLayout = new InputLayout(_graphicsPipelineDescriptor.VertexInput);
-            _inputLayoutCache.Add(vertexInputHashCode, inputLayout);
-        }
 
         var graphicsShaderProgram = _shaderProgramFactory.CreateShaderProgram(
             _graphicsPipelineDescriptor.PipelineProgramLabel,

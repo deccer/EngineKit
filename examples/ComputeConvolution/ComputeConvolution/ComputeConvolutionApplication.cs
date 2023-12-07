@@ -171,14 +171,14 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
     {
         var graphicsPipelineResult = GraphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromFiles("Shaders/FST.vs.glsl", "Shaders/Texture.fs.glsl")
-            .WithVertexInput(new VertexInputDescriptorBuilder()
+            .WithVertexAttributesFromDescriptor(new VertexInputDescriptorBuilder()
                 .AddAttribute(0, Format.R32G32B32Float, 0)
                 .AddAttribute(0, Format.R32G32Float, 12)
                 .Build(nameof(VertexPositionUv)))
             .WithTopology(PrimitiveTopology.Triangles)
             .WithFaceWinding(FaceWinding.Clockwise)
-            .EnableCulling(CullMode.Back)
-            .EnableDepthTest()
+            .WithCullingEnabled(CullMode.Back)
+            .WithDepthTestEnabled()
             .Build("ScenePipeline");
 
         if (graphicsPipelineResult.IsFailure)

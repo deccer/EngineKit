@@ -151,7 +151,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     {
         GL.PushDebugGroup("Geometry-Pass");
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
-        _gpuCameraConstantsBuffer.Update(_gpuCameraConstants, 0);
+        _gpuCameraConstantsBuffer.Update(_gpuCameraConstants, Offset.Zero);
         _gpuModelMeshInstanceBuffer.Update(_gpuModelMeshInstances.ToArray(), 0);
 
         GraphicsContext.BeginRenderPass(_gBufferFramebufferDescriptor);
@@ -159,7 +159,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         _gBufferGraphicsPipeline.BindUniformBuffer(_gpuCameraConstantsBuffer, 0);
         _gBufferGraphicsPipeline.BindShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
         _gBufferGraphicsPipeline.BindShaderStorageBuffer(_gpuMaterialBuffer, 2);
-        _gBufferGraphicsPipeline.BindVertexBuffer(_gpuVertexBuffer, 0, 0);
+        _gBufferGraphicsPipeline.BindVertexBuffer(_gpuVertexBuffer, 0, Offset.Zero);
         _gBufferGraphicsPipeline.BindIndexBuffer(_gpuIndexBuffer);
 
         for (var i = 0; i < _drawCommands.Count; i++)
@@ -425,13 +425,13 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     {
         var gBufferGraphicsPipelineResult = GraphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromFiles("Shaders/Scene.vs.glsl", "Shaders/Scene.fs.glsl")
-            .WithVertexInput(new VertexInputDescriptorBuilder()
+            .WithVertexAttributesFromDescriptor(new VertexInputDescriptorBuilder()
                 .AddAttribute(0, Format.R32G32B32Float, 0)
                 .AddAttribute(0, Format.R32G32B32Float, 12)
                 .AddAttribute(0, Format.R32G32Float, 24)
                 .AddAttribute(0, Format.R32G32B32A32Float, 32)
                 .Build("Scene"))
-            .EnableCulling(CullMode.Back)
+            .WithCullingEnabled(CullMode.Back)
             .Build("GBuffer-Pipeline");
         if (gBufferGraphicsPipelineResult.IsFailure)
         {
@@ -443,7 +443,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
         var finalGraphicsPipelineResult = GraphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromFiles("Shaders/FST.vs.glsl", "Shaders/Texture.fs.glsl")
-            .WithVertexInput(new VertexInputDescriptorBuilder()
+            .WithVertexAttributesFromDescriptor(new VertexInputDescriptorBuilder()
                 .AddAttribute(0, Format.R32G32B32Float, 0)
                 .AddAttribute(0, Format.R32G32Float, 12)
                 .Build("FST"))

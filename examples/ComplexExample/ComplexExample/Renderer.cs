@@ -206,12 +206,12 @@ internal sealed class Renderer : IRenderer
 
         var geometryGraphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromFiles("Shaders/Geometry.vs.glsl", "Shaders/Geometry.fs.glsl")
-            .WithVertexInput(VertexInputDescriptor.ForVertexType(VertexType.PositionNormalUvTangent))
+            .WithVertexAttributesFromDescriptor(VertexInputDescriptor.ForVertexType(VertexType.PositionNormalUvTangent))
             .WithTopology(PrimitiveTopology.Triangles)
             .WithFaceWinding(FaceWinding.CounterClockwise)
-            .EnableCulling(CullMode.Back)
-            .EnableDepthTest()
-            .EnableBlending(ColorBlendAttachmentDescriptor.PreMultiplied)
+            .WithCullingEnabled(CullMode.Back)
+            .WithDepthTestEnabled()
+            .WithBlendingEnabled(ColorBlendAttachmentDescriptor.PreMultiplied)
             .Build("Geometry-Pipeline");
 
         if (geometryGraphicsPipelineResult.IsFailure)

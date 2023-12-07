@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using EngineKit.Extensions;
 using EngineKit.Native.OpenGL;
 
@@ -12,9 +13,11 @@ internal sealed class InputLayout : IInputLayout
     {
         _id = GL.CreateVertexArray();
 
-        var label = string.IsNullOrEmpty(vertexInputDescriptor.Label)
-            ? "InputLayout-"
-            : $"InputLayout-{vertexInputDescriptor.Label}-";
+        var label = vertexInputDescriptor.VertexBindingDescriptors.Any()
+            ? string.IsNullOrEmpty(vertexInputDescriptor.Label)
+                ? "InputLayout-"
+                : $"InputLayout-{vertexInputDescriptor.Label}-"
+            : "InputLayout-Default";
         foreach (var vertexBinding in vertexInputDescriptor.VertexBindingDescriptors)
         {
             GL.EnableVertexArrayAttrib(_id, vertexBinding.Location);

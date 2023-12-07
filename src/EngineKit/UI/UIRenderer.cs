@@ -150,17 +150,10 @@ internal sealed class UIRenderer : IUIRenderer
         var imGuiGraphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromStrings(ImGuiVertexShader, ImGuiFragmentShader)
             .WithTopology(PrimitiveTopology.Triangles)
-/*            
-            .WithVertexInput(new VertexInputDescriptorBuilder()
-                .AddAttribute(0, DataType.Float, 2, 0)
-                .AddAttribute(0, DataType.Float, 2, 8)
-                .AddAttribute(0, DataType.UnsignedByte, 4, 16)            
-                .Build("UI"))
-*/          
-            .WithVertexInput(VertexInputDescriptor.ForVertexType(VertexType.ImGui))
-            .EnableBlending(ColorBlendAttachmentDescriptor.PreMultiplied)
-            .DisableDepthTest()
-            .DisableDepthWrite()
+            .WithVertexAttributesFromDescriptor(VertexInputDescriptor.ForVertexType(VertexType.ImGui))
+            .WithBlendingEnabled(ColorBlendAttachmentDescriptor.PreMultiplied)
+            .WithDepthTestDisabled()
+            .WithDepthWriteDisabled()
             .Build("ImGuiPass");
         if (imGuiGraphicsPipelineResult.IsFailure)
         {
