@@ -4,7 +4,7 @@ namespace EngineKit.Graphics;
 
 public interface IMaterialPool : IDisposable
 {
-    IShaderStorageBuffer MaterialBuffer { get; }
+    IBuffer MaterialBuffer { get; }
     
     PooledMaterial GetOrAdd(Material material);
 }

@@ -43,18 +43,18 @@ public abstract class Pipeline : IPipeline
         GL.BindImageTexture(unit, (int)texture.Id, level, true, layer, memoryAccess.ToGL(), format.ToGL());
     }
 
-    public void BindUniformBuffer(
-        IUniformBuffer buffer,
+    public void BindAsUniformBuffer(
+        IBuffer uniformBuffer,
         uint bindingIndex)
     {
-        buffer.Bind(bindingIndex);
+        GL.BindBufferBase(BufferTarget.UniformBuffer.ToGL(), bindingIndex, uniformBuffer.Id);
     }
 
-    public void BindShaderStorageBuffer(
-        IShaderStorageBuffer? buffer,
+    public void BindAsShaderStorageBuffer(
+        IBuffer shaderStorageBuffer,
         uint bindingIndex)
     {
-        buffer?.Bind(bindingIndex);
+        GL.BindBufferBase(BufferTarget.ShaderStorageBuffer.ToGL(), bindingIndex, shaderStorageBuffer.Id);
     }
 
     public void BindTexture(

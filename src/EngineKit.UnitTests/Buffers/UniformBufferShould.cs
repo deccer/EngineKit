@@ -22,7 +22,7 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeInstantiable()
     {
         // Arrange & Act
-        var uniformBuffer = new UniformBuffer<GpuMaterial>("Label");
+        var uniformBuffer = new Buffer<GpuMaterial>(BufferTarget.UniformBuffer, "Label");
 
         // Assert
         uint bufferId = uniformBuffer;
@@ -36,7 +36,7 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeAbleToUpdateDynamicBufferWhenInitializedWithZeroSize()
     {
         // Arrange
-        var uniformBuffer = new UniformBuffer<GpuMaterial>("Label");
+        var uniformBuffer = new Buffer<GpuMaterial>(BufferTarget.UniformBuffer, "Label");
         uniformBuffer.AllocateStorage(Marshal.SizeOf<GpuMaterial>(), StorageAllocationFlags.None);
 
         // Act
@@ -66,7 +66,7 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeAbleToUpdateDynamicBuffer(int initialElementCount)
     {
         // Arrange
-        var uniformBuffer = new UniformBuffer<GpuMaterial>("Label");
+        var uniformBuffer = new Buffer<GpuMaterial>(BufferTarget.UniformBuffer, "Label");
         uniformBuffer.AllocateStorage(initialElementCount * Marshal.SizeOf<GpuMaterial>(), StorageAllocationFlags.Dynamic);
 
         // Act

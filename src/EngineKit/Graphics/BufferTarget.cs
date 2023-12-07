@@ -6,5 +6,6 @@ public enum BufferTarget
     IndexBuffer,
     ShaderStorageBuffer,
     UniformBuffer,
-    IndirectDrawBuffer
+    DrawIndirectBuffer,
+    DispatchIndirectBuffer
 }

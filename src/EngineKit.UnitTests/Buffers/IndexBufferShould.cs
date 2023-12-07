@@ -21,7 +21,7 @@ public class IndexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeInstantiable()
     {
         // Arrange & Act
-        var indexBuffer = new IndexBuffer<uint>("Label");
+        var indexBuffer = new Buffer<uint>(BufferTarget.IndexBuffer, "Label");
         indexBuffer.AllocateStorage(100, StorageAllocationFlags.None);
 
         // Assert
@@ -36,7 +36,7 @@ public class IndexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeAbleToUpdateDynamicBuffer()
     {
         // Arrange
-        var indexBuffer = new IndexBuffer<uint>("Label");
+        var indexBuffer = new Buffer<uint>(BufferTarget.IndexBuffer, "Label");
         indexBuffer.AllocateStorage(100, StorageAllocationFlags.Dynamic);
 
         // Act

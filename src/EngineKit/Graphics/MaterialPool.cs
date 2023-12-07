@@ -46,7 +46,7 @@ internal sealed class MaterialPool : IMaterialPool
         MaterialBuffer.AllocateStorage(materialBufferCapacity, StorageAllocationFlags.Dynamic);
     }
 
-    public IShaderStorageBuffer MaterialBuffer { get; }
+    public IBuffer MaterialBuffer { get; }
 
     public void Dispose()
     {

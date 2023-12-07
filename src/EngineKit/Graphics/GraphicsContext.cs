@@ -134,46 +134,51 @@ internal sealed class GraphicsContext : IGraphicsContext
         GL.UnmapBuffer(buffer.Id);
     }
 
-    public IIndexBuffer CreateIndexBuffer(Label label, MeshPrimitive[] meshPrimitives)
+    public IBuffer CreateIndexBuffer(Label label, MeshPrimitive[] meshPrimitives)
     {
         var indices = meshPrimitives
             .SelectMany(meshPrimitive => meshPrimitive.Indices)
             .ToArray();
-        var indexBuffer = new IndexBuffer<uint>(label);
+        var indexBuffer = new Buffer<uint>(BufferTarget.IndexBuffer, label);
         indexBuffer.AllocateStorage(indices, StorageAllocationFlags.None);
         return indexBuffer;
     }
 
-    public IIndexBuffer CreateIndexBuffer<TIndex>(Label label)
+    public IBuffer CreateIndexBuffer<TIndex>(Label label)
         where TIndex : unmanaged
     {
-        return new IndexBuffer<TIndex>(label);
+        return new Buffer<TIndex>(BufferTarget.IndexBuffer, label);
     }
 
-    public IIndirectBuffer CreateIndirectBuffer(Label label)
+    public IBuffer CreateDrawIndirectBuffer(Label label)
     {
-        return new IndirectBuffer(label);
+        return new Buffer<GpuIndirectElementData>(BufferTarget.DrawIndirectBuffer, label);
+    }
+    
+    public IBuffer CreateDispatchIndirectBuffer(Label label)
+    {
+        return new Buffer<GpuIndirectDispatchData>(BufferTarget.DrawIndirectBuffer, label);
     }
 
-    public IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(Label label)
+    public IBuffer CreateShaderStorageBuffer<TShaderStorageData>(Label label)
         where TShaderStorageData : unmanaged
     {
-        return new ShaderStorageBuffer<TShaderStorageData>(label);
+        return new Buffer<TShaderStorageData>(BufferTarget.ShaderStorageBuffer, label);
     }
 
-    public IUniformBuffer CreateUniformBuffer<TUniformData>(Label label)
+    public IBuffer CreateUniformBuffer<TUniformData>(Label label)
         where TUniformData: unmanaged
     {
-        return new UniformBuffer<TUniformData>(label);
+        return new Buffer<TUniformData>(BufferTarget.UniformBuffer, label);
     }
 
-    public IVertexBuffer CreateVertexBuffer<TVertex>(Label label)
+    public IBuffer CreateVertexBuffer<TVertex>(Label label)
         where TVertex : unmanaged
     {
-        return new VertexBuffer<TVertex>(label);
+        return new Buffer<TVertex>(BufferTarget.VertexBuffer, label);
     }
 
-    public IVertexBuffer CreateVertexBuffer(
+    public IBuffer CreateVertexBuffer(
         Label label,
         MeshPrimitive[] meshPrimitives,
         VertexType targetVertexType)
@@ -197,11 +202,11 @@ internal sealed class GraphicsContext : IGraphicsContext
             }
         }
 
-        IVertexBuffer vertexBuffer;
+        IBuffer vertexBuffer;
         switch (targetVertexType)
         {
             case VertexType.PositionNormalUvTangent:
-                vertexBuffer = new VertexBuffer<VertexPositionNormalUvTangent>(label);
+                vertexBuffer = new Buffer<VertexPositionNormalUvTangent>(BufferTarget.VertexBuffer, label);
                 break;
             default:
                 throw new InvalidEnumArgumentException(nameof(targetVertexType));

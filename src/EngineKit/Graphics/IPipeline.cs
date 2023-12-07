@@ -37,11 +37,11 @@ public interface IPipeline : IDisposable
         ITexture texture,
         uint bindingIndex);
 
-    void BindUniformBuffer(
-        IUniformBuffer buffer,
+    void BindAsUniformBuffer(
+        IBuffer uniformBuffer,
         uint bindingIndex);
 
-    void BindShaderStorageBuffer(
-        IShaderStorageBuffer? buffer,
+    void BindAsShaderStorageBuffer(
+        IBuffer shaderStorageBuffer,
         uint bindingIndex);
 }

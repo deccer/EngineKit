@@ -92,7 +92,7 @@ internal abstract class Buffer : IBuffer
 internal class Buffer<TElement> : Buffer
     where TElement : unmanaged
 {
-    protected Buffer(BufferTarget bufferTarget, Label? label = null)
+    internal Buffer(BufferTarget bufferTarget, Label? label = null)
     {
         var innerLabel = $"{GetBufferNamePrefix(bufferTarget)}-{typeof(TElement).Name}";
         if (!string.IsNullOrEmpty(label))
@@ -112,7 +112,7 @@ internal class Buffer<TElement> : Buffer
             BufferTarget.IndexBuffer => "Buffer-Indices",
             BufferTarget.ShaderStorageBuffer => "Buffer-ShaderStorage",
             BufferTarget.UniformBuffer => "Buffer-Uniforms",
-            BufferTarget.IndirectDrawBuffer => "Buffer-Indirect",
+            BufferTarget.DrawIndirectBuffer => "Buffer-Indirect",
             _ => throw new ArgumentOutOfRangeException(nameof(bufferTarget), bufferTarget, null)
         };
     }

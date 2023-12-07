@@ -23,25 +23,27 @@ public interface IGraphicsContext : IDisposable
 
     void UnmapBuffer(IBuffer buffer);
 
-    IIndexBuffer CreateIndexBuffer<TIndex>(Label label)
+    IBuffer CreateIndexBuffer<TIndex>(Label label)
         where TIndex : unmanaged;
 
-    IIndexBuffer CreateIndexBuffer(
+    IBuffer CreateIndexBuffer(
         Label label,
         MeshPrimitive[] meshPrimitives);
 
-    IIndirectBuffer CreateIndirectBuffer(Label label);
+    IBuffer CreateDrawIndirectBuffer(Label label);
 
-    IShaderStorageBuffer CreateShaderStorageBuffer<TShaderStorageData>(Label label)
+    IBuffer CreateDispatchIndirectBuffer(Label label);
+
+    IBuffer CreateShaderStorageBuffer<TShaderStorageData>(Label label)
         where TShaderStorageData : unmanaged;
 
-    IUniformBuffer CreateUniformBuffer<TUniformData>(Label label)
+    IBuffer CreateUniformBuffer<TUniformData>(Label label)
         where TUniformData: unmanaged;
 
-    IVertexBuffer CreateVertexBuffer<TVertex>(Label label)
+    IBuffer CreateVertexBuffer<TVertex>(Label label)
         where TVertex : unmanaged;
 
-    IVertexBuffer CreateVertexBuffer(
+    IBuffer CreateVertexBuffer(
         Label label,
         MeshPrimitive[] meshPrimitives,
         VertexType targetVertexType);

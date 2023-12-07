@@ -17,9 +17,9 @@ internal sealed class MeshPool : IMeshPool
         IndexBuffer.AllocateStorage(indexBufferCapacity, StorageAllocationFlags.Dynamic);
     }
 
-    public IVertexBuffer VertexBuffer { get; }
+    public IBuffer VertexBuffer { get; }
 
-    public IIndexBuffer IndexBuffer { get; }
+    public IBuffer IndexBuffer { get; }
 
     public void Dispose()
     {

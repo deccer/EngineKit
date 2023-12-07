@@ -63,13 +63,13 @@ internal sealed class UIRenderer : IUIRenderer
     }";
 
     private IGraphicsPipeline? _imGuiGraphicsPipeline;
-    private IUniformBuffer? _uniformBuffer;
+    private IBuffer? _uniformBuffer;
 
     private bool _frameBegun;
 
-    private IVertexBuffer? _vertexBuffer;
+    private IBuffer? _vertexBuffer;
     private int _vertexBufferSize;
-    private IIndexBuffer? _indexBuffer;
+    private IBuffer? _indexBuffer;
     private int _indexBufferSize;
 
     private ImGuiIOPtr _imGuiIo;
@@ -453,9 +453,9 @@ internal sealed class UIRenderer : IUIRenderer
 
         _graphicsContext.BindGraphicsPipeline(_imGuiGraphicsPipeline!);
 
-        _imGuiGraphicsPipeline!.BindUniformBuffer(_uniformBuffer!, 0);
-        _imGuiGraphicsPipeline.BindVertexBuffer(_vertexBuffer!, 0, 0);
-        _imGuiGraphicsPipeline.BindIndexBuffer(_indexBuffer!);
+        _imGuiGraphicsPipeline!.BindAsUniformBuffer(_uniformBuffer!, 0);
+        _imGuiGraphicsPipeline.BindAsVertexBuffer(_vertexBuffer!, 0, 0);
+        _imGuiGraphicsPipeline.BindAsIndexBuffer(_indexBuffer!);
         _imGuiGraphicsPipeline.BindSampledTexture(_fontSampler!, _fontTexture!, 0);
 
         drawDataPtr.ScaleClipRects(_imGuiIo.DisplayFramebufferScale);

@@ -32,12 +32,12 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private IGraphicsPipeline? _sceneGraphicsPipeline;
 
     private GpuConstants _gpuConstants;
-    private IUniformBuffer? _gpuConstantsBuffer;
-    private IShaderStorageBuffer? _gpuModelMeshInstanceBuffer;
-    private IShaderStorageBuffer? _gpuMaterialBuffer;
+    private IBuffer? _gpuConstantsBuffer;
+    private IBuffer? _gpuModelMeshInstanceBuffer;
+    private IBuffer? _gpuMaterialBuffer;
 
-    private IVertexBuffer? _skullVertexBuffer;
-    private IIndexBuffer? _skullIndexBuffer;
+    private IBuffer? _skullVertexBuffer;
+    private IBuffer? _skullIndexBuffer;
 
     private ISampler? _linearMipmapNearestSampler;
     private ISampler? _linearMipmapLinear;
@@ -45,7 +45,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private readonly IList<ModelMesh> _modelMeshes;
     private IList<GpuModelMeshInstance> _gpuModelMeshInstances;
     private readonly List<GpuIndirectElementData> _gpuIndirectElements;
-    private IIndirectBuffer _gpuIndirectElementDataBuffer;
+    private IBuffer? _gpuIndirectElementDataBuffer;
 
     public ForwardRendererApplication(
         ILogger logger,
@@ -152,7 +152,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
         _gpuModelMeshInstanceBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuModelMeshInstance>("ModelMeshInstances");
         _gpuModelMeshInstanceBuffer.AllocateStorage(3 * Marshal.SizeOf<GpuModelMeshInstance>(), StorageAllocationFlags.Dynamic);
-        _gpuIndirectElementDataBuffer = GraphicsContext.CreateIndirectBuffer("MeshIndirectDrawElement");
+        _gpuIndirectElementDataBuffer = GraphicsContext.CreateDrawIndirectBuffer("MeshIndirectDrawElement");
         _gpuIndirectElementDataBuffer.AllocateStorage(3 * Marshal.SizeOf<GpuIndirectElementData>(), StorageAllocationFlags.Dynamic);
 
         _gpuMaterials.Add(new GpuMaterial
@@ -203,12 +203,12 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
         GraphicsContext.BeginRenderPass(_swapchainDescriptor);
         GraphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline!);
-        _sceneGraphicsPipeline!.BindVertexBuffer(_skullVertexBuffer!, 0, 0);
-        _sceneGraphicsPipeline.BindIndexBuffer(_skullIndexBuffer!);
+        _sceneGraphicsPipeline!.BindAsVertexBuffer(_skullVertexBuffer!, 0, 0);
+        _sceneGraphicsPipeline.BindAsIndexBuffer(_skullIndexBuffer!);
 
-        _sceneGraphicsPipeline.BindUniformBuffer(_gpuConstantsBuffer, 0);
-        _sceneGraphicsPipeline.BindShaderStorageBuffer(_gpuModelMeshInstanceBuffer!, 1);
-        _sceneGraphicsPipeline.BindShaderStorageBuffer(_gpuMaterialBuffer!, 2);
+        _sceneGraphicsPipeline.BindAsUniformBuffer(_gpuConstantsBuffer, 0);
+        _sceneGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer!, 1);
+        _sceneGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer!, 2);
         _sceneGraphicsPipeline.BindSampledTexture(_linearMipmapLinear!, _skullBaseColorTexture!, 0);
 
         _sceneGraphicsPipeline.MultiDrawElementsIndirect(_gpuIndirectElementDataBuffer, _gpuIndirectElements.Count);

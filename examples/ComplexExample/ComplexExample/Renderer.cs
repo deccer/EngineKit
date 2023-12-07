@@ -22,8 +22,8 @@ internal sealed class Renderer : IRenderer
     private IMaterialPool? _materialPool;
 
     //private readonly IList<GpuObjectData> _objectData;
-    private IShaderStorageBuffer? _geometryInstanceBuffer;
-    private IIndirectBuffer? _geometryIndirectBuffer;
+    private IBuffer? _geometryInstanceBuffer;
+    private IBuffer? _geometryDrawIndirectBuffer;
     private int _objectDataIndex;
     private bool _isLoaded;
 
@@ -38,7 +38,7 @@ internal sealed class Renderer : IRenderer
     private IGraphicsPipeline? _geometryGraphicsPipeline;
 
     private CameraInformation _cameraInformation;
-    private IUniformBuffer? _cameraInformationBuffer;
+    private IBuffer? _cameraInformationBuffer;
 
     public Renderer(
         ILogger logger,
@@ -81,7 +81,7 @@ internal sealed class Renderer : IRenderer
     
     public void AddToRenderQueue(PooledMesh pooledMesh, PooledMaterial pooledMaterial, Matrix4x4 worldMatrix)
     {
-        if (!_isLoaded || _geometryInstanceBuffer == null || _geometryIndirectBuffer == null)
+        if (!_isLoaded || _geometryInstanceBuffer == null || _geometryDrawIndirectBuffer == null)
         {
             return;
         }
@@ -92,7 +92,7 @@ internal sealed class Renderer : IRenderer
             MaterialId = new Int4(pooledMaterial.Index, 0, 0, 0)
         }, _objectDataIndex);
 
-        _geometryIndirectBuffer.Update(new GpuIndirectElementData
+        _geometryDrawIndirectBuffer.Update(new GpuIndirectElementData
         {
             FirstIndex = pooledMesh.IndexOffset,
             IndexCount = pooledMesh.IndexCount,
@@ -134,14 +134,14 @@ internal sealed class Renderer : IRenderer
 
         _graphicsContext.BindGraphicsPipeline(_geometryGraphicsPipeline);
         _graphicsContext.BeginRenderPass(_geometryFramebuffer.Value);
-        _geometryGraphicsPipeline.BindVertexBuffer(_meshPool.VertexBuffer, 0, 0);
-        _geometryGraphicsPipeline.BindIndexBuffer(_meshPool.IndexBuffer);
-        _geometryGraphicsPipeline.BindUniformBuffer(_cameraInformationBuffer, 0);
-        _geometryGraphicsPipeline.BindShaderStorageBuffer(_geometryInstanceBuffer, 1);
-        _geometryGraphicsPipeline.BindShaderStorageBuffer(_materialPool.MaterialBuffer, 2);
+        _geometryGraphicsPipeline.BindAsVertexBuffer(_meshPool.VertexBuffer, 0, 0);
+        _geometryGraphicsPipeline.BindAsIndexBuffer(_meshPool.IndexBuffer);
+        _geometryGraphicsPipeline.BindAsUniformBuffer(_cameraInformationBuffer, 0);
+        _geometryGraphicsPipeline.BindAsShaderStorageBuffer(_geometryInstanceBuffer, 1);
+        _geometryGraphicsPipeline.BindAsShaderStorageBuffer(_materialPool.MaterialBuffer, 2);
         if (_objectDataIndex > 0)
         {
-            _geometryGraphicsPipeline.MultiDrawElementsIndirect(_geometryIndirectBuffer, _objectDataIndex);
+            _geometryGraphicsPipeline.MultiDrawElementsIndirect(_geometryDrawIndirectBuffer, _objectDataIndex);
         }
         _graphicsContext.EndRender();
         
@@ -227,8 +227,8 @@ internal sealed class Renderer : IRenderer
         _geometryInstanceBuffer = _graphicsContext.CreateShaderStorageBuffer<GpuMeshInstance>("Instances");
         _geometryInstanceBuffer.AllocateStorage(Marshal.SizeOf<GpuMeshInstance>() * 4_096, StorageAllocationFlags.Dynamic);
 
-        _geometryIndirectBuffer = _graphicsContext.CreateIndirectBuffer("SceneIndirects");
-        _geometryIndirectBuffer.AllocateStorage(4096 * Marshal.SizeOf<GpuIndirectElementData>(), StorageAllocationFlags.Dynamic);
+        _geometryDrawIndirectBuffer = _graphicsContext.CreateDrawIndirectBuffer("SceneIndirects");
+        _geometryDrawIndirectBuffer.AllocateStorage(4096 * Marshal.SizeOf<GpuIndirectElementData>(), StorageAllocationFlags.Dynamic);
         
         _meshPool = _graphicsContext.CreateMeshPool("Vertices", 1_024 * MegaByte, 768 * MegaByte);
         _materialPool = _graphicsContext.CreateMaterialPool("Materials", 16 * MegaByte, _samplerLibrary);

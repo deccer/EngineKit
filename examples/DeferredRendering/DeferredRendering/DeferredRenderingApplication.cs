@@ -27,8 +27,8 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     private Model _deccerCubesModel;
 
-    private IVertexBuffer? _gpuVertexBuffer;
-    private IIndexBuffer? _gpuIndexBuffer;
+    private IBuffer? _gpuVertexBuffer;
+    private IBuffer? _gpuIndexBuffer;
 
     private SwapchainDescriptor _swapchainDescriptor;
 
@@ -45,15 +45,15 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     private ITexture? _finalTexture;
 
     private GpuCameraConstants _gpuCameraConstants;
-    private IUniformBuffer? _gpuCameraConstantsBuffer;
+    private IBuffer? _gpuCameraConstantsBuffer;
 
     private IList<GpuModelMeshInstance> _gpuModelMeshInstances;
-    private IShaderStorageBuffer? _gpuModelMeshInstanceBuffer;
+    private IBuffer? _gpuModelMeshInstanceBuffer;
     private IList<DrawCommand> _drawCommands;
 
     private IList<GpuMaterial> _gpuMaterials;
     private IList<string> _gpuMaterialsInUse;
-    private IShaderStorageBuffer _gpuMaterialBuffer;
+    private IBuffer _gpuMaterialBuffer;
 
     private IDictionary<string, ITexture> _textures;
 
@@ -156,11 +156,11 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
         GraphicsContext.BeginRenderPass(_gBufferFramebufferDescriptor);
         GraphicsContext.BindGraphicsPipeline(_gBufferGraphicsPipeline);
-        _gBufferGraphicsPipeline.BindUniformBuffer(_gpuCameraConstantsBuffer, 0);
-        _gBufferGraphicsPipeline.BindShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
-        _gBufferGraphicsPipeline.BindShaderStorageBuffer(_gpuMaterialBuffer, 2);
-        _gBufferGraphicsPipeline.BindVertexBuffer(_gpuVertexBuffer, 0, Offset.Zero);
-        _gBufferGraphicsPipeline.BindIndexBuffer(_gpuIndexBuffer);
+        _gBufferGraphicsPipeline.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0);
+        _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
+        _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer, 2);
+        _gBufferGraphicsPipeline.BindAsVertexBuffer(_gpuVertexBuffer, 0, Offset.Zero);
+        _gBufferGraphicsPipeline.BindAsIndexBuffer(_gpuIndexBuffer);
 
         for (var i = 0; i < _drawCommands.Count; i++)
         {

@@ -4,9 +4,9 @@ namespace EngineKit.Graphics;
 
 public interface IMeshPool : IDisposable
 {
-    IVertexBuffer VertexBuffer { get; }
+    IBuffer VertexBuffer { get; }
     
-    IIndexBuffer IndexBuffer { get; }
+    IBuffer IndexBuffer { get; }
 
     PooledMesh GetOrAdd(MeshPrimitive meshPrimitive);
 }

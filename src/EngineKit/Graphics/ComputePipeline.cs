@@ -1,3 +1,4 @@
+using EngineKit.Extensions;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Native.OpenGL;
 
@@ -19,10 +20,10 @@ internal sealed class ComputePipeline : Pipeline, IComputePipeline
         GL.Dispatch(numGroupX, numGroupY, numGroupZ);
     }
 
-    public void DispatchIndirect(IIndirectBuffer indirectBuffer, int indirectElementIndex)
+    public void DispatchIndirect(IBuffer dispatchIndirectBuffer, int indirectElementIndex)
     {
-        indirectBuffer.Bind();
-        GL.DispatchIndirect(new nint(indirectElementIndex * indirectBuffer.Stride));
+        GL.BindBuffer(BufferTarget.DispatchIndirectBuffer.ToGL(), dispatchIndirectBuffer.Id);
+        GL.DispatchIndirect(new nint(indirectElementIndex * dispatchIndirectBuffer.Stride));
     }
 
     public void Uniform(int location, float value)

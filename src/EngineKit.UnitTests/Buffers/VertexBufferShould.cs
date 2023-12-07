@@ -21,7 +21,7 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeInstantiable()
     {
         // Arrange
-        var vertexBuffer = new VertexBuffer<VertexPositionNormalUvTangent>("Label");
+        var vertexBuffer = new Buffer<VertexPositionNormalUvTangent>(BufferTarget.VertexBuffer, "Label");
 
         // Act
         vertexBuffer.AllocateStorage(100, StorageAllocationFlags.None);
@@ -39,7 +39,7 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeAbleToUpdateDynamicBuffer()
     {
         // Arrange
-        var vertexBuffer = new VertexBuffer<VertexPositionNormalUvTangent>("Label");
+        var vertexBuffer = new Buffer<VertexPositionNormalUvTangent>(BufferTarget.VertexBuffer, "Label");
         vertexBuffer.AllocateStorage(100, StorageAllocationFlags.Dynamic);
 
         // Act

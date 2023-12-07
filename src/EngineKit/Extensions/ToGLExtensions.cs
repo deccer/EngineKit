@@ -94,7 +94,8 @@ public static class ToGLExtensions
             BufferTarget.IndexBuffer => GL.BufferTarget.ElementArrayBuffer,
             BufferTarget.ShaderStorageBuffer => GL.BufferTarget.ShaderStorageBuffer,
             BufferTarget.UniformBuffer => GL.BufferTarget.UniformBuffer,
-            BufferTarget.IndirectDrawBuffer => GL.BufferTarget.DrawIndirectBuffer,
+            BufferTarget.DrawIndirectBuffer => GL.BufferTarget.DrawIndirectBuffer,
+            BufferTarget.DispatchIndirectBuffer => GL.BufferTarget.DispatchIndirectBuffer,
             _ => throw new ArgumentOutOfRangeException(nameof(bufferTarget), bufferTarget, null)
         };
     }

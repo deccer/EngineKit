@@ -2,12 +2,12 @@ namespace EngineKit.Graphics;
 
 public interface IGraphicsPipeline : IPipeline
 {
-    void BindVertexBuffer(
-        IVertexBuffer? vertexBuffer,
+    void BindAsVertexBuffer(
+        IBuffer vertexBuffer,
         uint binding,
-        int offset);
+        int offset = 0);
 
-    void BindIndexBuffer(IIndexBuffer? indexBuffer);
+    void BindAsIndexBuffer(IBuffer indexBuffer);
 
     void DrawArrays(
         uint vertexCount,
@@ -22,10 +22,6 @@ public interface IGraphicsPipeline : IPipeline
     void DrawElements(
         int elementCount,
         int offset = 0);
-
-    void DrawElementsIndirect(
-        IIndirectBuffer indirectBuffer,
-        int indirectElementIndex= 0);
 
     void DrawElementsInstanced(
         int elementCount,
@@ -44,8 +40,12 @@ public interface IGraphicsPipeline : IPipeline
         int instanceCount,
         int baseVertex,
         int baseInstance);
+    
+    void DrawElementsIndirect(
+        IBuffer drawIndirectBuffer,
+        int indirectElementIndex= 0);
 
-    void MultiDrawElementsIndirect(IIndirectBuffer indirectBuffer, int primitiveCount);
+    void MultiDrawElementsIndirect(IBuffer drawIndirectBuffer, int primitiveCount);
 
     void VertexUniform(int location, float value);
 
