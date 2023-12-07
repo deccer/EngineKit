@@ -45,16 +45,40 @@ public abstract class Pipeline : IPipeline
 
     public void BindAsUniformBuffer(
         IBuffer uniformBuffer,
-        uint bindingIndex)
+        uint bindingIndex,
+        int offsetInBytes = Offset.Zero,
+        int sizeInBytes = SizeInBytes.Whole)
     {
-        GL.BindBufferBase(BufferTarget.UniformBuffer.ToGL(), bindingIndex, uniformBuffer.Id);
+        if (sizeInBytes == SizeInBytes.Whole)
+        {
+            sizeInBytes = uniformBuffer.Count * uniformBuffer.Stride;
+            if (offsetInBytes == Offset.Zero)
+            {
+                GL.BindBufferBase(GL.BufferTarget.UniformBuffer, bindingIndex, uniformBuffer.Id);
+                return;
+            }
+        }
+        
+        GL.BindBufferRange(BufferTarget.UniformBuffer.ToGL(), bindingIndex, uniformBuffer.Id, offsetInBytes, sizeInBytes);
     }
 
     public void BindAsShaderStorageBuffer(
         IBuffer shaderStorageBuffer,
-        uint bindingIndex)
+        uint bindingIndex,
+        int offsetInBytes = Offset.Zero,
+        int sizeInBytes = SizeInBytes.Whole)
     {
-        GL.BindBufferBase(BufferTarget.ShaderStorageBuffer.ToGL(), bindingIndex, shaderStorageBuffer.Id);
+        if (sizeInBytes == SizeInBytes.Whole)
+        {
+            sizeInBytes = shaderStorageBuffer.Count * shaderStorageBuffer.Stride;
+            if (offsetInBytes == Offset.Zero)
+            {
+                GL.BindBufferBase(GL.BufferTarget.ShaderStorageBuffer, bindingIndex, shaderStorageBuffer.Id);
+                return;
+            }
+        }
+
+        GL.BindBufferRange(GL.BufferTarget.ShaderStorageBuffer, bindingIndex, shaderStorageBuffer.Id, offsetInBytes, sizeInBytes);
     }
 
     public void BindTexture(

@@ -454,7 +454,7 @@ internal sealed class UIRenderer : IUIRenderer
         _graphicsContext.BindGraphicsPipeline(_imGuiGraphicsPipeline!);
 
         _imGuiGraphicsPipeline!.BindAsUniformBuffer(_uniformBuffer!, 0);
-        _imGuiGraphicsPipeline.BindAsVertexBuffer(_vertexBuffer!, 0, 0);
+        _imGuiGraphicsPipeline.BindAsVertexBuffer(_vertexBuffer!, 0, Offset.Zero);
         _imGuiGraphicsPipeline.BindAsIndexBuffer(_indexBuffer!);
         _imGuiGraphicsPipeline.BindSampledTexture(_fontSampler!, _fontTexture!, 0);
 

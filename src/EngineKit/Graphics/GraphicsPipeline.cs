@@ -36,7 +36,7 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
 
     public void BindAsVertexBuffer(IBuffer vertexBuffer,
         uint binding,
-        int offset = 0)
+        int offset = Offset.Zero)
     {
         if (_currentVertexBuffer != vertexBuffer)
         {
