@@ -1,12 +1,16 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CSharpFunctionalExtensions;
+using EngineKit.Graphics.Shaders;
 
 namespace EngineKit.Graphics;
 
 internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
 {
-    private readonly IInternalGraphicsContext _internalGraphicsContext;
+    private readonly IDictionary<int, IInputLayout> _inputLayoutCache;
+    private readonly IDictionary<IPipeline, GraphicsPipelineDescriptor> _graphicsPipelineCache;
+    private readonly IShaderProgramFactory _shaderProgramFactory;
     private GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
     private string? _vertexShaderFilePath;
     private string? _fragmentShaderFilePath;
@@ -14,9 +18,14 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
     private string? _fragmentShaderSource;
     private bool _shadersFromFiles = false;
 
-    public GraphicsPipelineBuilder(IInternalGraphicsContext internalGraphicsContext)
+    public GraphicsPipelineBuilder(
+        IDictionary<int, IInputLayout> inputLayoutCache,
+        IDictionary<IPipeline, GraphicsPipelineDescriptor> graphicsPipelineCache,
+        IShaderProgramFactory shaderProgramFactory)
     {
-        _internalGraphicsContext = internalGraphicsContext;
+        _inputLayoutCache = inputLayoutCache;
+        _graphicsPipelineCache = graphicsPipelineCache;
+        _shaderProgramFactory = shaderProgramFactory;
         _graphicsPipelineDescriptor = new GraphicsPipelineDescriptor
         {
             InputAssembly = new InputAssemblyDescriptor
@@ -222,6 +231,30 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         _graphicsPipelineDescriptor.VertexShaderSource = _vertexShaderSource;
         _graphicsPipelineDescriptor.FragmentShaderSource = _fragmentShaderSource;
         _graphicsPipelineDescriptor.PipelineProgramLabel = label;
-        return _internalGraphicsContext.CreateGraphicsPipeline(_graphicsPipelineDescriptor);
+
+        var vertexInputHashCode = _graphicsPipelineDescriptor.VertexInput.VertexBindingDescriptors.GetHashCode();
+        if (!_inputLayoutCache.TryGetValue(vertexInputHashCode, out var inputLayout))
+        {
+            inputLayout = new InputLayout(_graphicsPipelineDescriptor.VertexInput);
+            _inputLayoutCache.Add(vertexInputHashCode, inputLayout);
+        }
+
+        var graphicsShaderProgram = _shaderProgramFactory.CreateShaderProgram(
+            _graphicsPipelineDescriptor.PipelineProgramLabel,
+            _graphicsPipelineDescriptor.VertexShaderSource,
+            _graphicsPipelineDescriptor.FragmentShaderSource);
+        var graphicsShaderProgramLinkResult = graphicsShaderProgram.Link();
+        if (graphicsShaderProgramLinkResult.IsFailure)
+        {
+            return Result.Failure<IGraphicsPipeline>(graphicsShaderProgramLinkResult.Error);
+        }
+
+        var graphicsPipeline = new GraphicsPipeline(
+            _graphicsPipelineDescriptor,
+            graphicsShaderProgram,
+            inputLayout);
+        _graphicsPipelineCache[graphicsPipeline] = _graphicsPipelineDescriptor;
+
+        return Result.Success<IGraphicsPipeline>(graphicsPipeline);        
     }
 }

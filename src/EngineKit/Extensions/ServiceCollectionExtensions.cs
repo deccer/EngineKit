@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using EngineKit.Graphics;
 using EngineKit.Graphics.MeshLoaders;
 using EngineKit.Graphics.Shaders;
@@ -39,5 +40,9 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IImageLoader, SixLaborsImageLoader>();
         services.AddSingleton<IKtxImageLoader, KtxImageLoader>();
+
+        services.AddSingleton<IDictionary<int, IInputLayout>, Dictionary<int, IInputLayout>>();
+        services.AddSingleton<IDictionary<IPipeline, GraphicsPipelineDescriptor>, Dictionary<IPipeline, GraphicsPipelineDescriptor>>();
+        services.AddSingleton<IDictionary<IPipeline, ComputePipelineDescriptor>, Dictionary<IPipeline, ComputePipelineDescriptor>>();
     }
 }

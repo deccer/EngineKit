@@ -1,19 +1,25 @@
+using System.Collections.Generic;
 using System.IO;
 using CSharpFunctionalExtensions;
+using EngineKit.Graphics.Shaders;
 
 namespace EngineKit.Graphics;
 
 internal sealed class ComputePipelineBuilder : IComputePipelineBuilder
 {
-    private readonly IInternalGraphicsContext _internalGraphicsContext;
+    private readonly IDictionary<IPipeline, ComputePipelineDescriptor> _computePipelineCache;
+    private readonly IShaderProgramFactory _shaderProgramFactory;
     private ComputePipelineDescriptor _computePipelineDescriptor;
     private string? _computeShaderFilePath;
     private string? _computeShaderSource;
-    private bool _shaderFromFile = false;
+    private bool _shaderFromFile;
 
-    public ComputePipelineBuilder(IInternalGraphicsContext internalGraphicsContext)
+    public ComputePipelineBuilder(
+        IDictionary<IPipeline, ComputePipelineDescriptor> computePipelineCache,
+        IShaderProgramFactory shaderProgramFactory)
     {
-        _internalGraphicsContext = internalGraphicsContext;
+        _computePipelineCache = computePipelineCache;
+        _shaderProgramFactory = shaderProgramFactory;
         _computePipelineDescriptor = new ComputePipelineDescriptor();
     }
 
@@ -52,6 +58,19 @@ internal sealed class ComputePipelineBuilder : IComputePipelineBuilder
 
         _computePipelineDescriptor.ComputeShaderSource = _computeShaderSource;
         _computePipelineDescriptor.PipelineProgramLabel = label;
-        return _internalGraphicsContext.CreateComputePipeline(_computePipelineDescriptor);
+
+        var computeShaderProgram = _shaderProgramFactory.CreateShaderProgram(
+            _computePipelineDescriptor.PipelineProgramLabel,
+            _computePipelineDescriptor.ComputeShaderSource);
+        var computeShaderProgramLinkResult = computeShaderProgram.Link();
+        if (computeShaderProgramLinkResult.IsFailure)
+        {
+            return Result.Failure<IComputePipeline>(computeShaderProgramLinkResult.Error);
+        }
+
+        var computePipeline = new ComputePipeline(_computePipelineDescriptor, computeShaderProgram);
+        _computePipelineCache[computePipeline] = _computePipelineDescriptor;
+
+        return Result.Success<IComputePipeline>(computePipeline);        
     }
 }

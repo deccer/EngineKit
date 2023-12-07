@@ -6,15 +6,18 @@ namespace EngineKit.Graphics;
 
 public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
 {
-    internal IInputLayout? CurrentInputLayout;
-
     private readonly GraphicsPipelineDescriptor _graphicsPipelineDescriptor;
+    private readonly IInputLayout _currentInputLayout;
     private IVertexBuffer? _currentVertexBuffer;
     private IIndexBuffer? _currentIndexBuffer;
 
-    internal GraphicsPipeline(GraphicsPipelineDescriptor graphicsPipelineDescriptor, ShaderProgram shaderProgram)
+    internal GraphicsPipeline(
+        GraphicsPipelineDescriptor graphicsPipelineDescriptor,
+        ShaderProgram shaderProgram,
+        IInputLayout currentInputLayout)
     {
         _graphicsPipelineDescriptor = graphicsPipelineDescriptor;
+        _currentInputLayout = currentInputLayout;
         ShaderProgram = shaderProgram;
         Label = graphicsPipelineDescriptor.PipelineProgramLabel;
     }
@@ -22,13 +25,13 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
     public override void Dispose()
     {
         base.Dispose();
-        CurrentInputLayout?.Dispose();
+        _currentInputLayout.Dispose();
     }
 
     public override void Bind()
     {
         base.Bind();
-        CurrentInputLayout!.Bind();
+        _currentInputLayout.Bind();
     }
 
     public void BindVertexBuffer(
@@ -38,7 +41,7 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
     {
         if (_currentVertexBuffer != vertexBuffer)
         {
-            vertexBuffer?.Bind(CurrentInputLayout!, binding, offset);
+            vertexBuffer?.Bind(_currentInputLayout, binding, offset);
             _currentVertexBuffer = vertexBuffer;
         }
     }
@@ -47,7 +50,7 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
     {
         if (_currentIndexBuffer != indexBuffer)
         {
-            indexBuffer?.Bind(CurrentInputLayout!);
+            indexBuffer?.Bind(_currentInputLayout);
             _currentIndexBuffer = indexBuffer;
         }
     }

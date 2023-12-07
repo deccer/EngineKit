@@ -16,7 +16,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace EngineKit.Graphics;
 
-internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsContext
+internal sealed class GraphicsContext : IGraphicsContext
 {
     private readonly ILogger _logger;
     private readonly IShaderProgramFactory _shaderProgramFactory;
@@ -107,62 +107,14 @@ internal sealed class GraphicsContext : IGraphicsContext, IInternalGraphicsConte
         return new MaterialPool(_logger, label, _capabilities, this, samplerLibrary, materialBufferCapacity);
     }
 
-    public Result<IComputePipeline> CreateComputePipeline(ComputePipelineDescriptor computePipelineDescriptor)
-    {
-        var computeShaderProgram = _shaderProgramFactory.CreateShaderProgram(
-            computePipelineDescriptor.PipelineProgramLabel,
-            computePipelineDescriptor.ComputeShaderSource);
-        var computeShaderProgramLinkResult = computeShaderProgram.Link();
-        if (computeShaderProgramLinkResult.IsFailure)
-        {
-            return Result.Failure<IComputePipeline>(computeShaderProgramLinkResult.Error);
-        }
-
-        var computePipeline = new ComputePipeline(computePipelineDescriptor, computeShaderProgram);
-        _computePipelineCache[computePipeline] = computePipelineDescriptor;
-
-        return Result.Success<IComputePipeline>(computePipeline);
-    }
-
     public IGraphicsPipelineBuilder CreateGraphicsPipelineBuilder()
     {
-        return new GraphicsPipelineBuilder(this);
+        return new GraphicsPipelineBuilder(_inputLayoutCache, _graphicsPipelineCache, _shaderProgramFactory);
     }
 
     public IComputePipelineBuilder CreateComputePipelineBuilder()
     {
-        return new ComputePipelineBuilder(this);
-    }
-
-    public Result<IGraphicsPipeline> CreateGraphicsPipeline(GraphicsPipelineDescriptor graphicsPipelineDescriptor)
-    {
-        var vertexInputHashCode = graphicsPipelineDescriptor.VertexInput.VertexBindingDescriptors.GetHashCode();
-        if (!_inputLayoutCache.TryGetValue(vertexInputHashCode, out var inputLayout))
-        {
-            inputLayout = new InputLayout(graphicsPipelineDescriptor.VertexInput);
-            _inputLayoutCache.Add(vertexInputHashCode, inputLayout);
-        }
-
-        var graphicsShaderProgram = _shaderProgramFactory.CreateShaderProgram(
-            graphicsPipelineDescriptor.PipelineProgramLabel,
-            graphicsPipelineDescriptor.VertexShaderSource,
-            graphicsPipelineDescriptor.FragmentShaderSource);
-        var graphicsShaderProgramLinkResult = graphicsShaderProgram.Link();
-        if (graphicsShaderProgramLinkResult.IsFailure)
-        {
-            return Result.Failure<IGraphicsPipeline>(graphicsShaderProgramLinkResult.Error);
-        }
-
-        var graphicsPipeline = new GraphicsPipeline(graphicsPipelineDescriptor, graphicsShaderProgram);
-
-        /*
-         * TODO(deccer) this is not cool, it needs to be set in a way that i dont have to use an internal, but also
-         * dont want to expose InputLayout to the consuming side
-         */
-        graphicsPipeline.CurrentInputLayout = inputLayout;
-        _graphicsPipelineCache[graphicsPipeline] = graphicsPipelineDescriptor;
-
-        return Result.Success<IGraphicsPipeline>(graphicsPipeline);
+        return new ComputePipelineBuilder(_computePipelineCache, _shaderProgramFactory);
     }
 
     public unsafe bool TryMapBuffer(IBuffer buffer, MemoryAccess memoryAccess, out nint bufferPtr)
