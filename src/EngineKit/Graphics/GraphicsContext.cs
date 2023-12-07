@@ -412,6 +412,11 @@ internal sealed class GraphicsContext : IGraphicsContext
             return false;
         }
 
+        if (computePipelineDescriptor.ClearResourceBindings)
+        {
+            ClearResourceBindings();
+        }
+
         computePipeline.Bind();
 
         return true;
@@ -424,6 +429,10 @@ internal sealed class GraphicsContext : IGraphicsContext
             return false;
         }
 
+        if (graphicsPipelineDescriptor.ClearResourceBindings)
+        {
+            ClearResourceBindings();
+        }
         graphicsPipeline.Bind();
 
         GL.EnableWhen(
@@ -499,10 +508,8 @@ internal sealed class GraphicsContext : IGraphicsContext
         return true;
     }
 
-    public void BeginRenderToSwapchain(SwapchainDescriptor swapchainDescriptor)
+    public void BeginRenderPass(SwapchainDescriptor swapchainDescriptor)
     {
-        ClearResourceBindings();
-
         GL.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
         GL.FramebufferBit framebufferBit = 0;
         if (swapchainDescriptor.ClearColor)
@@ -551,10 +558,8 @@ internal sealed class GraphicsContext : IGraphicsContext
         }
     }
 
-    public void BeginRenderToFramebuffer(FramebufferDescriptor framebufferDescriptor)
+    public void BeginRenderPass(FramebufferDescriptor framebufferDescriptor)
     {
-        ClearResourceBindings();
-
         _currentFramebuffer = _framebufferCache.GetOrCreateFramebuffer(framebufferDescriptor);
         GL.BindFramebuffer(GL.FramebufferTarget.Framebuffer, _currentFramebuffer.Value);
         if (!framebufferDescriptor.HasSrgbEnabledAttachment())
@@ -712,8 +717,7 @@ internal sealed class GraphicsContext : IGraphicsContext
         GL.DepthMask(true);
         GL.StencilMask(true);
     }
-
-    //[Conditional("DEBUG")]
+    
     public void ClearResourceBindings()
     {
         for (var i = 0u; i < _limits.MaxImageUnits; i++)

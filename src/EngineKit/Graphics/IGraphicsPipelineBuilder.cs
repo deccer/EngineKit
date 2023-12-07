@@ -47,4 +47,6 @@ public interface IGraphicsPipelineBuilder
     IGraphicsPipelineBuilder DisableDepthBias();
 
     IGraphicsPipelineBuilder DisableBlending();
+    
+    IGraphicsPipelineBuilder ClearResourceBindingsOnBind();
 }

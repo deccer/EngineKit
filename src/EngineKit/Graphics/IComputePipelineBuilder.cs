@@ -9,4 +9,5 @@ public interface IComputePipelineBuilder
     IComputePipelineBuilder WithShaderFromFile(string computeShaderFilePath);
 
     IComputePipelineBuilder WithShaderFromSource(string computeShaderSource);
+    IComputePipelineBuilder ClearResourceBindingsOnBind();
 }

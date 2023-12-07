@@ -5,4 +5,6 @@ internal record struct ComputePipelineDescriptor
     public Label PipelineProgramLabel;
 
     public string ComputeShaderSource;
+
+    public bool ClearResourceBindings;
 }

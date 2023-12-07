@@ -17,4 +17,6 @@ internal record struct GraphicsPipelineDescriptor
     public DepthStencilDescriptor DepthStencilDescriptor;
 
     public ColorBlendDescriptor ColorBlendDescriptor;
+    
+    public bool ClearResourceBindings;
 }

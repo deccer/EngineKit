@@ -194,6 +194,12 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
+    public IGraphicsPipelineBuilder ClearResourceBindingsOnBind()
+    {
+        _graphicsPipelineDescriptor.ClearResourceBindings = true;
+        return this;
+    }
+
     public Result<IGraphicsPipeline> Build(Label label)
     {
         if (!_graphicsPipelineDescriptor.VertexInput.VertexBindingDescriptors.Any())

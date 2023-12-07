@@ -20,7 +20,6 @@ internal sealed class ComputePipelineBuilder : IComputePipelineBuilder
     {
         _computePipelineCache = computePipelineCache;
         _shaderProgramFactory = shaderProgramFactory;
-        _computePipelineDescriptor = new ComputePipelineDescriptor();
     }
 
     public IComputePipelineBuilder WithShaderFromFile(string computeShaderFilePath)
@@ -34,6 +33,12 @@ internal sealed class ComputePipelineBuilder : IComputePipelineBuilder
     {
         _computeShaderSource = computeShaderSource;
         _shaderFromFile = false;
+        return this;
+    }
+
+    public IComputePipelineBuilder ClearResourceBindingsOnBind()
+    {
+        _computePipelineDescriptor.ClearResourceBindings = true;
         return this;
     }
 
