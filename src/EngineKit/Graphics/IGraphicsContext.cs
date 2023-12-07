@@ -9,9 +9,9 @@ public interface IGraphicsContext : IDisposable
 
     bool BindGraphicsPipeline(IGraphicsPipeline graphicsPipeline);
 
-    void BeginRenderToSwapchain(SwapchainDescriptor swapchainDescriptor);
+    void BeginRenderPass(SwapchainDescriptor swapchainDescriptor);
 
-    void BeginRenderToFramebuffer(FramebufferDescriptor framebufferDescriptor);
+    void BeginRenderPass(FramebufferDescriptor framebufferDescriptor);
 
     void BlitFramebufferToSwapchain(
         int sourceWidth,

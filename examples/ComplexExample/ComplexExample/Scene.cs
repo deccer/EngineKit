@@ -124,7 +124,7 @@ public class Scene : IScene
 
     public void RenderUi()
     {
-        _graphicsContext.BeginRenderToSwapchain(_swapchainDescriptor);
+        _graphicsContext.BeginRenderPass(_swapchainDescriptor);
         ImGui.ShowDemoWindow();
         RenderUiAssets();
         RenderUiScene();

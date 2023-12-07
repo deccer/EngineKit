@@ -154,7 +154,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         _gpuCameraConstantsBuffer.Update(_gpuCameraConstants, 0);
         _gpuModelMeshInstanceBuffer.Update(_gpuModelMeshInstances.ToArray(), 0);
 
-        GraphicsContext.BeginRenderToFramebuffer(_gBufferFramebufferDescriptor);
+        GraphicsContext.BeginRenderPass(_gBufferFramebufferDescriptor);
         GraphicsContext.BindGraphicsPipeline(_gBufferGraphicsPipeline);
         _gBufferGraphicsPipeline.BindUniformBuffer(_gpuCameraConstantsBuffer, 0);
         _gBufferGraphicsPipeline.BindShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
@@ -177,7 +177,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         GL.PopDebugGroup();
 
         GL.PushDebugGroup("Resolve-Pass");
-        GraphicsContext.BeginRenderToFramebuffer(_finalFramebufferDescriptor);
+        GraphicsContext.BeginRenderPass(_finalFramebufferDescriptor);
         GraphicsContext.BindGraphicsPipeline(_finalGraphicsPipeline);
         _finalGraphicsPipeline.BindSampledTexture(_pointSampler, _gBufferBaseColorTexture, 0);
         _finalGraphicsPipeline.DrawArrays(3, 0);
@@ -185,7 +185,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         GL.PopDebugGroup();
 
         GL.PushDebugGroup("UI-Pass");
-        GraphicsContext.BeginRenderToSwapchain(_swapchainDescriptor);
+        GraphicsContext.BeginRenderPass(_swapchainDescriptor);
         GraphicsContext.BlitFramebufferToSwapchain(
             _applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y,

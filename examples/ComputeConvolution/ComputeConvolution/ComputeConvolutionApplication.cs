@@ -99,7 +99,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
                 return;
             }
         }
-        GraphicsContext.BeginRenderToSwapchain(_swapchainDescriptor);
+        GraphicsContext.BeginRenderPass(_swapchainDescriptor);
         GraphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline!);
 
         _sceneGraphicsPipeline!.BindSampledTexture(_skyboxSampler!, _skyboxTexture!.Id, 0);

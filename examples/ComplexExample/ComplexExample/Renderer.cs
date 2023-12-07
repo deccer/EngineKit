@@ -133,7 +133,7 @@ internal sealed class Renderer : IRenderer
         }
 
         _graphicsContext.BindGraphicsPipeline(_geometryGraphicsPipeline);
-        _graphicsContext.BeginRenderToFramebuffer(_geometryFramebuffer.Value);
+        _graphicsContext.BeginRenderPass(_geometryFramebuffer.Value);
         _geometryGraphicsPipeline.BindVertexBuffer(_meshPool.VertexBuffer, 0, 0);
         _geometryGraphicsPipeline.BindIndexBuffer(_meshPool.IndexBuffer);
         _geometryGraphicsPipeline.BindUniformBuffer(_cameraInformationBuffer, 0);
