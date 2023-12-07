@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using EngineKit.Extensions;
 using ImGuiNET;
 
 namespace EngineKit.Graphics;
@@ -80,7 +81,7 @@ public readonly record struct VertexInputDescriptor(VertexInputBindingDescriptor
             var offset = (uint)Marshal.OffsetOf<TVertexType>(vertexTypeAttribute.Name);
             var isNormalized = GetNormalizedFromFieldType(vertexTypeAttribute.FieldType);
 
-            return new VertexInputBindingDescriptor(location, binding, dataType, componentCount, offset, isNormalized);
+            return new VertexInputBindingDescriptor(location, binding, dataType.ToGL(), componentCount, offset, isNormalized);
         });
         return new VertexInputDescriptor(vertexInputBindingDescriptors.ToArray(), vertexType.Name);
     }

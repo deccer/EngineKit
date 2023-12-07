@@ -13,8 +13,8 @@ internal sealed class InputLayout : IInputLayout
         _id = GL.CreateVertexArray();
 
         var label = string.IsNullOrEmpty(vertexInputDescriptor.Label)
-            ? $"InputLayout-{vertexInputDescriptor.Label}-"
-            : "InputLayout-";
+            ? "InputLayout-"
+            : $"InputLayout-{vertexInputDescriptor.Label}-";
         foreach (var vertexBinding in vertexInputDescriptor.VertexBindingDescriptors)
         {
             GL.EnableVertexArrayAttrib(_id, vertexBinding.Location);
@@ -27,31 +27,31 @@ internal sealed class InputLayout : IInputLayout
 
             switch (componentDataType)
             {
-                case DataType.Float:
+                case GL.DataType.Float:
                     GL.VertexArrayAttribFormat(
                         _id,
                         vertexBinding.Location,
                         componentCount,
-                        componentDataType.ToGL(),
+                        componentDataType,
                         vertexBinding.IsNormalized,
                         vertexBinding.Offset);
                     break;
-                case DataType.Integer:
-                case DataType.UnsignedInteger:
+                case GL.DataType.Int:
+                case GL.DataType.UnsignedInt:
                     GL.VertexArrayAttribIFormat(
                         _id,
                         vertexBinding.Location,
                         componentCount,
-                        componentDataType.ToGL(),
+                        componentDataType,
                         vertexBinding.Offset);
                     break;
-                case DataType.Byte:
-                case DataType.UnsignedByte:
+                case GL.DataType.Byte:
+                case GL.DataType.UnsignedByte:
                     GL.VertexArrayAttribFormat(
                         _id,
                         vertexBinding.Location,
                         componentCount,
-                        componentDataType.ToGL(),
+                        componentDataType,
                         true,
                         vertexBinding.Offset);
                     break;
