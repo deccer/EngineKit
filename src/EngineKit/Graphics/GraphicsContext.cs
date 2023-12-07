@@ -444,12 +444,12 @@ internal sealed class GraphicsContext : IGraphicsContext
         GL.EnableWhen(GL.EnableType.PolygonOffsetLine, rasterizationDescriptor.IsDepthBiasEnabled);
         GL.EnableWhen(GL.EnableType.PolygonOffsetPoint, rasterizationDescriptor.IsDepthBiasEnabled);
         
-        //if (Math.Abs(rasterizationDescriptor.LineWidth - 1.0f) < float.Epsilon)
+        if (Math.Abs(rasterizationDescriptor.LineWidth - 1.0f) > float.Epsilon)
         {
             GL.LineWidth(rasterizationDescriptor.LineWidth);
         }
 
-        //if (Math.Abs(rasterizationDescriptor.PointSize - 1.0f) < float.Epsilon)
+        if (Math.Abs(rasterizationDescriptor.PointSize - 1.0f) > float.Epsilon)
         {
             GL.PointSize(rasterizationDescriptor.PointSize);
         }
