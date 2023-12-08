@@ -4,7 +4,7 @@ namespace EngineKit.Graphics;
 
 public class Model : IHasName
 {
-    public Model(string name, IEnumerable<ModelMesh> modelMeshes)
+    public Model(string name, List<ModelMesh> modelMeshes)
     {
         Name = name;
         ModelMeshes = modelMeshes;
@@ -12,5 +12,5 @@ public class Model : IHasName
     
     public string Name { get; set; }
     
-    public IEnumerable<ModelMesh> ModelMeshes { get; }
+    public List<ModelMesh> ModelMeshes { get; }
 }

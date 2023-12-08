@@ -20,19 +20,19 @@ internal sealed class ModelLibrary : IModelLibrary
 
     public void AddModel(Model model)
     {
-        if (_models.ContainsKey(model.Name))
-        {
-            return;
-        }
-        
-        _models.Add(model.Name, model);
+        _models.TryAdd(model.Name, model);
     }
 
     public void AddModelFromFile(string name, string filePath)
     {
+        if (_models.ContainsKey(name))
+        {
+            return;
+        }
+        
         var meshPrimitives = _meshLoader.LoadMeshPrimitivesFromFile(Path.Combine(_baseDirectory, filePath));
         var modelMeshes = meshPrimitives.Select(meshPrimitive => new ModelMesh(meshPrimitive));
-        _models.Add(name, new Model(name, modelMeshes));
+        _models.Add(name, new Model(name, modelMeshes.ToList()));
     }
 
     public Model? GetModelByName(string name)
