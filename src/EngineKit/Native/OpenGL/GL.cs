@@ -591,26 +591,26 @@ public static unsafe partial class GL
         NamedBufferStorage(buffer, size, dataPtr, bufferStorageFlags);
     }
 
-    public static void NamedBufferStorage<TData>(
+    public static void NamedBufferStorage<TElement>(
         uint buffer,
-        in TData data,
+        in TElement data,
         uint bufferStorageFlags)
-        where TData : unmanaged
+        where TElement : unmanaged
     {
-        var size = (long)sizeof(TData);
+        var size = (long)sizeof(TElement);
         fixed (void* dataPtr = &data)
         {
             NamedBufferStorage(buffer, size, dataPtr, bufferStorageFlags);
         }
     }
 
-    public static void NamedBufferStorage<TData>(
+    public static void NamedBufferStorage<TElement>(
         uint buffer,
-        TData[] data,
+        TElement[] data,
         uint bufferStorageFlags)
-        where TData : unmanaged
+        where TElement : unmanaged
     {
-        var size = (long)(data.Length * sizeof(TData));
+        var size = (long)(data.Length * sizeof(TElement));
         fixed (void* dataPtr = data)
         {
             NamedBufferStorage(buffer, size, dataPtr, bufferStorageFlags);
@@ -626,26 +626,39 @@ public static unsafe partial class GL
         _glNamedBufferStorageDelegate(buffer, size, dataPtr, bufferStorageFlags);
     }
 
-    public static void NamedBufferSubData<TData>(
+    public static void NamedBufferSubData<TElement>(
         uint buffer,
         nint offset,
-        TData[] data)
-        where TData : unmanaged
+        TElement[] data)
+        where TElement : unmanaged
     {
-        var size = (long)(data.Length * sizeof(TData));
+        var size = (long)(data.Length * sizeof(TElement));
         fixed (void* dataPtr = data)
         {
             NamedBufferSubData(buffer, offset, size, dataPtr);
         }
     }
-
-    public static void NamedBufferSubData<TData>(
+    
+    public static void NamedBufferSubData<TElement>(
         uint buffer,
         nint offset,
-        in TData data)
-        where TData : unmanaged
+        Span<TElement> data)
+        where TElement : unmanaged
     {
-        var size = (long)sizeof(TData);
+        var size = (long)(data.Length * sizeof(TElement));
+        fixed (void* dataPtr = data)
+        {
+            NamedBufferSubData(buffer, offset, size, dataPtr);
+        }
+    }    
+
+    public static void NamedBufferSubData<TElement>(
+        uint buffer,
+        nint offset,
+        in TElement data)
+        where TElement : unmanaged
+    {
+        var size = (long)sizeof(TElement);
         fixed (void* dataPtr = &data)
         {
             NamedBufferSubData(buffer, offset, size, dataPtr);
@@ -658,7 +671,7 @@ public static unsafe partial class GL
         long size,
         void* data)
     {
-        _glNamedBufferSubDataDelegate(buffer, offset, size, (void*)data);
+        _glNamedBufferSubDataDelegate(buffer, offset, size, data);
     }
 
     public static void NamedBufferData(
@@ -671,41 +684,41 @@ public static unsafe partial class GL
         NamedBufferDataInternal(buffer, size, dataPtr, usage);
     }
 
-    public static void NamedBufferData<TData>(
+    public static void NamedBufferData<TElement>(
         uint buffer,
-        Span<TData> data,
+        Span<TElement> data,
         BufferUsage usage)
-        where TData : unmanaged
+        where TElement : unmanaged
     {
-        var size = (nint)(data.Length * sizeof(TData));
+        var size = (nint)(data.Length * sizeof(TElement));
         fixed (void* dataPtr = data)
         {
             NamedBufferDataInternal(buffer, size, dataPtr, usage);
         }
     }
 
-    public static void NamedBufferData<TData>(
+    public static void NamedBufferData<TElement>(
         uint buffer,
-        TData[] data,
+        TElement[] data,
         BufferUsage usage)
-        where TData : unmanaged
+        where TElement : unmanaged
     {
-        var size = (nint)(data.Length * sizeof(TData));
+        var size = (nint)(data.Length * sizeof(TElement));
         fixed (void* dataPtr = data)
         {
             NamedBufferDataInternal(buffer, size, dataPtr, usage);
         }
     }
 
-    public static void NamedBufferData<TData>(
+    public static void NamedBufferData<TElement>(
         uint buffer,
-        in TData data,
+        in TElement data,
         BufferUsage usage)
-        where TData : unmanaged
+        where TElement : unmanaged
     {
         fixed (void* dataPtr = &data)
         {
-            NamedBufferDataInternal(buffer, sizeof(TData), dataPtr, usage);
+            NamedBufferDataInternal(buffer, sizeof(TElement), dataPtr, usage);
         }
     }
 

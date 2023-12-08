@@ -82,6 +82,16 @@ internal abstract class Buffer : IBuffer
         }
         GL.NamedBufferSubData(Id, elementOffset * Stride, data);
     }
+    
+    public void Update<TElement>(Span<TElement> data, int elementOffset = 0)
+        where TElement : unmanaged
+    {
+        if ((elementOffset * Stride) + data.Length * Stride > SizeInBytes)
+        {
+            throw new ArgumentOutOfRangeException(nameof(elementOffset));
+        }
+        GL.NamedBufferSubData(Id, elementOffset * Stride, data);
+    }
 
     public static implicit operator uint(Buffer buffer)
     {
