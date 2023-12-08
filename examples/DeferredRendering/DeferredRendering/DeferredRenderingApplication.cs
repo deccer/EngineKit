@@ -35,6 +35,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     private ISampler? _pointSampler;
 
     private IGraphicsPipeline? _gBufferGraphicsPipeline;
+    private IGraphicsPipeline? _gBufferVertexPullingGraphicsPipeline;
     private FramebufferDescriptor _gBufferFramebufferDescriptor;
     private ITexture? _gBufferBaseColorTexture;
     private ITexture? _gBufferNormalTexture;
@@ -56,6 +57,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     private IBuffer _gpuMaterialBuffer;
 
     private IDictionary<string, ITexture> _textures;
+    private bool _useVertexPulling;
 
     public DeferredRenderingApplication(
         ILogger logger,
@@ -155,24 +157,46 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         _gpuModelMeshInstanceBuffer.Update(_gpuModelMeshInstances.ToArray(), 0);
 
         GraphicsContext.BeginRenderPass(_gBufferFramebufferDescriptor);
-        GraphicsContext.BindGraphicsPipeline(_gBufferGraphicsPipeline);
-        _gBufferGraphicsPipeline.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0);
-        _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
-        _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer, 2);
-        _gBufferGraphicsPipeline.BindAsVertexBuffer(_gpuVertexBuffer, 0, Offset.Zero);
-        _gBufferGraphicsPipeline.BindAsIndexBuffer(_gpuIndexBuffer);
-
-        for (var i = 0; i < _drawCommands.Count; i++)
+        if (_useVertexPulling)
         {
-            var drawCommand = _drawCommands[i];
-            _gBufferGraphicsPipeline.DrawElementsInstancedBaseVertexBaseInstance(
-                drawCommand.IndexCount,
-                drawCommand.IndexOffset,
-                1,
-                drawCommand.VertexOffset,
-                i);
-        }
+            GraphicsContext.BindGraphicsPipeline(_gBufferVertexPullingGraphicsPipeline);
+            _gBufferVertexPullingGraphicsPipeline.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0);
+            _gBufferVertexPullingGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
+            _gBufferVertexPullingGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer, 2);
+            _gBufferVertexPullingGraphicsPipeline.BindAsShaderStorageBuffer(_gpuVertexBuffer, 3);
+            _gBufferVertexPullingGraphicsPipeline.BindAsIndexBuffer(_gpuIndexBuffer);
 
+            for (var i = 0; i < _drawCommands.Count; i++)
+            {
+                var drawCommand = _drawCommands[i];
+                _gBufferVertexPullingGraphicsPipeline.DrawElementsInstancedBaseVertexBaseInstance(
+                    drawCommand.IndexCount,
+                    drawCommand.IndexOffset,
+                    1,
+                    drawCommand.VertexOffset,
+                    i);
+            }
+        }
+        else
+        {
+            GraphicsContext.BindGraphicsPipeline(_gBufferGraphicsPipeline);
+            _gBufferGraphicsPipeline.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0);
+            _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
+            _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer, 2);
+            _gBufferGraphicsPipeline.BindAsVertexBuffer(_gpuVertexBuffer, 0);
+            _gBufferGraphicsPipeline.BindAsIndexBuffer(_gpuIndexBuffer);
+
+            for (var i = 0; i < _drawCommands.Count; i++)
+            {
+                var drawCommand = _drawCommands[i];
+                _gBufferGraphicsPipeline.DrawElementsInstancedBaseVertexBaseInstance(
+                    drawCommand.IndexCount,
+                    drawCommand.IndexOffset,
+                    1,
+                    drawCommand.VertexOffset,
+                    i);
+            }
+        }
         GraphicsContext.EndRender();
         GL.PopDebugGroup();
 
@@ -218,6 +242,8 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                 var sensitivity = _camera.Sensitivity;
                 ImGui.SliderFloat("Camera Sensitivity", ref sensitivity, 0.01f, 1.0f);
                 _camera.Sensitivity = sensitivity;
+
+                ImGui.Checkbox("Use Vertex Pulling", ref _useVertexPulling);
 
                 ImGui.Image((nint)_gBufferBaseColorTexture.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
                 ImGui.Image((nint)_gBufferNormalTexture.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
@@ -365,8 +391,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
         var meshDatasAsArray = meshPrimitives.ToArray();
 
-        _gpuVertexBuffer =
-            GraphicsContext.CreateVertexBuffer("SceneVertices", meshDatasAsArray, VertexType.PositionNormalUvTangent);
+        _gpuVertexBuffer = GraphicsContext.CreateVertexBuffer("SceneVertices", meshDatasAsArray);
         _gpuIndexBuffer = GraphicsContext.CreateIndexBuffer("SceneIndices", meshDatasAsArray);
     }
 
@@ -440,6 +465,18 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         }
 
         _gBufferGraphicsPipeline = gBufferGraphicsPipelineResult.Value;
+        
+        var gBufferVertexPullingGraphicsPipelineResult = GraphicsContext.CreateGraphicsPipelineBuilder()
+            .WithShadersFromFiles("Shaders/SceneVertexPulling.vs.glsl", "Shaders/Scene.fs.glsl")
+            .WithCullingEnabled(CullMode.Back)
+            .Build("GBuffer-Pipeline");
+        if (gBufferVertexPullingGraphicsPipelineResult.IsFailure)
+        {
+            _logger.Error(gBufferVertexPullingGraphicsPipelineResult.Error);
+            return false;
+        }
+
+        _gBufferVertexPullingGraphicsPipeline = gBufferVertexPullingGraphicsPipelineResult.Value;
 
         var finalGraphicsPipelineResult = GraphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromFiles("Shaders/FST.vs.glsl", "Shaders/Texture.fs.glsl")

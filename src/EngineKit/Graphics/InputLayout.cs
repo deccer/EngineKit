@@ -11,52 +11,53 @@ internal sealed class InputLayout : IInputLayout
     public InputLayout(VertexInputDescriptor vertexInputDescriptor)
     {
         _id = GL.CreateVertexArray();
-
-        var label = vertexInputDescriptor.VertexBindingDescriptors.Any()
-            ? string.IsNullOrEmpty(vertexInputDescriptor.Label)
-                ? "InputLayout-"
-                : $"InputLayout-{vertexInputDescriptor.Label}-"
-            : "InputLayout-Default";
-        foreach (var vertexBinding in vertexInputDescriptor.VertexBindingDescriptors)
+        var label = "InputLayout-Default";
+        if (vertexInputDescriptor.VertexBindingDescriptors != null)
         {
-            GL.EnableVertexArrayAttrib(_id, vertexBinding.Location);
-            GL.VertexArrayAttribBinding(_id, vertexBinding.Location, vertexBinding.Binding);
-
-            var componentDataType = vertexBinding.DataType;
-            var componentCount = vertexBinding.ComponentCount;
-
-            label += $"{componentDataType}{componentCount}";
-
-            switch (componentDataType)
+            label = string.IsNullOrEmpty(vertexInputDescriptor.Label)
+                    ? "InputLayout-"
+                    : $"InputLayout-{vertexInputDescriptor.Label}-";
+            foreach (var vertexBinding in vertexInputDescriptor.VertexBindingDescriptors)
             {
-                case GL.DataType.Float:
-                    GL.VertexArrayAttribFormat(
-                        _id,
-                        vertexBinding.Location,
-                        componentCount,
-                        componentDataType,
-                        vertexBinding.IsNormalized,
-                        vertexBinding.Offset);
-                    break;
-                case GL.DataType.Int:
-                case GL.DataType.UnsignedInt:
-                    GL.VertexArrayAttribIFormat(
-                        _id,
-                        vertexBinding.Location,
-                        componentCount,
-                        componentDataType,
-                        vertexBinding.Offset);
-                    break;
-                case GL.DataType.Byte:
-                case GL.DataType.UnsignedByte:
-                    GL.VertexArrayAttribFormat(
-                        _id,
-                        vertexBinding.Location,
-                        componentCount,
-                        componentDataType,
-                        true,
-                        vertexBinding.Offset);
-                    break;
+                GL.EnableVertexArrayAttrib(_id, vertexBinding.Location);
+                GL.VertexArrayAttribBinding(_id, vertexBinding.Location, vertexBinding.Binding);
+
+                var componentDataType = vertexBinding.DataType;
+                var componentCount = vertexBinding.ComponentCount;
+
+                label += $"{componentDataType}{componentCount}";
+
+                switch (componentDataType)
+                {
+                    case GL.DataType.Float:
+                        GL.VertexArrayAttribFormat(
+                            _id,
+                            vertexBinding.Location,
+                            componentCount,
+                            componentDataType,
+                            vertexBinding.IsNormalized,
+                            vertexBinding.Offset);
+                        break;
+                    case GL.DataType.Int:
+                    case GL.DataType.UnsignedInt:
+                        GL.VertexArrayAttribIFormat(
+                            _id,
+                            vertexBinding.Location,
+                            componentCount,
+                            componentDataType,
+                            vertexBinding.Offset);
+                        break;
+                    case GL.DataType.Byte:
+                    case GL.DataType.UnsignedByte:
+                        GL.VertexArrayAttribFormat(
+                            _id,
+                            vertexBinding.Location,
+                            componentCount,
+                            componentDataType,
+                            true,
+                            vertexBinding.Offset);
+                        break;
+                }
             }
         }
 

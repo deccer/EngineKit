@@ -11,5 +11,5 @@ struct GpuModelMeshInstance
 
 layout(binding = 1, std430) readonly buffer ModelMeshInstanceBuffer
 {
-    GpuModelMeshInstance Instances[];
-} modelMeshInstanceBuffer;
+    GpuModelMeshInstance ModelMeshInstances[];
+};

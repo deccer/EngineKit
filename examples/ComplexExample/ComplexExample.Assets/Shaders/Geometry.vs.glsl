@@ -46,10 +46,10 @@ mat3 CreateTbnMatrix(in mat3 transform)
 void main()
 {
     GpuModelMeshInstance modelMeshInstance = instanceBuffer.Instances[gl_BaseInstance + gl_DrawID];
-    v_position = (modelMeshInstance.WorldMatrix * vec4(i_position, 1.0)).xyz;
-  
-    v_uv = i_uv;
+
     v_mesh_material_id = modelMeshInstance.MaterialId.x;
+    v_position = (modelMeshInstance.WorldMatrix * vec4(i_position, 1.0)).xyz;
+    v_uv = i_uv;
     v_tbn = CreateTbnMatrix(mat3(transpose(inverse(mat3(modelMeshInstance.WorldMatrix)))));
     
     gl_Position = cameraInformation.ProjectionMatrix * cameraInformation.ViewMatrix * vec4(v_position, 1.0);

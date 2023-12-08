@@ -15,7 +15,7 @@ public readonly record struct VertexInputDescriptor(VertexInputBindingDescriptor
     private static readonly IDictionary<Type, int> _fieldTypeToComponentCountMapping;
     private static readonly IDictionary<Type, DataType> _fieldTypeToDataTypeMapping;
     
-    public readonly VertexInputBindingDescriptor[] VertexBindingDescriptors = VertexBindingDescriptors;
+    public readonly VertexInputBindingDescriptor[]? VertexBindingDescriptors = VertexBindingDescriptors;
 
     public readonly Label Label = Label;
 
@@ -71,6 +71,11 @@ public readonly record struct VertexInputDescriptor(VertexInputBindingDescriptor
     public override int GetHashCode()
     {
         var hashCode = 13;
+        if (VertexBindingDescriptors == null)
+        {
+            return hashCode;
+        }
+        
         foreach (var vertexBindingDescriptor in VertexBindingDescriptors)
         {
             hashCode = HashCode.Combine(

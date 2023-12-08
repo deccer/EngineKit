@@ -1,7 +1,6 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using EngineKit.Extensions;
@@ -179,10 +178,8 @@ internal sealed class GraphicsContext : IGraphicsContext
 
     public IBuffer CreateVertexBuffer(
         Label label,
-        MeshPrimitive[] meshPrimitives,
-        VertexType targetVertexType)
+        MeshPrimitive[] meshPrimitives)
     {
-        //TODO(deccer) return vertex buffers depending on targetVertexType
         var bufferData = new List<VertexPositionNormalUvTangent>(1_024_000);
         foreach (var meshPrimitive in meshPrimitives)
         {
@@ -200,17 +197,8 @@ internal sealed class GraphicsContext : IGraphicsContext
                     meshPrimitive.RealTangents[i]));
             }
         }
-
-        IBuffer vertexBuffer;
-        switch (targetVertexType)
-        {
-            case VertexType.PositionNormalUvTangent:
-                vertexBuffer = new Buffer<VertexPositionNormalUvTangent>(BufferTarget.VertexBuffer, label);
-                break;
-            default:
-                throw new InvalidEnumArgumentException(nameof(targetVertexType));
-        }
-
+        
+        var vertexBuffer = new Buffer<VertexPositionNormalUvTangent>(BufferTarget.VertexBuffer, label);
         vertexBuffer.AllocateStorage(bufferData.ToArray(), StorageAllocationFlags.None);
         return vertexBuffer;
     }

@@ -19,7 +19,10 @@ public interface IGraphicsContext : IDisposable
         int targetWidth,
         int targetHeight);
 
-    bool TryMapBuffer(IBuffer buffer, MemoryAccess memoryAccess, out nint bufferPtr);
+    bool TryMapBuffer(
+        IBuffer buffer,
+        MemoryAccess memoryAccess,
+        out nint bufferPtr);
 
     void UnmapBuffer(IBuffer buffer);
 
@@ -45,8 +48,7 @@ public interface IGraphicsContext : IDisposable
 
     IBuffer CreateVertexBuffer(
         Label label,
-        MeshPrimitive[] meshPrimitives,
-        VertexType targetVertexType);
+        MeshPrimitive[] meshPrimitives);
 
     ISampler CreateSampler(SamplerDescriptor samplerDescriptor);
 
@@ -98,9 +100,15 @@ public interface IGraphicsContext : IDisposable
         FramebufferBit framebufferBit,
         BlitFramebufferFilter interpolationFilter);
     
-    IMeshPool CreateMeshPool(Label label, int vertexBufferCapacity, int indexBufferCapacity);
+    IMeshPool CreateMeshPool(
+        Label label,
+        int vertexBufferCapacity,
+        int indexBufferCapacity);
     
-    IMaterialPool CreateMaterialPool(Label label, int materialBufferCapacity, ISamplerLibrary samplerLibrary);
+    IMaterialPool CreateMaterialPool(
+        Label label,
+        int materialBufferCapacity,
+        ISamplerLibrary samplerLibrary);
 
     void EndRender();
 
@@ -115,5 +123,6 @@ public interface IGraphicsContext : IDisposable
     FramebufferDescriptor CreateSingleFramebufferDescriptorFromTexture(ITexture texture);
     
     void ClearResourceBindings();
+    
     void UseViewport(Viewport viewport);
 }

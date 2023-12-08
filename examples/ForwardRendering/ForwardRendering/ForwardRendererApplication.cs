@@ -376,7 +376,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             vertexOffset += meshData.VertexCount;
         }
 
-        _skullVertexBuffer = GraphicsContext.CreateVertexBuffer("SkullVertices", meshDates, VertexType.PositionNormalUvTangent);
+        _skullVertexBuffer = GraphicsContext.CreateVertexBuffer("SkullVertices", meshDates);
         _skullIndexBuffer = GraphicsContext.CreateIndexBuffer("SkullIndices", meshDates);
 
         return true;
