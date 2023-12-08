@@ -22,12 +22,6 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
         Label = graphicsPipelineDescriptor.PipelineProgramLabel;
     }
 
-    public override void Dispose()
-    {
-        base.Dispose();
-        _currentInputLayout.Dispose();
-    }
-
     public override void Bind()
     {
         base.Bind();
