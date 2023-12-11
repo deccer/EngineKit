@@ -73,16 +73,13 @@ bool TryPushDebugAabb(DebugAabb box)
 void main()
 {
     const uint object_id = gl_GlobalInvocationID.x;
+    if (object_id >= 200)
+    {
+        return;
+    }
+
     SceneObject scene_object = SceneObjects[object_id];
 
-    uint commandIndex = atomicAdd(DrawCount, 1);
-    DrawCommands[commandIndex].index_count = scene_object.index_count;
-    DrawCommands[commandIndex].instance_count = 1;
-    DrawCommands[commandIndex].first_index = scene_object.first_index;
-    DrawCommands[commandIndex].vertex_offset = scene_object.vertex_offset;
-    DrawCommands[commandIndex].first_instance = 0;
-
-    /*
     const mat4 transform = scene_object.world_matrix;
     const vec3 aabb_min = scene_object.aabb_min;
     const vec3 aabb_max = scene_object.aabb_max;
@@ -112,7 +109,6 @@ void main()
     //TryPushDebugAabb(DebugAabb(Vec3ToPacked(world_aabb_center), Vec3ToPacked(world_extent), Vec4ToPacked(color)));
     
     bool is_in_frustum = true;
-    /*
     for (uint i = 0; i < 6; ++i)
     {
         if (!IsAABBInsidePlane(world_aabb_center, world_extent, FrustumPlanes[i]))
@@ -120,17 +116,16 @@ void main()
             is_in_frustum = false;
         }
     }
-    */
 
-    //if (is_in_frustum)
-    //{
-    /*
-    uint commandIndex = atomicAdd(DrawCount, 1);
-    DrawCommands[commandIndex].index_count = scene_object.index_count;
-    DrawCommands[commandIndex].instance_count = 1;
-    DrawCommands[commandIndex].first_index = scene_object.first_index;
-    DrawCommands[commandIndex].vertex_offset = scene_object.vertex_offset;
-    DrawCommands[commandIndex].first_instance = 0;
-    */ 
-    //}
+    if (is_in_frustum)
+    {
+    
+        uint commandIndex = atomicAdd(DrawCount, 1);
+        DrawCommands[commandIndex].index_count = scene_object.index_count;
+        DrawCommands[commandIndex].instance_count = 1;
+        DrawCommands[commandIndex].first_index = scene_object.first_index;
+        DrawCommands[commandIndex].vertex_offset = scene_object.vertex_offset;
+        DrawCommands[commandIndex].first_instance = 0;
+     
+    }
 }
