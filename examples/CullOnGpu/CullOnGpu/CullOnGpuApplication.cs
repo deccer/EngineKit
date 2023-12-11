@@ -32,7 +32,7 @@ public struct SceneObject
     public int IndexCount;
     public int IndexOffset;
     public int VertexOffset;
-    public uint _padding3;
+    public uint MaterialId;
 }
 
 public struct Aabb
@@ -185,7 +185,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         LoadModels();
         
         _gpuModelMeshInstanceBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuModelMeshInstance>("ModelMeshInstances");
-        _gpuModelMeshInstanceBuffer.AllocateStorage(Marshal.SizeOf<GpuModelMeshInstance>() * 2000, StorageAllocationFlags.Dynamic);
+        _gpuModelMeshInstanceBuffer.AllocateStorage(Marshal.SizeOf<GpuModelMeshInstance>() * 20000, StorageAllocationFlags.Dynamic);
 
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
         _gpuCameraConstantsBuffer = GraphicsContext.CreateUniformBuffer<GpuCameraConstants>("CameraConstants");
@@ -209,7 +209,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         _debugAabbBuffer.ClearWith(new BufferClearInfo { Offset = 0, Size = 4, Data = 14 });
 
         _debugOriginalAabbBuffer = GraphicsContext.CreateVertexBuffer<VertexPositionColor>("DebugAabbRaw");
-        _debugOriginalAabbBuffer.AllocateStorage(24 * 2000 * Marshal.SizeOf<VertexPositionColor>(), StorageAllocationFlags.Dynamic);
+        _debugOriginalAabbBuffer.AllocateStorage(24 * 20000 * Marshal.SizeOf<VertexPositionColor>(), StorageAllocationFlags.Dynamic);
 
         SetDebugLines(_camera);
         
@@ -225,9 +225,11 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
     {
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
 
-        RenderComputeCull(_camera);
-        /*
-        var drawCommands = _sceneObjects.Select(so => new DrawElementIndirectCommand
+        //RenderComputeCull(_camera);
+        
+        var drawCommands = _sceneObjects
+            .Where(so => _frozenFrustum.Intersects(new BoundingBox(so.AabbMin, so.AabbMax)))
+            .Select(so => new DrawElementIndirectCommand
         {
             BaseInstance = 1,
             BaseVertex = so.VertexOffset,
@@ -236,11 +238,20 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             InstanceCount = 1
         }).ToArray();
         _culledDrawElementCommandsBuffer.Update(drawCommands, 0);
-        _culledDrawCountBuffer.Update(_sceneObjects.Count);
-        */
+        _culledDrawCountBuffer.Update(drawCommands.Count());
+        
+        var instances = _sceneObjects
+            .Where(so => _frozenFrustum.Intersects(new BoundingBox(so.AabbMin, so.AabbMax)))
+            .Select(so => new GpuModelMeshInstance
+            {
+                WorldMatrix = so.WorldMatrix,
+                MaterialId = new Int4((int)so.MaterialId, 0, 0, 0)
+            })
+            .ToArray();
+        _gpuModelMeshInstanceBuffer.Update(instances, 0);
+        
         
         _gpuCameraConstantsBuffer.Update(_gpuCameraConstants, Offset.Zero);
-        _gpuModelMeshInstanceBuffer.Update(_gpuModelMeshInstances.ToArray(), 0);
 
         GraphicsContext.BeginRenderPass(_gBufferFramebufferDescriptor);
         
@@ -355,7 +366,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         }
 
         var movement = Vector3.Zero;
-        var speedFactor = 10.0f;
+        var speedFactor = 100.0f;
         if (IsKeyPressed(Glfw.Key.KeyW))
         {
             movement += _camera.Direction;
@@ -481,6 +492,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         _cullComputePipeline.BindAsShaderStorageBuffer(_culledDrawElementCommandsBuffer, 1);
         _cullComputePipeline.BindAsShaderStorageBuffer(_cullFrustumBuffer, 2);
         _cullComputePipeline.BindAsShaderStorageBuffer(_culledDrawCountBuffer, 3);
+        _cullComputePipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 4);
         //_cullComputePipeline.BindAsShaderStorageBuffer(_debugAabbBuffer, 16);
         GraphicsContext.InsertMemoryBarrier(BarrierMask.All);
         _cullComputePipeline.Dispatch(((uint)_sceneObjects.Count + 31) / 32, 1, 1);
@@ -572,10 +584,10 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             "Cube.001"
         };
 
-        var range = Enumerable.Range(0, 200);
+        var range = Enumerable.Range(0, 20000);
         foreach (var i in range)
         {
-            var position = new Vector3(-20.0f + 40 * Random.Shared.NextSingle(), -20.0f + 40 * Random.Shared.NextSingle(), -20.0f + 40 * Random.Shared.NextSingle());
+            var position = new Vector3(-200.0f + 400 * Random.Shared.NextSingle(), -200.0f + 400 * Random.Shared.NextSingle(), -200.0f + 400 * Random.Shared.NextSingle());
             var randomCube = cubes[Random.Shared.Next(0, cubes.Length)];
             
             _drawCommands.Add(new DrawCommand
@@ -634,6 +646,8 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             {
                 meshPrimitives.Add(modelMesh.MeshData);
             }
+
+            drawCommand.MaterialIndex = materialIndex;
         }
 
         var indexOffset = 0;
@@ -646,7 +660,6 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             indexOffset += meshPrimitive.IndexCount;
         }
 
-
         foreach (var drawCommand in _drawCommands)
         {
             var meshPrimitive = meshPrimitives.FirstOrDefault(m => m.MeshName == drawCommand.Name);
@@ -655,8 +668,10 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             drawCommand.VertexOffset = meshPrimitive.VertexOffset;
             
             var modelMeshBB = meshPrimitive.BoundingBox;
+            ///*
             modelMeshBB.Max = Vector3.Transform(modelMeshBB.Max, drawCommand.WorldMatrix);
             modelMeshBB.Min = Vector3.Transform(modelMeshBB.Min, drawCommand.WorldMatrix);
+            //*/
             
             _sceneObjects.Add(new SceneObject
             {
@@ -665,12 +680,12 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                 AabbMax =  modelMeshBB.Max,
                 IndexCount = drawCommand.IndexCount,
                 IndexOffset = drawCommand.IndexOffset,
-                VertexOffset = drawCommand.VertexOffset
+                VertexOffset = drawCommand.VertexOffset,
+                MaterialId = (uint)drawCommand.MaterialIndex
             });
         }
         
         _debugOriginalAabbBuffer.Update(debugOriginalAabbLines.ToArray());
-        
         _sceneObjectBuffer.Update(_sceneObjects.ToArray(), 0);
 
         _gpuMaterialBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuMaterial>("SceneMaterials");
@@ -812,7 +827,6 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                 .Build(nameof(VertexPositionColor)))
             .WithTopology(PrimitiveTopology.Lines)
             .WithFaceWinding(FaceWinding.Clockwise)
-            //.WithLineWidth(4.0f)
             .WithBlendingDisabled()
             .WithCullingDisabled()
             .WithDepthTestDisabled()

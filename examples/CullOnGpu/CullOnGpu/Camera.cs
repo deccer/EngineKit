@@ -80,7 +80,7 @@ public sealed class Camera : ICamera
         _position = position;
         FieldOfView = 60.0f;
         NearPlane = 0.1f;
-        FarPlane = 128f;
+        FarPlane = 1024f;
         UpdateCameraVectors();
     }
 

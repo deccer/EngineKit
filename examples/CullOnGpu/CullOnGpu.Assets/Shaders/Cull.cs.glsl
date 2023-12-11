@@ -15,7 +15,7 @@ struct SceneObject
     uint index_count;
     uint first_index;
     int vertex_offset;
-    uint _padding3;    
+    uint material_id;    
 };
 
 layout(local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
@@ -40,13 +40,16 @@ layout(std430, binding = 3) writeonly restrict buffer DrawCountBuffer
     uint DrawCount;
 };
 
-/*
-layout(std430, binding = 16) restrict buffer DebugAabbBuffer
+struct GpuModelMeshInstance
 {
-    DrawIndirectCommand DrawCommand;
-    DebugAabb Aabbs[];
-} debugAabbBuffer;
-*/
+    mat4 World;
+    ivec4 MaterialId;
+};
+
+layout(std430, binding = 4) writeonly restrict buffer ModelMeshInstanceBuffer
+{
+    GpuModelMeshInstance ModelMeshInstances[];
+};
 
 bool IsAABBInsidePlane(in vec3 center, in vec3 extent, in vec4 plane)
 {
@@ -55,20 +58,34 @@ bool IsAABBInsidePlane(in vec3 center, in vec3 extent, in vec4 plane)
     return (dot(normal, center) - plane.w) >= -radius;
 }
 
-/*
-bool TryPushDebugAabb(DebugAabb box)
+int PlaneVsAABBIntersect(vec4 plane, vec3 bbMin, vec3 bbMax)
 {
-    uint index = atomicAdd(debugAabbBuffer.DrawCommand.instance_count, 1);
-    if (index >= debugAabbBuffer.Aabbs.length())
+    vec3 min;
+    vec3 max;
+
+    max.x = (plane.x >= 0.0f) ? bbMin.x : bbMax.x;
+    max.y = (plane.y >= 0.0f) ? bbMin.y : bbMax.y;
+    max.z = (plane.z >= 0.0f) ? bbMin.z : bbMax.z;
+    min.x = (plane.x >= 0.0f) ? bbMin.x : bbMax.x;
+    min.y = (plane.y >= 0.0f) ? bbMin.y : bbMax.y;
+    min.z = (plane.z >= 0.0f) ? bbMin.z : bbMax.z;
+
+    float distance = dot(plane.xyz, max);
+
+    if (distance + plane.w > 0.0f)
     {
-        atomicAdd(debugAabbBuffer.DrawCommand.instance_count, -1);
-        return false;
+        return 0; // front
     }
 
-    debugAabbBuffer.Aabbs[index] = box;
-    return true;
+    distance = dot(plane.xyz, min);
+
+    if (distance + plane.w < 0.0f)
+    {
+        return 1; // back
+    }
+
+    return 2; // intersecting
 }
-*/
 
 void main()
 {
@@ -102,30 +119,31 @@ void main()
         abs(dot(vec3(0.0, 0.0, 1.0), right)) +
         abs(dot(vec3(0.0, 0.0, 1.0), up)) +
         abs(dot(vec3(0.0, 0.0, 1.0), forward)));
-
-    const float GOLDEN_CONJ = 0.6180339887498948482045868343656;
-    vec4 color = vec4(2.0 * HsvToRgb(vec3(float(object_id) * GOLDEN_CONJ, 0.875, 0.85)), 1.0);
     
-    //TryPushDebugAabb(DebugAabb(Vec3ToPacked(world_aabb_center), Vec3ToPacked(world_extent), Vec4ToPacked(color)));
+    bool is_in_frustum = false;
     
-    bool is_in_frustum = true;
+    const vec3 aabb_min2 = vec3(transform * vec4(scene_object.aabb_min, 1.0));
+    const vec3 aabb_max2 = vec3(transform * vec4(scene_object.aabb_max, 1.0));
+    
     for (uint i = 0; i < 6; ++i)
     {
-        if (!IsAABBInsidePlane(world_aabb_center, world_extent, FrustumPlanes[i]))
+        //if (!IsAABBInsidePlane(world_aabb_center, world_extent, FrustumPlanes[i]))
+        if (PlaneVsAABBIntersect(FrustumPlanes[i], aabb_min2, aabb_max2) == 2) 
         {
-            is_in_frustum = false;
+            is_in_frustum = true;
         }
     }
 
     if (is_in_frustum)
     {
-    
         uint commandIndex = atomicAdd(DrawCount, 1);
         DrawCommands[commandIndex].index_count = scene_object.index_count;
         DrawCommands[commandIndex].instance_count = 1;
         DrawCommands[commandIndex].first_index = scene_object.first_index;
         DrawCommands[commandIndex].vertex_offset = scene_object.vertex_offset;
         DrawCommands[commandIndex].first_instance = 0;
-     
+
+        ModelMeshInstances[commandIndex].World = scene_object.world_matrix;
+        ModelMeshInstances[commandIndex].MaterialId = ivec4(scene_object.material_id, 0, 0, 0);
     }
 }
