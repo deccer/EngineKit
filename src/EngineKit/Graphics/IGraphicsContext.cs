@@ -110,7 +110,7 @@ public interface IGraphicsContext : IDisposable
         int materialBufferCapacity,
         ISamplerLibrary samplerLibrary);
 
-    void EndRender();
+    void EndRenderPass();
 
     void InsertMemoryBarrier(BarrierMask mask);
 

@@ -92,7 +92,7 @@ internal sealed class Renderer : IRenderer
             MaterialId = new Int4(pooledMaterial.Index, 0, 0, 0)
         }, _objectDataIndex);
 
-        _geometryDrawIndirectBuffer.Update(new GpuIndirectElementData
+        _geometryDrawIndirectBuffer.Update(new DrawElementIndirectCommand
         {
             FirstIndex = pooledMesh.IndexOffset,
             IndexCount = pooledMesh.IndexCount,
@@ -143,7 +143,7 @@ internal sealed class Renderer : IRenderer
         {
             _geometryGraphicsPipeline.MultiDrawElementsIndirect(_geometryDrawIndirectBuffer, _objectDataIndex);
         }
-        _graphicsContext.EndRender();
+        _graphicsContext.EndRenderPass();
         
         GL.PopDebugGroup();
     }
@@ -228,7 +228,7 @@ internal sealed class Renderer : IRenderer
         _geometryInstanceBuffer.AllocateStorage(Marshal.SizeOf<GpuMeshInstance>() * 4_096, StorageAllocationFlags.Dynamic);
 
         _geometryDrawIndirectBuffer = _graphicsContext.CreateDrawIndirectBuffer("SceneIndirects");
-        _geometryDrawIndirectBuffer.AllocateStorage(4096 * Marshal.SizeOf<GpuIndirectElementData>(), StorageAllocationFlags.Dynamic);
+        _geometryDrawIndirectBuffer.AllocateStorage(4096 * Marshal.SizeOf<DrawElementIndirectCommand>(), StorageAllocationFlags.Dynamic);
         
         _meshPool = _graphicsContext.CreateMeshPool("Vertices", 1_024 * MegaByte, 768 * MegaByte);
         _materialPool = _graphicsContext.CreateMaterialPool("Materials", 16 * MegaByte, _samplerLibrary);

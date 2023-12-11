@@ -4,6 +4,8 @@ namespace EngineKit.Graphics;
 
 public record struct SwapchainDescriptor
 {
+    public Label Label;
+    
     public Viewport Viewport;
 
     public Viewport? ScissorRect;

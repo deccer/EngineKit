@@ -80,7 +80,7 @@ public class Scene : IScene
             .ClearColor(Colors.Black)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
-            .Build();
+            .Build("Swapchain");
 
         return true;
     }
@@ -131,7 +131,7 @@ public class Scene : IScene
 
         RenderUiSceneStatistics();
         RenderUiRenderSettings();
-        _graphicsContext.EndRender();
+        _graphicsContext.EndRenderPass();
     }
 
     private void RenderUiAssets()

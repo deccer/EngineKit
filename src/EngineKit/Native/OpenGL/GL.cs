@@ -731,6 +731,22 @@ public static unsafe partial class GL
         _glNamedBufferDataDelegate(buffer, size, dataPtr, bufferUsage);
     }
 
+    public static void ClearNamedBufferSubData(
+        uint buffer,
+        int offset,
+        long size,
+        void* dataPtr)
+    {
+        _glClearNamedBufferSubDataDelegate(
+            buffer,
+            SizedInternalFormat.R32ui,
+            offset,
+            size,
+            PixelFormat.RedInteger,
+            DataType.UnsignedInt,
+            dataPtr);
+    }
+
     public static void ObjectLabel(ObjectIdentifier identifier, uint name, string label)
     {
         var labelLength = label.Length;
@@ -1169,6 +1185,15 @@ public static unsafe partial class GL
     {
         _glVertexArrayElementBufferDelegate(vao, buffer);
     }
+    
+    public static void MultiDrawArraysIndirect(
+        PrimitiveType primitiveType,
+        int indirectOffset,
+        int drawCount,
+        int stride)
+    {
+        _glMultiDrawArraysIndirectDelegate(primitiveType, indirectOffset, drawCount, stride);
+    }
 
     public static void MultiDrawElementsIndirect(
         PrimitiveType primitiveType,
@@ -1183,6 +1208,23 @@ public static unsafe partial class GL
             indexElementType,
             indirectDataPtr,
             indirectDrawCount,
+            indirectDataStride);
+    }
+    
+    public static void MultiDrawElementsIndirectCount(
+        PrimitiveType primitiveType,
+        IndexElementType indexElementType,
+        nint indirectData,
+        int indirectMaxDrawCount,
+        int indirectDataStride)
+    {
+        var indirectDataPtr = (void*)indirectData;
+        _glMultiDrawElementsIndirectCountDelegate(
+            primitiveType,
+            indexElementType,
+            indirectDataPtr,
+            0,
+            indirectMaxDrawCount,
             indirectDataStride);
     }
 

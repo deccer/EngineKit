@@ -197,7 +197,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                     i);
             }
         }
-        GraphicsContext.EndRender();
+        GraphicsContext.EndRenderPass();
         GL.PopDebugGroup();
 
         GL.PushDebugGroup("Resolve-Pass");
@@ -205,7 +205,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         GraphicsContext.BindGraphicsPipeline(_finalGraphicsPipeline);
         _finalGraphicsPipeline.BindSampledTexture(_pointSampler, _gBufferBaseColorTexture, 0);
         _finalGraphicsPipeline.DrawArrays(3, 0);
-        GraphicsContext.EndRender();
+        GraphicsContext.EndRenderPass();
         GL.PopDebugGroup();
 
         GL.PushDebugGroup("UI-Pass");
@@ -253,7 +253,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             }
         }
         UIRenderer.EndLayout();
-        GraphicsContext.EndRender();
+        GraphicsContext.EndRenderPass();
         GL.PopDebugGroup();
         GL.Finish();
     }
@@ -443,7 +443,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     {
         _swapchainDescriptor = new SwapchainDescriptorBuilder()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
-            .Build();
+            .Build("Swapchain");
     }
 
     private bool CreatePipelines()

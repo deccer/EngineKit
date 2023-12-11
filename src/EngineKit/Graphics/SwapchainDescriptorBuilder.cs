@@ -61,8 +61,9 @@ public sealed class SwapchainDescriptorBuilder
         return this;
     }
 
-    public SwapchainDescriptor Build()
+    public SwapchainDescriptor Build(Label label)
     {
+        _swapchainDescriptor.Label = label;
         return _swapchainDescriptor;
     }
 }

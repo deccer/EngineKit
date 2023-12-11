@@ -28,6 +28,8 @@ internal sealed class GraphicsContext : IGraphicsContext
     private uint? _currentFramebuffer;
     private bool _srgbWasDisabled;
     private Viewport _currentViewport;
+    private bool _isGraphicsPipelineDebugGroupActive;
+    private bool _isComputePipelineDebugGroupActive;
 
     public GraphicsContext(
         ILogger logger,
@@ -150,7 +152,7 @@ internal sealed class GraphicsContext : IGraphicsContext
 
     public IBuffer CreateDrawIndirectBuffer(Label label)
     {
-        return new Buffer<GpuIndirectElementData>(BufferTarget.DrawIndirectBuffer, label);
+        return new Buffer<DrawElementIndirectCommand>(BufferTarget.DrawIndirectBuffer, label);
     }
     
     public IBuffer CreateDispatchIndirectBuffer(Label label)
@@ -404,6 +406,18 @@ internal sealed class GraphicsContext : IGraphicsContext
             return false;
         }
 
+        if (_isComputePipelineDebugGroupActive)
+        {
+            GL.PopDebugGroup();
+            _isComputePipelineDebugGroupActive = false;
+        }
+
+        if (!string.IsNullOrEmpty(computePipelineDescriptor.PipelineProgramLabel))
+        {
+            GL.PushDebugGroup(computePipelineDescriptor.PipelineProgramLabel);
+            _isComputePipelineDebugGroupActive = true;
+        }
+
         if (computePipelineDescriptor.ClearResourceBindings)
         {
             ClearResourceBindings();
@@ -502,6 +516,18 @@ internal sealed class GraphicsContext : IGraphicsContext
 
     public void BeginRenderPass(SwapchainDescriptor swapchainDescriptor)
     {
+        if (_isComputePipelineDebugGroupActive)
+        {
+            GL.PopDebugGroup();
+            _isComputePipelineDebugGroupActive = false;
+        }
+        
+        if (!string.IsNullOrEmpty(swapchainDescriptor.Label))
+        {
+            GL.PushDebugGroup(swapchainDescriptor.Label);
+            _isGraphicsPipelineDebugGroupActive = true;
+        }
+        
         GL.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
         GL.FramebufferBit framebufferBit = 0;
         if (swapchainDescriptor.ClearColor)
@@ -552,6 +578,18 @@ internal sealed class GraphicsContext : IGraphicsContext
 
     public void BeginRenderPass(FramebufferDescriptor framebufferDescriptor)
     {
+        if (_isComputePipelineDebugGroupActive)
+        {
+            GL.PopDebugGroup();
+            _isComputePipelineDebugGroupActive = false;
+        }
+        
+        if (!string.IsNullOrEmpty(framebufferDescriptor.Label))
+        {
+            GL.PushDebugGroup(framebufferDescriptor.Label);
+            _isGraphicsPipelineDebugGroupActive = true;
+        }
+        
         _currentFramebuffer = _framebufferCache.GetOrCreateFramebuffer(framebufferDescriptor);
         GL.BindFramebuffer(GL.FramebufferTarget.Framebuffer, _currentFramebuffer.Value);
         if (!framebufferDescriptor.HasSrgbEnabledAttachment())
@@ -649,11 +687,23 @@ internal sealed class GraphicsContext : IGraphicsContext
         }
     }
 
-    public void EndRender()
+    public void EndRenderPass()
     {
         if (_srgbWasDisabled)
         {
             GL.Enable(GL.EnableType.FramebufferSrgb);
+        }
+        
+        if (_isComputePipelineDebugGroupActive)
+        {
+            GL.PopDebugGroup();
+            _isComputePipelineDebugGroupActive = false;
+        }
+
+        if (_isGraphicsPipelineDebugGroupActive)
+        {
+            GL.PopDebugGroup();
+            _isGraphicsPipelineDebugGroupActive = false;
         }
     }
 

@@ -29,5 +29,9 @@ public interface IBuffer : IDisposable
         where TElement : unmanaged;
     
     void Update<TElement>(Span<TElement> data, int elementOffset = 0)
-        where TElement : unmanaged;    
+        where TElement : unmanaged;
+
+    void ClearWith(BufferClearInfo bufferClearInfo);
+    
+    void ClearWith();
 }

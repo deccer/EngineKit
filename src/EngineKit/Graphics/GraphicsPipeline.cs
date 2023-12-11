@@ -136,15 +136,30 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
             indirectElementIndex * indirectBuffer.Stride);
     }
 
-    public void MultiDrawElementsIndirect(IBuffer drawIndirectBuffer, int primitiveCount)
+    public void MultiDrawElementsIndirect(IBuffer drawIndirectBuffer, int drawCount)
     {
         GL.BindBuffer(BufferTarget.DrawIndirectBuffer.ToGL(), drawIndirectBuffer.Id);
         GL.MultiDrawElementsIndirect(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
             GL.IndexElementType.UnsignedInt,
             nint.Zero,
-            primitiveCount,
+            drawCount,
             drawIndirectBuffer.Stride);
+    }
+
+    public void MultiDrawElementsIndirectCount(
+        IBuffer drawElementsIndirectBuffer,
+        IBuffer drawCountBuffer,
+        int maxDrawCount)
+    {
+        GL.BindBuffer(BufferTarget.DrawIndirectBuffer.ToGL(), drawElementsIndirectBuffer.Id);
+        GL.BindBuffer(BufferTarget.ParameterBuffer.ToGL(), drawCountBuffer.Id);
+        GL.MultiDrawElementsIndirectCount(
+            _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
+            GL.IndexElementType.UnsignedInt,
+            nint.Zero,
+            maxDrawCount,
+            drawElementsIndirectBuffer.Stride);
     }
     
     public void VertexUniform(int location, float value)

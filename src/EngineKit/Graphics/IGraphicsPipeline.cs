@@ -45,7 +45,12 @@ public interface IGraphicsPipeline : IPipeline
         IBuffer drawIndirectBuffer,
         int indirectElementIndex= 0);
 
-    void MultiDrawElementsIndirect(IBuffer drawIndirectBuffer, int primitiveCount);
+    void MultiDrawElementsIndirect(IBuffer drawIndirectBuffer, int drawCount);
+
+    void MultiDrawElementsIndirectCount(
+        IBuffer drawElementsIndirectBuffer,
+        IBuffer drawCountBuffer,
+        int maxDrawCount);
 
     void VertexUniform(int location, float value);
 

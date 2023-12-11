@@ -105,7 +105,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         _sceneGraphicsPipeline!.BindSampledTexture(_skyboxSampler!, _skyboxTexture!.Id, 0);
 
         _sceneGraphicsPipeline.DrawArrays(3, 0);
-        GraphicsContext.EndRender();
+        GraphicsContext.EndRenderPass();
 
         RenderUi();
     }
@@ -162,7 +162,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             .ClearColor(Colors.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
-            .Build();
+            .Build("Swapchain");
 
         return true;
     }

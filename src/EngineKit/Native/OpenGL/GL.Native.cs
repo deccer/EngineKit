@@ -130,6 +130,9 @@ public static unsafe partial class GL
     private static delegate* unmanaged<uint, long, long, void*, void> _glNamedBufferSubDataDelegate =
         &glNamedBufferSubData;
 
+    private static delegate* unmanaged<uint, SizedInternalFormat, nint, long, PixelFormat, DataType, void*, void>
+        _glClearNamedBufferSubDataDelegate = &glClearNamedBufferSubData;
+
     private static delegate* unmanaged<ObjectIdentifier, uint, int, byte*, void>
         _glObjectLabelDelegate = &glObjectLabel;
 
@@ -193,9 +196,15 @@ public static unsafe partial class GL
         &glPushDebugGroup;
 
     private static delegate* unmanaged<void> _glPopDebugGroupDelegate = &glPopDebugGroup;
+    
+    private static delegate* unmanaged<PrimitiveType, int, int, int, void>
+        _glMultiDrawArraysIndirectDelegate = &glMultiDrawArraysIndirect;
 
     private static delegate* unmanaged<PrimitiveType, IndexElementType, void*, int, int, void>
         _glMultiDrawElementsIndirectDelegate = &glMultiDrawElementsIndirect;
+    
+    private static delegate* unmanaged<PrimitiveType, IndexElementType, void*, int, int, int, void>
+        _glMultiDrawElementsIndirectCountDelegate = &glMultiDrawElementsIndirectCount;
 
     private static delegate* unmanaged<uint, ulong> _glGetTextureHandleARBDelegate = &glGetTextureHandleARB;
 
@@ -1009,6 +1018,21 @@ public static unsafe partial class GL
     }
 
     [UnmanagedCallersOnly]
+    private static void glClearNamedBufferSubData(
+        uint buffer,
+        SizedInternalFormat internalFormat,
+        nint offset,
+        long size,
+        PixelFormat uploadType,
+        DataType uploadFormat,
+        void* data)
+    {
+        _glClearNamedBufferSubDataDelegate = (delegate* unmanaged<uint, SizedInternalFormat, nint, long, PixelFormat, DataType, void*, void>)Glfw
+            .Glfw.GetProcAddress(nameof(glClearNamedBufferSubData));
+        _glClearNamedBufferSubDataDelegate(buffer, internalFormat, offset, size, uploadType, uploadFormat, data);
+    }
+
+    [UnmanagedCallersOnly]
     private static void glObjectLabel(ObjectIdentifier objectIdentifier, uint id, int length, byte* label)
     {
         _glObjectLabelDelegate =
@@ -1355,6 +1379,23 @@ public static unsafe partial class GL
         _glPopDebugGroupDelegate = (delegate* unmanaged<void>)Glfw.Glfw.GetProcAddress(nameof(glPopDebugGroup));
         _glPopDebugGroupDelegate();
     }
+    
+    [UnmanagedCallersOnly]
+    private static void glMultiDrawArraysIndirect(
+        PrimitiveType primitiveType,
+        int indirectOffset,
+        int drawCount,
+        int stride)
+    {
+        _glMultiDrawArraysIndirectDelegate =
+            (delegate* unmanaged<PrimitiveType, int, int, int, void>)Glfw.Glfw.GetProcAddress(
+                nameof(glMultiDrawArraysIndirect));
+        _glMultiDrawArraysIndirectDelegate(
+            primitiveType,
+            indirectOffset,
+            drawCount,
+            stride);
+    }    
 
     [UnmanagedCallersOnly]
     private static void glMultiDrawElementsIndirect(
@@ -1372,6 +1413,27 @@ public static unsafe partial class GL
             indexElementType,
             indirectDataPtr,
             indirectDrawCount,
+            indirectDataStride);
+    }    
+    
+    [UnmanagedCallersOnly]
+    private static void glMultiDrawElementsIndirectCount(
+        PrimitiveType primitiveType,
+        IndexElementType indexElementType,
+        void* indirectDataPtr,
+        int indirectDrawCount,
+        int indirectMaxCount,
+        int indirectDataStride)
+    {
+        _glMultiDrawElementsIndirectCountDelegate =
+            (delegate* unmanaged<PrimitiveType, IndexElementType, void*, int, int, int, void>)Glfw.Glfw.GetProcAddress(
+                nameof(glMultiDrawElementsIndirectCount));
+        _glMultiDrawElementsIndirectCountDelegate(
+            primitiveType,
+            indexElementType,
+            indirectDataPtr,
+            indirectDrawCount,
+            indirectMaxCount,
             indirectDataStride);
     }
 

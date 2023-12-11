@@ -44,7 +44,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
     private readonly IList<ModelMesh> _modelMeshes;
     private IList<GpuModelMeshInstance> _gpuModelMeshInstances;
-    private readonly List<GpuIndirectElementData> _gpuIndirectElements;
+    private readonly List<DrawElementIndirectCommand> _gpuIndirectElements;
     private IBuffer? _gpuIndirectElementDataBuffer;
 
     public ForwardRendererApplication(
@@ -88,7 +88,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _modelMeshes = new List<ModelMesh>();
         _modelMeshInstances = new List<ModelMeshInstance>();
         _gpuModelMeshInstances = new List<GpuModelMeshInstance>();
-        _gpuIndirectElements = new List<GpuIndirectElementData>();
+        _gpuIndirectElements = new List<DrawElementIndirectCommand>();
     }
     
     protected override bool Initialize()
@@ -153,7 +153,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _gpuModelMeshInstanceBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuModelMeshInstance>("ModelMeshInstances");
         _gpuModelMeshInstanceBuffer.AllocateStorage(3 * Marshal.SizeOf<GpuModelMeshInstance>(), StorageAllocationFlags.Dynamic);
         _gpuIndirectElementDataBuffer = GraphicsContext.CreateDrawIndirectBuffer("MeshIndirectDrawElement");
-        _gpuIndirectElementDataBuffer.AllocateStorage(3 * Marshal.SizeOf<GpuIndirectElementData>(), StorageAllocationFlags.Dynamic);
+        _gpuIndirectElementDataBuffer.AllocateStorage(3 * Marshal.SizeOf<DrawElementIndirectCommand>(), StorageAllocationFlags.Dynamic);
 
         _gpuMaterials.Add(new GpuMaterial
         {
@@ -185,7 +185,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _gpuIndirectElements.Clear();
         foreach (var modelMeshInstance in _modelMeshInstances)
         {
-            var gpuIndirectElement = new GpuIndirectElementData
+            var gpuIndirectElement = new DrawElementIndirectCommand
             {
                 IndexCount = (uint)modelMeshInstance.ModelMesh.IndexCount,
                 BaseInstance = 0,
@@ -213,7 +213,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
         _sceneGraphicsPipeline.MultiDrawElementsIndirect(_gpuIndirectElementDataBuffer, _gpuIndirectElements.Count);
 
-        GraphicsContext.EndRender();
+        GraphicsContext.EndRenderPass();
 
         RenderUi();
     }
@@ -225,7 +225,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             .ClearColor(Colors.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
-            .Build();
+            .Build("Swapchain");
     }
 
     protected override void Unload()
@@ -317,7 +317,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             .ClearColor(Colors.DimGray)
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
-            .Build();
+            .Build("Swapchain");
 
         return true;
     }

@@ -92,6 +92,19 @@ internal abstract class Buffer : IBuffer
         }
         GL.NamedBufferSubData(Id, elementOffset * Stride, data);
     }
+    
+    public unsafe void ClearWith()
+    {
+        var clearSize = Count * Stride;
+        var clearData = 0;
+        GL.ClearNamedBufferSubData(Id, 0, clearSize, &clearData);
+    }    
+
+    public unsafe void ClearWith(BufferClearInfo bufferClearInfo)
+    {
+        var clearSize = bufferClearInfo.Size == EngineKit.SizeInBytes.Whole ? Count * Stride : bufferClearInfo.Size;
+        GL.ClearNamedBufferSubData(Id, bufferClearInfo.Offset, clearSize, &bufferClearInfo.Data);
+    }
 
     public static implicit operator uint(Buffer buffer)
     {

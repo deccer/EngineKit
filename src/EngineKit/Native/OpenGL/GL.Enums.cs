@@ -130,6 +130,7 @@ public static partial class GL
 
     public enum BufferTarget : uint
     {
+        ParameterBuffer = 33006,
         ArrayBuffer = 34962,
         ElementArrayBuffer = 34963,
         PixelPackBuffer = 35051,
