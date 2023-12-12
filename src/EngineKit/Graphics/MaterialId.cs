@@ -1,8 +1,8 @@
 namespace EngineKit.Graphics;
 
-public readonly struct PooledMaterial
+public readonly struct MaterialId
 {
-    public PooledMaterial(int index)
+    public MaterialId(int index)
     {
         Index = index;
     }

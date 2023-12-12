@@ -2,9 +2,9 @@ using System.Numerics;
 
 namespace EngineKit.Graphics;
 
-public readonly struct PooledMesh
+public readonly struct MeshId
 {
-    public PooledMesh(uint indexCount, uint indexOffset, int vertexCount, int vertexOffset, Vector3 aabbMax, Vector3 aabbMin, string? materialName)
+    public MeshId(uint indexCount, uint indexOffset, int vertexCount, int vertexOffset, Vector3 aabbMax, Vector3 aabbMin, string? materialName)
     {
         AabbMax = aabbMax;
         AabbMin = aabbMin;

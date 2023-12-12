@@ -5,11 +5,11 @@ namespace EngineKit.Graphics;
 
 internal sealed class MeshPool : IMeshPool
 {
-    private readonly IDictionary<MeshPrimitive, PooledMesh> _pooledMeshes;
+    private readonly IDictionary<MeshPrimitive, MeshId> _pooledMeshes;
 
     public MeshPool(Label label, IGraphicsContext graphicsContext, int vertexBufferCapacity, int indexBufferCapacity)
     {
-        _pooledMeshes = new Dictionary<MeshPrimitive, PooledMesh>(1024);
+        _pooledMeshes = new Dictionary<MeshPrimitive, MeshId>(1024);
         
         VertexBuffer = graphicsContext.CreateVertexBuffer<VertexPositionNormalUvTangent>(label);
         VertexBuffer.AllocateStorage(vertexBufferCapacity, StorageAllocationFlags.Dynamic);
@@ -27,7 +27,7 @@ internal sealed class MeshPool : IMeshPool
         IndexBuffer.Dispose();
     }
 
-    public PooledMesh GetOrAdd(MeshPrimitive meshPrimitive)
+    public MeshId GetOrAdd(MeshPrimitive meshPrimitive)
     {
         if (_pooledMeshes.TryGetValue(meshPrimitive, out var pooledMesh))
         {
@@ -39,7 +39,7 @@ internal sealed class MeshPool : IMeshPool
         var vertexOffset = _pooledMeshes.Values.Sum(pm => pm.VertexCount);
         var vertexCount = meshPrimitive.VertexCount;
         
-        pooledMesh = new PooledMesh(
+        pooledMesh = new MeshId(
             (uint)indexCount,
             (uint)indexOffset,
             vertexCount,

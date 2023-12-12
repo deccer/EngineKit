@@ -8,5 +8,5 @@ public interface IMeshPool : IDisposable
     
     IBuffer IndexBuffer { get; }
 
-    PooledMesh GetOrAdd(MeshPrimitive meshPrimitive);
+    MeshId GetOrAdd(MeshPrimitive meshPrimitive);
 }

@@ -9,7 +9,7 @@ internal sealed class MaterialPool : IMaterialPool
     private readonly ICapabilities _capabilities;
     private readonly IGraphicsContext _graphicsContext;
     private readonly ISamplerLibrary _samplerLibrary;
-    private readonly IDictionary<Material, PooledMaterial> _pooledMaterials;
+    private readonly IDictionary<Material, MaterialId> _pooledMaterials;
     private readonly IDictionary<string, ITexture> _textures;
 
     private readonly ISampler _sampler;
@@ -26,7 +26,7 @@ internal sealed class MaterialPool : IMaterialPool
         _capabilities = capabilities;
         _graphicsContext = graphicsContext;
         _samplerLibrary = samplerLibrary;
-        _pooledMaterials = new Dictionary<Material, PooledMaterial>();
+        _pooledMaterials = new Dictionary<Material, MaterialId>();
         _textures = new Dictionary<string, ITexture>();
 
         _sampler = _graphicsContext.CreateSampler(new SamplerDescriptor
@@ -59,7 +59,7 @@ internal sealed class MaterialPool : IMaterialPool
         MaterialBuffer.Dispose();
     }
 
-    public PooledMaterial GetOrAdd(Material material)
+    public MaterialId GetOrAdd(Material material)
     {
         if (_pooledMaterials.TryGetValue(material, out var pooledMaterial))
         {
@@ -87,7 +87,7 @@ internal sealed class MaterialPool : IMaterialPool
             AlphaCutOff = 1.0f
         };
 
-        pooledMaterial = new PooledMaterial(_pooledMaterials.Count);
+        pooledMaterial = new MaterialId(_pooledMaterials.Count);
         MaterialBuffer.Update(gpuMaterial, pooledMaterial.Index);
 
         _pooledMaterials.Add(material, pooledMaterial);
