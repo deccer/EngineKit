@@ -60,31 +60,44 @@ bool IsAABBInsidePlane(in vec3 center, in vec3 extent, in vec4 plane)
 
 int PlaneVsAABBIntersect(vec4 plane, vec3 bbMin, vec3 bbMax)
 {
-    vec3 min;
-    vec3 max;
+    vec3 mi;
+    vec3 ma;
 
-    max.x = (plane.x >= 0.0f) ? bbMin.x : bbMax.x;
-    max.y = (plane.y >= 0.0f) ? bbMin.y : bbMax.y;
-    max.z = (plane.z >= 0.0f) ? bbMin.z : bbMax.z;
-    min.x = (plane.x >= 0.0f) ? bbMin.x : bbMax.x;
-    min.y = (plane.y >= 0.0f) ? bbMin.y : bbMax.y;
-    min.z = (plane.z >= 0.0f) ? bbMin.z : bbMax.z;
+    ma.x = (plane.x >= 0.0f) ? bbMin.x : bbMax.x;
+    ma.y = (plane.y >= 0.0f) ? bbMin.y : bbMax.y;
+    ma.z = (plane.z >= 0.0f) ? bbMin.z : bbMax.z;
+    mi.x = (plane.x >= 0.0f) ? bbMin.x : bbMax.x;
+    mi.y = (plane.y >= 0.0f) ? bbMin.y : bbMax.y;
+    mi.z = (plane.z >= 0.0f) ? bbMin.z : bbMax.z;
 
-    float distance = dot(plane.xyz, max);
+    float d = dot(plane.xyz, ma);
 
-    if (distance + plane.w > 0.0f)
+    if (d + plane.w > 0.0f)
     {
         return 0; // front
     }
 
-    distance = dot(plane.xyz, min);
+    d = dot(plane.xyz, mi);
 
-    if (distance + plane.w < 0.0f)
+    if (d + plane.w < 0.0f)
     {
         return 1; // back
     }
 
     return 2; // intersecting
+}
+
+bool PlaneVsAaBbIntersect(vec3 bbMin, vec3 bbMax)
+{
+    for (uint i = 0; i < 6; ++i)
+    {
+        if (PlaneVsAABBIntersect(FrustumPlanes[i], bbMin, bbMax) == 1)
+        {
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 void main()
@@ -120,21 +133,10 @@ void main()
         abs(dot(vec3(0.0, 0.0, 1.0), up)) +
         abs(dot(vec3(0.0, 0.0, 1.0), forward)));
     
-    bool is_in_frustum = false;
-    
     const vec3 aabb_min2 = vec3(transform * vec4(scene_object.aabb_min, 1.0));
     const vec3 aabb_max2 = vec3(transform * vec4(scene_object.aabb_max, 1.0));
-    
-    for (uint i = 0; i < 6; ++i)
-    {
-        //if (!IsAABBInsidePlane(world_aabb_center, world_extent, FrustumPlanes[i]))
-        if (PlaneVsAABBIntersect(FrustumPlanes[i], aabb_min2, aabb_max2) == 2) 
-        {
-            is_in_frustum = true;
-        }
-    }
 
-    if (is_in_frustum)
+    if (PlaneVsAaBbIntersect(aabb_min, aabb_max))
     {
         uint commandIndex = atomicAdd(DrawCount, 1);
         DrawCommands[commandIndex].index_count = scene_object.index_count;

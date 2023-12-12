@@ -105,6 +105,8 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
     private IBuffer? _debugOriginalAabbBuffer;
     private BoundingFrustum _frozenFrustum;
 
+    private bool _cullOnGpu;
+
     public CullOnGpuApplication(
         ILogger logger,
         IOptions<WindowSettings> windowSettings,
@@ -225,38 +227,39 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
     {
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
 
-        //RenderComputeCull(_camera);
-        
-        var drawCommands = _sceneObjects
-            .Where(so => _frozenFrustum.Intersects(new BoundingBox(so.AabbMin, so.AabbMax)))
-            .Select(so => new DrawElementIndirectCommand
+        if (_cullOnGpu)
         {
-            BaseInstance = 1,
-            BaseVertex = so.VertexOffset,
-            FirstIndex = (uint)so.IndexOffset,
-            IndexCount = (uint)so.IndexCount,
-            InstanceCount = 1
-        }).ToArray();
-        _culledDrawElementCommandsBuffer.Update(drawCommands, 0);
-        _culledDrawCountBuffer.Update(drawCommands.Count());
-        
-        var instances = _sceneObjects
-            .Where(so => _frozenFrustum.Intersects(new BoundingBox(so.AabbMin, so.AabbMax)))
-            .Select(so => new GpuModelMeshInstance
-            {
-                WorldMatrix = so.WorldMatrix,
-                MaterialId = new Int4((int)so.MaterialId, 0, 0, 0)
-            })
-            .ToArray();
-        _gpuModelMeshInstanceBuffer.Update(instances, 0);
-        
+            RenderComputeCull(_camera);
+        }
+        else
+        {
+            var drawCommands = _sceneObjects
+                .Where(so => _frozenFrustum.Intersects(new BoundingBox(so.AabbMin, so.AabbMax)))
+                .Select(so => new DrawElementIndirectCommand
+                {
+                    BaseInstance = 1,
+                    BaseVertex = so.VertexOffset,
+                    FirstIndex = (uint)so.IndexOffset,
+                    IndexCount = (uint)so.IndexCount,
+                    InstanceCount = 1
+                }).ToArray();
+            _culledDrawElementCommandsBuffer.Update(drawCommands, 0);
+            _culledDrawCountBuffer.Update(drawCommands.Count());
+
+            var instances = _sceneObjects
+                .Where(so => _frozenFrustum.Intersects(new BoundingBox(so.AabbMin, so.AabbMax)))
+                .Select(so => new GpuModelMeshInstance
+                {
+                    WorldMatrix = so.WorldMatrix,
+                    MaterialId = new Int4((int)so.MaterialId, 0, 0, 0)
+                })
+                .ToArray();
+            _gpuModelMeshInstanceBuffer.Update(instances, 0);
+        }
         
         _gpuCameraConstantsBuffer.Update(_gpuCameraConstants, Offset.Zero);
 
         GraphicsContext.BeginRenderPass(_gBufferFramebufferDescriptor);
-        
-        // debug aabbs - render bounding boxes
-        //RenderComputeCullDebug();
         
         // actual render into gbuffer
         GraphicsContext.BindGraphicsPipeline(_gBufferGraphicsPipeline);
@@ -275,11 +278,10 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         _debugLinesGraphicsPipeline.BindAsVertexBuffer(_debugLinesBuffer, 0, 0);
         _debugLinesGraphicsPipeline.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0);
         _debugLinesGraphicsPipeline.DrawArrays((uint)_debugLinesBuffer.Count, 0);
-        
+        // debug lines - render cube aabbs
         _debugLinesGraphicsPipeline.BindAsVertexBuffer(_debugOriginalAabbBuffer, 0, 0);
         _debugLinesGraphicsPipeline.DrawArrays((uint)_debugOriginalAabbBuffer.Count, 0);
         GraphicsContext.EndRenderPass();
-
 
         GraphicsContext.BeginRenderPass(_finalFramebufferDescriptor);
         GraphicsContext.BindGraphicsPipeline(_finalGraphicsPipeline);
@@ -321,6 +323,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                 ImGui.SliderFloat("Camera Sensitivity", ref sensitivity, 0.01f, 1.0f);
                 _camera.Sensitivity = sensitivity;
 
+                ImGui.Checkbox("Cull on GPU", ref _cullOnGpu);
                 if (ImGui.Button("Freeze Frustum"))
                 {
                     _frozenFrustum = new BoundingFrustum(_camera.ViewMatrix * _camera.ProjectionMatrix);
@@ -480,7 +483,9 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         var rightPlane = new Vector4(cameraBoundingFrustum.Right.Normal, cameraBoundingFrustum.Right.D);
         var nearPlane = new Vector4(cameraBoundingFrustum.Near.Normal, cameraBoundingFrustum.Near.D);
         var farPlane = new Vector4(cameraBoundingFrustum.Far.Normal, cameraBoundingFrustum.Far.D);
-        var planes = new[] { bottomPlane, topPlane, leftPlane, rightPlane, nearPlane, farPlane };
+
+        var planes = MakeFrustumPlanes(_camera.ViewMatrix * _camera.ProjectionMatrix);
+        //var planes = new[] { bottomPlane, topPlane, leftPlane, rightPlane, nearPlane, farPlane };
 
         GraphicsContext.BindComputePipeline(_cullComputePipeline);
         _cullFrustumBuffer.Update(planes);
@@ -569,6 +574,41 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         vertices.Add(new VertexPositionColor(farBottomRight, farColor));
         
         return vertices;
+    }
+
+    private Vector4[] MakeFrustumPlanes(Matrix4x4 viewProj)
+    {
+        var planes = new Vector4[6];
+        for (var i = 0; i < 4; ++i)
+        {
+            planes[0][i] = viewProj[i, 3] + viewProj[i, 0];
+        }
+        for (var i = 0; i < 4; ++i)
+        {
+            planes[1][i] = viewProj[i, 3] - viewProj[i, 0];
+        }
+        for (var i = 0; i < 4; ++i)
+        {
+            planes[2][i] = viewProj[i, 3] + viewProj[i, 1];
+        }
+        for (var i = 0; i < 4; ++i)
+        {
+            planes[3][i] = viewProj[i, 3] - viewProj[i, 1];
+        }
+        for (var i = 0; i < 4; ++i)
+        {
+            planes[4][i] = viewProj[i, 3] + viewProj[i, 2];
+        }
+        for (var i = 0; i < 4; ++i)
+        {
+            planes[5][i] = viewProj[i, 3] - viewProj[i, 2];
+        }
+        for (var i = 0; i < planes.Length; i++)
+        {
+            planes[i] = Vector4.Divide(planes[i], new Vector3(planes[i].X, planes[i].Y, planes[i].Z).Length());
+            planes[i].W = -planes[i].W;
+        }
+        return planes;
     }
 
     private void PrepareScene()
