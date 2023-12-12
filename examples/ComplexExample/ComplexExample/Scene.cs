@@ -1,10 +1,11 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using Arch.Core;
 using Arch.Core.Extensions;
+using Arch.Relationships;
 using ComplexExample.Ecs;
-using ComplexExample.Ecs.ArchExtended;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Mathematics;
@@ -99,14 +100,17 @@ public class Scene : IScene
     public void Render()
     {
         // update transform hierarchies
-        _ecsWorld.Query<Entity>(in _updateTransformQuery, (ref Entity entity) =>
+        _ecsWorld.Query(in _updateTransformQuery, (ref Entity entity) =>
         {
-            ref var parentOfRelation = ref entity.GetRelationships<ParentOf>();
-            ref var parentTransform = ref _ecsWorld.Get<TransformComponent>(entity);
-            foreach (var child in parentOfRelation)
+            if (_ecsWorld.HasRelationship<ParentOf>(entity))
             {
-                ref var childTransform = ref _ecsWorld.Get<TransformComponent>(child.Key);
-                childTransform.GlobalMatrix = parentTransform.LocalMatrix * childTransform.LocalMatrix;
+                ref var parentOfRelation = ref _ecsWorld.GetRelationships<ParentOf>(entity);
+                ref var parentTransform = ref _ecsWorld.Get<TransformComponent>(entity);
+                foreach (var child in parentOfRelation)
+                {
+                    ref var childTransform = ref _ecsWorld.Get<TransformComponent>(child.Key);
+                    childTransform.GlobalMatrix = parentTransform.LocalMatrix * childTransform.LocalMatrix;
+                }
             }
         });
 
@@ -170,10 +174,10 @@ public class Scene : IScene
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
 
-        var isFolder = model.ModelMeshes.Count() > 1;
+        var isFolder = model.ModelMeshes.Count > 1;
         if (isFolder)
         {
-            var label = $" {MaterialDesignIcons.CubeOutline} {model.Name}";
+            var label = $" {MaterialDesignIcons.CubeOutline} {model.Name}##{model.Name.GetHashCode()}";
             var isOpen = ImGui.TreeNodeEx(label, ImGuiTreeNodeFlags.SpanFullWidth);
 
             ImGui.TableNextColumn();
@@ -189,7 +193,7 @@ public class Scene : IScene
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     
-                    label = $" {MaterialDesignIcons.CubeOutline} {modelMesh.MeshPrimitive.MeshName}";
+                    label = $" {MaterialDesignIcons.CubeOutline} {modelMesh.MeshPrimitive.MeshName}##{modelMesh.GetHashCode()}";
                     var flags = ImGuiTreeNodeFlags.Leaf |
                                 ImGuiTreeNodeFlags.NoTreePushOnOpen |
                                 ImGuiTreeNodeFlags.SpanFullWidth;
@@ -213,7 +217,7 @@ public class Scene : IScene
             var label = $" {MaterialDesignIcons.CubeOutline} {model.Name}";
             ImGui.TreeNodeEx(label, flags);
             ImGui.TableNextColumn();
-            if (ImGui.SmallButton($"Spawn##{label.GetHashCode()}"))
+            if (ImGui.SmallButton($"Spawn##{label.GetHashCode()}##{model.Name.GetHashCode()}"))
             {
                 AddModelInstance(model);
             }  
@@ -235,7 +239,7 @@ public class Scene : IScene
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         if (ImGui.Begin($" {MaterialDesignIcons.Application} Outline"))
         {
-
+            ImGui.PushID(Guid.NewGuid().ToString());
             var tableFlags = ImGuiTableFlags.BordersV | 
                              ImGuiTableFlags.BordersOuterH | 
                              ImGuiTableFlags.Resizable | 
@@ -249,16 +253,18 @@ public class Scene : IScene
                 ImGui.TableSetupColumn($"{MaterialDesignIcons.EyeOutline}", ImGuiTableColumnFlags.WidthFixed, 72);
                 ImGui.TableHeadersRow();
 
-                _ecsWorld.Query<Entity>(_sceneHierarchyQuery, (ref Entity entity) =>
+                _ecsWorld.Query(_sceneHierarchyQuery, (ref Entity entity) =>
                 {
                     ref var nameComponent = ref entity.Get<NameComponent>();
                     var name = string.IsNullOrEmpty(nameComponent.Name)
-                        ? $"Unnamed {nameComponent.GetHashCode()}"
+                        ? $"Unnamed {entity.Id}"
                         : nameComponent.Name;
-                    
+
+                    ImGui.PushID(entity.Id);
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    var label = $" {MaterialDesignIcons.Cube} {name}###{entity.GetHashCode()}";
+
+                    var label = $" {MaterialDesignIcons.Cube} {name}";
                     var isOpen = ImGui.TreeNodeEx(label, ImGuiTreeNodeFlags.SpanFullWidth);
                     if (isOpen)
                     {
@@ -266,17 +272,17 @@ public class Scene : IScene
                         foreach (var child in parentOfRelation)
                         {
                             ImGui.TableNextRow();
-                            ImGui.TableNextColumn();                            
+                            ImGui.TableNextColumn();
                             ref var childNameComponent = ref _ecsWorld.Get<NameComponent>(child.Key);
                             var childName = string.IsNullOrEmpty(childNameComponent.Name)
                                 ? $"Unnamed {childNameComponent.GetHashCode()}"
                                 : childNameComponent.Name;
-                                
+
                             var flags = ImGuiTreeNodeFlags.Leaf |
                                         ImGuiTreeNodeFlags.NoTreePushOnOpen |
                                         ImGuiTreeNodeFlags.SpanFullWidth;
 
-                            label = $" {MaterialDesignIcons.CubeOutline} {childName}###{child.GetHashCode()}";
+                            label = $" {MaterialDesignIcons.CubeOutline} {childName}";
                             ImGui.TreeNodeEx(label, flags);
                             if (ImGui.IsItemHovered())
                             {
@@ -286,15 +292,18 @@ public class Scene : IScene
                             ImGui.TableNextColumn();
                             ImGui.TextUnformatted($"{MaterialDesignIcons.Eye}");
                         }
-                            
-                        ImGui.TreePop();
-
                     }
                     else
                     {
                         ImGui.TableNextColumn();
                         ImGui.TextUnformatted($"{MaterialDesignIcons.Adobe}");
                     }
+
+                    if (isOpen)
+                    {
+                        ImGui.TreePop();
+                    }
+                    ImGui.PopID();
 
                     if (SelectedEntity.HasValue)
                     {
@@ -306,6 +315,7 @@ public class Scene : IScene
             }
 
             ImGui.End();
+            ImGui.PopID();
         }
         ImGui.PopStyleVar(1);
     }
@@ -338,9 +348,9 @@ public class Scene : IScene
                 
                 if (component is NameComponent nameComponent)
                 {
-                    if (ImGui.CollapsingHeader($" {MaterialDesignIcons.Label} Name"))
+                    if (ImGui.CollapsingHeader($" {MaterialDesignIcons.Label} Name##{entity.Id}"))
                     {
-                        ImGui.BeginTable($"NameTable###{component.GetHashCode()}", 2);
+                        ImGui.BeginTable($"NameTable##{entity.Id}", 2);
                         ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
                         ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
                         ImGui.TableHeadersRow();
@@ -354,9 +364,9 @@ public class Scene : IScene
 
                 if (component is TransformComponent transformComponent)
                 {
-                    if (ImGui.CollapsingHeader($" {MaterialDesignIcons.VectorLine} Transform"))
+                    if (ImGui.CollapsingHeader($" {MaterialDesignIcons.VectorLine} Transform##{entity.Id}"))
                     {
-                        ImGui.BeginTable($"NameTable###{component.GetHashCode()}", 2);
+                        ImGui.BeginTable($"TransformTable##{entity.Id}", 2);
                         ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
                         ImGui.TableSetupColumn(string.Empty, ImGuiTableColumnFlags.WidthStretch);
                         ImGui.TableHeadersRow();
@@ -366,18 +376,18 @@ public class Scene : IScene
                         ImGui.TextUnformatted("Position");
                         ImGui.TableNextColumn();
                         var position = transformComponent.Position;
-                        ImGui.InputFloat3($"###Position{transformComponent.GetHashCode()}", ref position);
+                        ImGui.InputFloat3($"##Position##{entity.Id}", ref position);
 
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
                         ImGui.TextUnformatted("Rotation");
                         ImGui.TableNextColumn();
                         var rotation = new Vector3();
-                        ImGui.InputFloat3($"###Rotation{transformComponent.GetHashCode()}", ref rotation);
+                        ImGui.InputFloat3($"##Rotation##{entity.Id}", ref rotation);
                         
                         ImGui.TextUnformatted("Scale");
                         var scale = transformComponent.Scale;
-                        ImGui.InputFloat3($"###Scale{transformComponent.GetHashCode()}", ref scale);
+                        ImGui.InputFloat3($"##Scale##{entity.Id}", ref scale);
 
                         ImGui.EndTable();
                     }
@@ -385,31 +395,31 @@ public class Scene : IScene
 
                 if (component is MeshComponent meshComponent)
                 {
-                    if (ImGui.CollapsingHeader($" {MaterialDesignIcons.VectorPolygon} Mesh"))
+                    if (ImGui.CollapsingHeader($" {MaterialDesignIcons.VectorPolygon} Mesh##{entity.Id}"))
                     {
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
                         ImGui.TextUnformatted("VertexOffset");
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted(meshComponent.Mesh.VertexOffset.ToString());
+                        ImGui.TextUnformatted(meshComponent.MeshId.VertexOffset.ToString());
 
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
                         ImGui.TextUnformatted("VertexCount");
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted(meshComponent.Mesh.VertexCount.ToString());
+                        ImGui.TextUnformatted(meshComponent.MeshId.VertexCount.ToString());
 
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
                         ImGui.TextUnformatted("IndexOffset");
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted(meshComponent.Mesh.IndexOffset.ToString());
+                        ImGui.TextUnformatted(meshComponent.MeshId.IndexOffset.ToString());
 
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
                         ImGui.TextUnformatted("IndexCount");
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted(meshComponent.Mesh.IndexCount.ToString());
+                        ImGui.TextUnformatted(meshComponent.MeshId.IndexCount.ToString());
                     }
                 }
 
@@ -427,8 +437,6 @@ public class Scene : IScene
         var entity = _ecsWorld.Create();
         entity.Add(new TransformComponent(Matrix4x4.Identity));
         entity.Add(new NameComponent(model.Name));
-        _rootEntity.AddRelationship(entity, new ParentOf());
-
         foreach (var modelMesh in model.ModelMeshes)
         {
             var material = _materialLibrary.GetMaterialByName(modelMesh.MeshPrimitive.MaterialName);
@@ -440,8 +448,8 @@ public class Scene : IScene
             child.Add(new MeshComponent(meshId));
             child.Add(new MaterialComponent(materialId));
             child.Add(new NameComponent(modelMesh.Name));
-            
-            entity.AddRelationship(child,new ParentOf());
+        
+            entity.AddRelationship<ParentOf>(child);
         }
     }
 
@@ -456,6 +464,6 @@ public class Scene : IScene
         entity.Add(new MeshComponent(meshId));
         entity.Add(new MaterialComponent(materialId));
         entity.Add(new NameComponent(modelMesh.Name));
-        _rootEntity.AddRelationship(entity, new ParentOf());
+        _rootEntity.AddRelationship<ParentOf>(entity);
     }
 }

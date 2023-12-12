@@ -11,9 +11,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Arch" Version="1.2.5.3-alpha" />
+        <PackageReference Include="Arch" Version="1.2.7.1-alpha" />
+        <PackageReference Include="Arch.LowLevel" Version="1.1.0" />
+        <PackageReference Include="Arch.Relationships" Version="1.0.1" />
         <PackageReference Include="Arch.System" Version="1.0.2" />
-        <PackageReference Include="Arch.System.SourceGenerator" Version="1.1.0" />
+        <PackageReference Include="Arch.System.SourceGenerator" Version="1.1.2" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
