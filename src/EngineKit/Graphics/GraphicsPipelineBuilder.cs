@@ -129,7 +129,7 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
         return this;
     }
 
-    public IGraphicsPipelineBuilder WithDepthTestEnabled(CompareFunction compareFunction = CompareFunction.Less)
+    public IGraphicsPipelineBuilder WithDepthTestEnabled(CompareFunction compareFunction)
     {
         _graphicsPipelineDescriptor.DepthStencilDescriptor.IsDepthTestEnabled = true;
         _graphicsPipelineDescriptor.DepthStencilDescriptor.DepthCompareFunction = compareFunction;
@@ -167,6 +167,24 @@ internal sealed class GraphicsPipelineBuilder : IGraphicsPipelineBuilder
     public IGraphicsPipelineBuilder WithDepthWriteDisabled()
     {
         _graphicsPipelineDescriptor.DepthStencilDescriptor.IsDepthWriteEnabled = false;
+        return this;
+    }
+
+    public IGraphicsPipelineBuilder WithDepthClampEnabled()
+    {
+        _graphicsPipelineDescriptor.RasterizationDescriptor.IsDepthClampEnabled = true;
+        return this;
+    }
+
+    public IGraphicsPipelineBuilder WithDepthClampDisabled()
+    {
+        _graphicsPipelineDescriptor.RasterizationDescriptor.IsDepthClampEnabled = false;
+        return this;
+    }
+
+    public IGraphicsPipelineBuilder WithClipControlDepth(ClipControlDepth clipControlDepth)
+    {
+        _graphicsPipelineDescriptor.RasterizationDescriptor.ClipControlDepth = clipControlDepth;
         return this;
     }
 

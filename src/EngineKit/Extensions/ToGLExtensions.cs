@@ -123,6 +123,15 @@ public static class ToGLExtensions
         };
     }
 
+    public static GL.ClipControlDepth ToGL(this ClipControlDepth clipControlDepth)
+    {
+        return clipControlDepth switch
+        {
+            ClipControlDepth.NegativeOneToOne => GL.ClipControlDepth.NegativeOneToOne,
+            ClipControlDepth.ZeroToOne => GL.ClipControlDepth.ZeroToOne
+        };
+    }
+
     public static GL.FillMode ToGL(this FillMode fillMode)
     {
         return fillMode switch
@@ -383,28 +392,56 @@ public static class ToGLExtensions
 
     public static GL.MemoryBarrierMask ToGL(this BarrierMask barrierMask)
     {
-        // TODO(deccer) fix this thing, see BufferStorageFlags
-        return barrierMask switch
-        {
-            BarrierMask.VertexAttribArray => GL.MemoryBarrierMask.VertexAttribArrayBarrierBit,
-            BarrierMask.ElementArray => GL.MemoryBarrierMask.ElementArrayBarrierBit,
-            BarrierMask.Uniform => GL.MemoryBarrierMask.UniformBarrierBit,
-            BarrierMask.TextureFetch => GL.MemoryBarrierMask.TextureFetchBarrierBit,
-            BarrierMask.ShaderGlobalAccess => GL.MemoryBarrierMask.ShaderGlobalAccessBarrierBitNv,
-            BarrierMask.ShaderImageAccess => GL.MemoryBarrierMask.ShaderImageAccessBarrierBit,
-            BarrierMask.Command => GL.MemoryBarrierMask.CommandBarrierBit,
-            BarrierMask.PixelBuffer => GL.MemoryBarrierMask.PixelBufferBarrierBit,
-            BarrierMask.TextureUpdate => GL.MemoryBarrierMask.TextureUpdateBarrierBit,
-            BarrierMask.BufferUpdate => GL.MemoryBarrierMask.BufferUpdateBarrierBit,
-            BarrierMask.Framebuffer => GL.MemoryBarrierMask.FramebufferBarrierBit,
-            BarrierMask.TransformFeedback => GL.MemoryBarrierMask.TransformFeedbackBarrierBit,
-            BarrierMask.AtomicCounter => GL.MemoryBarrierMask.AtomicCounterBarrierBit,
-            BarrierMask.ShaderStorage => GL.MemoryBarrierMask.ShaderStorageBarrierBit,
-            BarrierMask.ClientMappedBuffer => GL.MemoryBarrierMask.ClientMappedBufferBarrierBit,
-            BarrierMask.QueryBuffer => GL.MemoryBarrierMask.QueryBufferBarrierBit,
-            BarrierMask.All => GL.MemoryBarrierMask.AllBarrierBits,
-            _ => throw new ArgumentOutOfRangeException(nameof(barrierMask), barrierMask, null)
-        };
+        GL.MemoryBarrierMask result = 0u;
+        result |= (barrierMask & BarrierMask.Command) == BarrierMask.Command
+            ? GL.MemoryBarrierMask.CommandBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.Framebuffer) == BarrierMask.Framebuffer
+            ? GL.MemoryBarrierMask.FramebufferBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.Uniform) == BarrierMask.Uniform
+            ? GL.MemoryBarrierMask.UniformBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.AtomicCounter) == BarrierMask.AtomicCounter
+            ? GL.MemoryBarrierMask.AtomicCounterBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.BufferUpdate) == BarrierMask.BufferUpdate
+            ? GL.MemoryBarrierMask.BufferUpdateBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.ElementArray) == BarrierMask.ElementArray
+            ? GL.MemoryBarrierMask.ElementArrayBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.PixelBuffer) == BarrierMask.PixelBuffer
+            ? GL.MemoryBarrierMask.PixelBufferBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.QueryBuffer) == BarrierMask.QueryBuffer
+            ? GL.MemoryBarrierMask.QueryBufferBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.ShaderStorage) == BarrierMask.ShaderStorage
+            ? GL.MemoryBarrierMask.ShaderStorageBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.TextureFetch) == BarrierMask.TextureFetch
+            ? GL.MemoryBarrierMask.TextureFetchBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.TextureUpdate) == BarrierMask.TextureUpdate
+            ? GL.MemoryBarrierMask.TextureUpdateBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.TransformFeedback) == BarrierMask.TransformFeedback
+            ? GL.MemoryBarrierMask.TransformFeedbackBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.ClientMappedBuffer) == BarrierMask.ClientMappedBuffer
+            ? GL.MemoryBarrierMask.ClientMappedBufferBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.ShaderGlobalAccess) == BarrierMask.ShaderGlobalAccess
+            ? GL.MemoryBarrierMask.ShaderGlobalAccessBarrierBitNv
+            : 0;
+        result |= (barrierMask & BarrierMask.ShaderImageAccess) == BarrierMask.ShaderImageAccess
+            ? GL.MemoryBarrierMask.ShaderImageAccessBarrierBit
+            : 0;
+        result |= (barrierMask & BarrierMask.VertexAttribArray) == BarrierMask.VertexAttribArray
+            ? GL.MemoryBarrierMask.VertexAttribArrayBarrierBit
+            : 0;
+        return result;
     }
 
     public static GL.MemoryAccess ToGL(this MemoryAccess memoryAccess)

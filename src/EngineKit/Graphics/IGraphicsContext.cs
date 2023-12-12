@@ -19,6 +19,14 @@ public interface IGraphicsContext : IDisposable
         int targetWidth,
         int targetHeight);
 
+    void BlitFramebufferToSwapchain(
+        FramebufferDescriptor sourceFramebufferDescriptor,
+        FramebufferDescriptor targetFramebufferDescriptor,
+        int sourceWidth,
+        int sourceHeight,
+        int targetWidth,
+        int targetHeight);    
+
     bool TryMapBuffer(
         IBuffer buffer,
         MemoryAccess memoryAccess,

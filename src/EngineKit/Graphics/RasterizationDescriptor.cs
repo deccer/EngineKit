@@ -10,4 +10,5 @@ public record struct RasterizationDescriptor(
     FillMode FillMode = FillMode.Solid,
     bool IsCullingEnabled = true,
     CullMode CullMode = CullMode.Back,
-    FaceWinding FaceWinding = FaceWinding.CounterClockwise);
+    FaceWinding FaceWinding = FaceWinding.CounterClockwise,
+    ClipControlDepth ClipControlDepth = ClipControlDepth.ZeroToOne);

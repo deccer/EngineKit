@@ -446,6 +446,7 @@ internal sealed class GraphicsContext : IGraphicsContext
             graphicsPipelineDescriptor.InputAssembly.IsPrimitiveRestartEnabled);
 
         var rasterizationDescriptor = graphicsPipelineDescriptor.RasterizationDescriptor;
+        GL.ClipControl(GL.ClipControlOrigin.LowerLeft, rasterizationDescriptor.ClipControlDepth.ToGL());
         GL.PolygonMode(GL.PolygonModeType.FrontAndBack, rasterizationDescriptor.FillMode.ToGL());
         GL.EnableWhen(GL.EnableType.CullFace, rasterizationDescriptor.IsCullingEnabled);
         if (rasterizationDescriptor.IsCullingEnabled)
@@ -678,8 +679,6 @@ internal sealed class GraphicsContext : IGraphicsContext
                 framebufferDescriptor.Viewport.MaxDepth);
         }
         
-        GL.ClipControl(GL.ClipControlOrigin.LowerLeft, GL.ClipControlDepth.NegativeOneToOne);
-        
         if (!framebufferDescriptor.HasSrgbEnabledAttachment())
         {
             GL.Disable(GL.EnableType.FramebufferSrgb);
@@ -705,6 +704,32 @@ internal sealed class GraphicsContext : IGraphicsContext
             GL.PopDebugGroup();
             _isGraphicsPipelineDebugGroupActive = false;
         }
+    }
+    
+    public void BlitFramebufferToSwapchain(
+        FramebufferDescriptor sourceFramebufferDescriptor,
+        FramebufferDescriptor targetFramebufferDescriptor,
+        int sourceWidth,
+        int sourceHeight,
+        int targetWidth,
+        int targetHeight)
+    {
+        var sourceFramebuffer = _framebufferCache.GetOrCreateFramebuffer(sourceFramebufferDescriptor);
+        var targetFramebuffer = _framebufferCache.GetOrCreateFramebuffer(targetFramebufferDescriptor);
+
+        GL.BlitNamedFramebuffer(
+            sourceFramebuffer,
+            targetFramebuffer,
+            0,
+            0,
+            sourceWidth,
+            sourceHeight,
+            0,
+            0,
+            targetWidth,
+            targetHeight,
+            GL.FramebufferBit.ColorBufferBit,
+            GL.BlitFramebufferFilter.Nearest);
     }
 
     public void BlitFramebufferToSwapchain(

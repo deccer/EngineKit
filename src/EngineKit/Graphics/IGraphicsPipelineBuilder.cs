@@ -32,17 +32,23 @@ public interface IGraphicsPipelineBuilder
 
     IGraphicsPipelineBuilder WithFaceWinding(FaceWinding faceWinding);
 
-    IGraphicsPipelineBuilder WithDepthTestEnabled(CompareFunction compareFunction = CompareFunction.Less);
+    IGraphicsPipelineBuilder WithDepthTestEnabled(CompareFunction compareFunction);
 
     IGraphicsPipelineBuilder WithDepthWriteEnabled();
 
     IGraphicsPipelineBuilder WithDepthBiasEnabled(float constantFactor, float slopeFactor);
+
+    IGraphicsPipelineBuilder WithClipControlDepth(ClipControlDepth clipControlDepth);
 
     IGraphicsPipelineBuilder WithBlendingEnabled(ColorBlendAttachmentDescriptor colorBlendAttachmentDescriptor);
 
     IGraphicsPipelineBuilder WithDepthTestDisabled();
 
     IGraphicsPipelineBuilder WithDepthWriteDisabled();
+
+    IGraphicsPipelineBuilder WithDepthClampEnabled();
+
+    IGraphicsPipelineBuilder WithDepthClampDisabled();
 
     IGraphicsPipelineBuilder WithDepthBiasDisabled();
 
