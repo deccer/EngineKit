@@ -69,17 +69,17 @@ internal sealed class Renderer : IRenderer
         
     }
 
-    public PooledMesh AddMeshPrimitive(MeshPrimitive meshPrimitive)
+    public MeshId AddMeshPrimitive(MeshPrimitive meshPrimitive)
     {
         return _meshPool.GetOrAdd(meshPrimitive);
     }
 
-    public PooledMaterial AddMaterial(Material material)
+    public MaterialId AddMaterial(Material material)
     {
         return _materialPool.GetOrAdd(material);
     }
     
-    public void AddToRenderQueue(PooledMesh pooledMesh, PooledMaterial pooledMaterial, Matrix4x4 worldMatrix)
+    public void AddToRenderQueue(MeshId meshId, MaterialId materialId, Matrix4x4 worldMatrix)
     {
         if (!_isLoaded || _geometryInstanceBuffer == null || _geometryDrawIndirectBuffer == null)
         {
@@ -89,15 +89,15 @@ internal sealed class Renderer : IRenderer
         _geometryInstanceBuffer.Update(new GpuMeshInstance
         {
             WorldMatrix = worldMatrix,
-            MaterialId = new Int4(pooledMaterial.Index, 0, 0, 0)
+            MaterialId = new Int4(materialId.Index, 0, 0, 0)
         }, _objectDataIndex);
 
         _geometryDrawIndirectBuffer.Update(new DrawElementIndirectCommand
         {
-            FirstIndex = pooledMesh.IndexOffset,
-            IndexCount = pooledMesh.IndexCount,
+            FirstIndex = meshId.IndexOffset,
+            IndexCount = meshId.IndexCount,
             BaseInstance = 0,
-            BaseVertex = pooledMesh.VertexOffset,
+            BaseVertex = meshId.VertexOffset,
             InstanceCount = 1
         }, _objectDataIndex);
 

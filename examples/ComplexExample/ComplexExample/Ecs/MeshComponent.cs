@@ -4,10 +4,10 @@ namespace ComplexExample.Ecs;
 
 public struct MeshComponent
 {
-    public MeshComponent(PooledMesh mesh)
+    public MeshComponent(MeshId meshId)
     {
-        Mesh = mesh;
+        MeshId = meshId;
     }
     
-    public PooledMesh Mesh;
+    public MeshId MeshId;
 }

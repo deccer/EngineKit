@@ -114,7 +114,7 @@ public class Scene : IScene
         _renderer.ClearRenderQueue();
         _ecsWorld.Query(in _collectAllRenderablesQuery, (ref TransformComponent transform, ref MeshComponent meshComponent, ref MaterialComponent materialComponent) =>
         {
-            _renderer.AddToRenderQueue(meshComponent.Mesh, materialComponent.Material, transform.GlobalMatrix);
+            _renderer.AddToRenderQueue(meshComponent.MeshId, materialComponent.MaterialId, transform.GlobalMatrix);
         });
         
         // render
@@ -432,13 +432,13 @@ public class Scene : IScene
         foreach (var modelMesh in model.ModelMeshes)
         {
             var material = _materialLibrary.GetMaterialByName(modelMesh.MeshPrimitive.MaterialName);
-            var pooledMesh = _renderer.AddMeshPrimitive(modelMesh.MeshPrimitive);
-            var pooledMaterial = _renderer.AddMaterial(material);            
+            var meshId = _renderer.AddMeshPrimitive(modelMesh.MeshPrimitive);
+            var materialId = _renderer.AddMaterial(material);            
             
             var child = _ecsWorld.Create();
             child.Add(new TransformComponent(modelMesh.MeshPrimitive.Transform));
-            child.Add(new MeshComponent(pooledMesh));
-            child.Add(new MaterialComponent(pooledMaterial));
+            child.Add(new MeshComponent(meshId));
+            child.Add(new MaterialComponent(materialId));
             child.Add(new NameComponent(modelMesh.Name));
             
             entity.AddRelationship(child,new ParentOf());
@@ -448,13 +448,13 @@ public class Scene : IScene
     private void AddModelMeshInstance(ModelMesh modelMesh)
     {
         var material = _materialLibrary.GetMaterialByName(modelMesh.MeshPrimitive.MaterialName);
-        var pooledMesh = _renderer.AddMeshPrimitive(modelMesh.MeshPrimitive);
-        var pooledMaterial = _renderer.AddMaterial(material);            
+        var meshId = _renderer.AddMeshPrimitive(modelMesh.MeshPrimitive);
+        var materialId = _renderer.AddMaterial(material);            
             
         var entity = _ecsWorld.Create();
         entity.Add(new TransformComponent(modelMesh.MeshPrimitive.Transform));
-        entity.Add(new MeshComponent(pooledMesh));
-        entity.Add(new MaterialComponent(pooledMaterial));
+        entity.Add(new MeshComponent(meshId));
+        entity.Add(new MaterialComponent(materialId));
         entity.Add(new NameComponent(modelMesh.Name));
         _rootEntity.AddRelationship(entity, new ParentOf());
     }

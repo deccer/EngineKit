@@ -4,10 +4,10 @@ namespace ComplexExample.Ecs;
 
 public struct MaterialComponent
 {
-    public MaterialComponent(PooledMaterial material)
+    public MaterialComponent(MaterialId materialId)
     {
-        Material = material;
+        MaterialId = materialId;
     }
     
-    public PooledMaterial Material;
+    public MaterialId MaterialId;
 }

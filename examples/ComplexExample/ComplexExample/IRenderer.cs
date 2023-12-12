@@ -6,11 +6,11 @@ namespace ComplexExample;
 
 public interface IRenderer : IDisposable
 {
-    PooledMesh AddMeshPrimitive(MeshPrimitive meshPrimitive);
+    MeshId AddMeshPrimitive(MeshPrimitive meshPrimitive);
 
-    PooledMaterial AddMaterial(Material material);
+    MaterialId AddMaterial(Material material);
     
-    void AddToRenderQueue(PooledMesh meshPrimitive, PooledMaterial material, Matrix4x4 worldMatrix);
+    void AddToRenderQueue(MeshId meshIdPrimitive, MaterialId materialId, Matrix4x4 worldMatrix);
     
     void RenderWorld(ICamera camera);
 
