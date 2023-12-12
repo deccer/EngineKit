@@ -61,6 +61,19 @@ public sealed class Camera : ICamera
         }
     }
 
+    public CameraMode Mode
+    {
+        get => _cameraMode;
+        set
+        {
+            if (_cameraMode != value)
+            {
+                _cameraMode = value;
+                UpdateCameraVectors();
+            }
+        }
+    }
+
     public Camera(
         IApplicationContext applicationContext,
         IInputProvider inputProvider,
@@ -117,6 +130,15 @@ public sealed class Camera : ICamera
         }
     }
 
+    private static Matrix4x4 CreateInfiniteReverseZPerspectiveRh(float fieldOfView, float aspectRatio, float nearPlane)
+    {
+        var f = 1.0f / MathF.Tan(fieldOfView / 2.0f);
+        return new Matrix4x4(f / aspectRatio, 0.0f, 0.0f, 0.0f,
+            0.0f, f, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, -1.0f, 0.0f,
+            0.0f, nearPlane, 0.0f);
+    }
+
     private void UpdateCameraVectorsForPerspective()
     {
         var eulerAngles = new Vector3
@@ -131,11 +153,20 @@ public sealed class Camera : ICamera
         _up = Vector3.Normalize(Vector3.Cross(_right, _front));
 
         ViewMatrix = Matrix4x4.CreateLookAt(_position, _position + _front, _up);
-        ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
-            MathHelper.ToRadians(FieldOfView),
-            _applicationContext.ScaledFramebufferSize.X / (float)_applicationContext.ScaledFramebufferSize.Y,
-            NearPlane,
-            FarPlane);
+        if (_cameraMode == CameraMode.Perspective)
+        {
+            ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
+                MathHelper.ToRadians(FieldOfView),
+                _applicationContext.ScaledFramebufferSize.X / (float)_applicationContext.ScaledFramebufferSize.Y,
+                NearPlane,
+                FarPlane);
+        }
+        else if (_cameraMode == CameraMode.PerspectiveInfinity)
+        {
+            ProjectionMatrix = CreateInfiniteReverseZPerspectiveRh(MathHelper.ToRadians(FieldOfView),
+                _applicationContext.ScaledFramebufferSize.X / (float)_applicationContext.ScaledFramebufferSize.Y,
+                NearPlane);
+        }
     }
 
     private void UpdateCameraVectorsForOrthogonal()

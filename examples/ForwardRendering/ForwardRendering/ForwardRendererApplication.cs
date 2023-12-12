@@ -335,7 +335,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             .WithTopology(PrimitiveTopology.Triangles)
             .WithFaceWinding(FaceWinding.CounterClockwise)
             .WithCullingEnabled(CullMode.Back)
-            .WithDepthTestEnabled()
+            .WithDepthTestEnabled(CompareFunction.Less)
             .Build("ScenePipeline");
 
         if (graphicsPipelineResult.IsFailure)

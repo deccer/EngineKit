@@ -21,6 +21,8 @@ public interface ICamera
     float Sensitivity { get; set; }
 
     float Zoom { get; set; }
+    
+    CameraMode Mode { get; set; }
 
     void ProcessKeyboard(Vector3 movement, float deltaTime);
 

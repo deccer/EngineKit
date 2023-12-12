@@ -3,5 +3,6 @@
 public enum CameraMode
 {
     Perspective,
+    PerspectiveInfinity,
     Orthogonal
 }

@@ -178,7 +178,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             .WithTopology(PrimitiveTopology.Triangles)
             .WithFaceWinding(FaceWinding.Clockwise)
             .WithCullingEnabled(CullMode.Back)
-            .WithDepthTestEnabled()
+            .WithDepthTestEnabled(CompareFunction.Less)
             .Build("ScenePipeline");
 
         if (graphicsPipelineResult.IsFailure)

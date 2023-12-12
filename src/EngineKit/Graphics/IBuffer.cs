@@ -33,5 +33,5 @@ public interface IBuffer : IDisposable
 
     void ClearWith(BufferClearInfo bufferClearInfo);
     
-    void ClearWith();
+    void ClearAll();
 }

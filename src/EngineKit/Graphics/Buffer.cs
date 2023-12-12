@@ -93,7 +93,7 @@ internal abstract class Buffer : IBuffer
         GL.NamedBufferSubData(Id, elementOffset * Stride, data);
     }
     
-    public unsafe void ClearWith()
+    public unsafe void ClearAll()
     {
         var clearSize = Count * Stride;
         var clearData = 0;
