@@ -2,11 +2,11 @@ namespace EngineKit.Graphics;
 
 public struct DrawIndirectCommand
 {
-    uint VertexCount;
+    public uint VertexCount;
     
-    uint InstanceCount;
+    public uint InstanceCount;
     
-    uint FirstVertex;
+    public uint FirstVertex;
     
-    uint FirstInstance;
+    public uint FirstInstance;
 };
