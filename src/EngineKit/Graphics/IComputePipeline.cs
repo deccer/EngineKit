@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace EngineKit.Graphics;
 
 public interface IComputePipeline : IPipeline
@@ -9,4 +11,6 @@ public interface IComputePipeline : IPipeline
         int indirectElementIndex);
 
     void Uniform(int location, float value);
+    
+    void Uniform(int location, bool transpose, Matrix4x4 value);
 }

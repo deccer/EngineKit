@@ -1,3 +1,4 @@
+using System.Numerics;
 using EngineKit.Extensions;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Native.OpenGL;
@@ -29,5 +30,10 @@ internal sealed class ComputePipeline : Pipeline, IComputePipeline
     public void Uniform(int location, float value)
     {
         GL.ProgramUniform(ShaderProgram.ComputeShader.Id, location, value);
+    }
+    
+    public void Uniform(int location, bool transpose, Matrix4x4 value)
+    {
+        GL.ProgramUniform(ShaderProgram.ComputeShader.Id, location, transpose, value);
     }
 }
