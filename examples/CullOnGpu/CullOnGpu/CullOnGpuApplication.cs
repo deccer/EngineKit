@@ -125,6 +125,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         _capabilities = capabilities;
         _metrics = metrics;
         _camera = camera;
+        _camera.Mode = CameraMode.PerspectiveInfinity;
         _meshLoader = meshLoader;
         _materialLibrary = materialLibrary;
 
@@ -235,8 +236,9 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                     IndexCount = (uint)so.IndexCount,
                     InstanceCount = 1
                 }).ToArray();
-            _culledDrawElementCommandsBuffer.Update(drawCommands, 0);
-            _culledDrawCountBuffer.Update(drawCommands.Count());
+            _culledDrawElementCommandsBuffer.Update(ref drawCommands, 0);
+            var drawCommandCount = drawCommands.Length;
+            _culledDrawCountBuffer.Update(ref drawCommandCount);
 
             var instances = _sceneObjects
                 .Where(so => boundingFrustum.Intersects(new BoundingBox(so.AabbMin, so.AabbMax)))
@@ -246,10 +248,10 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                     MaterialId = new Int4((int)so.MaterialId, 0, 0, 0)
                 })
                 .ToArray();
-            _gpuModelMeshInstanceBuffer.Update(instances, 0);
+            _gpuModelMeshInstanceBuffer.Update(ref instances, 0);
         }
         
-        _gpuCameraConstantsBuffer.Update(_gpuCameraConstants, Offset.Zero);
+        _gpuCameraConstantsBuffer.Update(ref _gpuCameraConstants, Offset.Zero);
 
         GraphicsContext.BeginRenderPass(_gBufferFramebufferDescriptor);
         
@@ -407,7 +409,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
     private void SetDebugLines(ICamera camera)
     {
         var cameraFrustum = new BoundingFrustum(camera.ViewMatrix * camera.ProjectionMatrix);
-        var vertices = new List<VertexPositionColor>(24);
+
 
         var nearColor = Colors.Orange.ToVector3();
         var farColor = Colors.DarkOrange.ToVector3();
@@ -423,61 +425,65 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         var farTopLeft = bbCorners[6];
         var farBottomLeft = bbCorners[7];
 
-        vertices.Add(new VertexPositionColor(nearBottomRight, nearColor));
-        vertices.Add(new VertexPositionColor(nearTopRight, nearColor));
+        var vertices = new[]
+        {
+            new VertexPositionColor(nearBottomRight, nearColor),
+            new VertexPositionColor(nearTopRight, nearColor),
 
-        vertices.Add(new VertexPositionColor(nearTopRight, nearColor));
-        vertices.Add(new VertexPositionColor(nearTopLeft, nearColor));
+            new VertexPositionColor(nearTopRight, nearColor),
+            new VertexPositionColor(nearTopLeft, nearColor),
 
-        vertices.Add(new VertexPositionColor(nearTopLeft, nearColor));
-        vertices.Add(new VertexPositionColor(nearBottomLeft, nearColor));
+            new VertexPositionColor(nearTopLeft, nearColor),
+            new VertexPositionColor(nearBottomLeft, nearColor),
 
-        vertices.Add(new VertexPositionColor(nearBottomLeft, nearColor));
-        vertices.Add(new VertexPositionColor(nearBottomRight, nearColor));
+            new VertexPositionColor(nearBottomLeft, nearColor),
+            new VertexPositionColor(nearBottomRight, nearColor),
 
-        // ---
 
-        vertices.Add(new VertexPositionColor(nearBottomRight, nearColor));
-        vertices.Add(new VertexPositionColor(farBottomRight, farColor));
 
-        vertices.Add(new VertexPositionColor(nearTopRight, nearColor));
-        vertices.Add(new VertexPositionColor(farTopRight, farColor));
+            new VertexPositionColor(nearBottomRight, nearColor),
+            new VertexPositionColor(farBottomRight, farColor),
 
-        vertices.Add(new VertexPositionColor(nearTopLeft, nearColor));
-        vertices.Add(new VertexPositionColor(farTopLeft, farColor));
+            new VertexPositionColor(nearTopRight, nearColor),
+            new VertexPositionColor(farTopRight, farColor),
 
-        vertices.Add(new VertexPositionColor(nearBottomLeft, nearColor));
-        vertices.Add(new VertexPositionColor(farBottomLeft, farColor));
+            new VertexPositionColor(nearTopLeft, nearColor),
+            new VertexPositionColor(farTopLeft, farColor),
 
-        // ---
+            new VertexPositionColor(nearBottomLeft, nearColor),
+            new VertexPositionColor(farBottomLeft, farColor),
 
-        vertices.Add(new VertexPositionColor(farBottomRight, farColor));
-        vertices.Add(new VertexPositionColor(farTopRight, farColor));
 
-        vertices.Add(new VertexPositionColor(farTopRight, farColor));
-        vertices.Add(new VertexPositionColor(farTopLeft, farColor));
 
-        vertices.Add(new VertexPositionColor(farTopLeft, farColor));
-        vertices.Add(new VertexPositionColor(farBottomLeft, farColor));
+            new VertexPositionColor(farBottomRight, farColor),
+            new VertexPositionColor(farTopRight, farColor),
 
-        vertices.Add(new VertexPositionColor(farBottomLeft, farColor));
-        vertices.Add(new VertexPositionColor(farBottomRight, farColor));
+            new VertexPositionColor(farTopRight, farColor),
+            new VertexPositionColor(farTopLeft, farColor),
+
+            new VertexPositionColor(farTopLeft, farColor),
+            new VertexPositionColor(farBottomLeft, farColor),
+
+            new VertexPositionColor(farBottomLeft, farColor),
+            new VertexPositionColor(farBottomRight, farColor)
+        };
         
         _debugLinesBuffer?.Dispose();
         _debugLinesBuffer = GraphicsContext.CreateVertexBuffer<VertexPositionColor>("DebugLines");
         unsafe
         {
-            var sizeInBytes = sizeof(VertexPositionColor) * vertices.Count;
+            var sizeInBytes = sizeof(VertexPositionColor) * vertices.Length;
             _debugLinesBuffer.AllocateStorage(sizeInBytes, StorageAllocationFlags.Dynamic);
         }
 
-        _debugLinesBuffer.Update(vertices.ToArray());
+        _debugLinesBuffer.Update(ref vertices);
     }
 
     private void RenderComputeCull(ICamera camera)
     {
-        //var cameraBoundingFrustum = new BoundingFrustum(_camera.ViewMatrix * _camera.ProjectionMatrix);
-        var cameraBoundingFrustum = _frozenFrustum;
+        var cameraBoundingFrustum = _isCameraFrustumFrozen
+            ? _frozenFrustum
+            : new BoundingFrustum(_camera.ViewMatrix * _camera.ProjectionMatrix);
         var bottomPlane = new Vector4(cameraBoundingFrustum.Bottom.Normal, cameraBoundingFrustum.Bottom.D);
         var topPlane = new Vector4(cameraBoundingFrustum.Top.Normal, cameraBoundingFrustum.Top.D);
         var leftPlane = new Vector4(cameraBoundingFrustum.Left.Normal, cameraBoundingFrustum.Left.D);
@@ -486,9 +492,18 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         var farPlane = new Vector4(cameraBoundingFrustum.Far.Normal, cameraBoundingFrustum.Far.D);
 
         //var planes = new[] { bottomPlane, topPlane, leftPlane, rightPlane, nearPlane, farPlane };
+        var planes = MakeFrustumPlanes(_camera.ViewMatrix * camera.ProjectionMatrix);
 
         GraphicsContext.BindComputePipeline(_cullComputePipeline);
-        _cullFrustumBuffer.Update(_frozenFrustumPlanes);
+        if (_isCameraFrustumFrozen)
+        {
+            _cullFrustumBuffer.Update(ref _frozenFrustumPlanes);            
+        }
+        else
+        {
+            _cullFrustumBuffer.Update(ref planes);            
+        }
+
         _culledDrawElementCommandsBuffer.ClearWith(new BufferClearInfo{Offset = 0, Size = SizeInBytes.Whole, Data = 0u});
         _culledDrawCountBuffer.ClearAll();
 
@@ -497,16 +512,16 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         _cullComputePipeline.BindAsShaderStorageBuffer(_cullFrustumBuffer, 2);
         _cullComputePipeline.BindAsShaderStorageBuffer(_culledDrawCountBuffer, 3);
         _cullComputePipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 4);
+        _cullComputePipeline.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 5);
+        //_cullComputePipeline.Uniform(0, false, _camera.ViewMatrix * camera.ProjectionMatrix);
 
         GraphicsContext.InsertMemoryBarrier(BarrierMask.BufferUpdate);
         _cullComputePipeline.Dispatch(((uint)_sceneObjects.Count + 31) / 32, 1, 1);
         GraphicsContext.InsertMemoryBarrier(BarrierMask.ShaderStorage | BarrierMask.Command);
     }
 
-    private IEnumerable<VertexPositionColor> CreateAabbLinesFromBoundingBox(BoundingBox boundingBox)
+    private VertexPositionColor[] CreateAabbLinesFromBoundingBox(BoundingBox boundingBox)
     {
-        var vertices = new List<VertexPositionColor>(24);
-        
         var nearColor = Colors.LimeGreen.ToVector3();
         var farColor = Colors.ForestGreen.ToVector3();
         var bbCorners = boundingBox.GetCorners();
@@ -521,45 +536,48 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         var farTopLeft = bbCorners[6];
         var farBottomLeft = bbCorners[7];
 
-        vertices.Add(new VertexPositionColor(nearBottomRight, nearColor));
-        vertices.Add(new VertexPositionColor(nearTopRight, nearColor));
+        var vertices = new[]
+        {
+            new VertexPositionColor(nearBottomRight, nearColor),
+            new VertexPositionColor(nearTopRight, nearColor),
 
-        vertices.Add(new VertexPositionColor(nearTopRight, nearColor));
-        vertices.Add(new VertexPositionColor(nearTopLeft, nearColor));
+            new VertexPositionColor(nearTopRight, nearColor),
+            new VertexPositionColor(nearTopLeft, nearColor),
 
-        vertices.Add(new VertexPositionColor(nearTopLeft, nearColor));
-        vertices.Add(new VertexPositionColor(nearBottomLeft, nearColor));
+            new VertexPositionColor(nearTopLeft, nearColor),
+            new VertexPositionColor(nearBottomLeft, nearColor),
 
-        vertices.Add(new VertexPositionColor(nearBottomLeft, nearColor));
-        vertices.Add(new VertexPositionColor(nearBottomRight, nearColor));
+            new VertexPositionColor(nearBottomLeft, nearColor),
+            new VertexPositionColor(nearBottomRight, nearColor),
 
-        // ---
 
-        vertices.Add(new VertexPositionColor(nearBottomRight, nearColor));
-        vertices.Add(new VertexPositionColor(farBottomRight, farColor));
 
-        vertices.Add(new VertexPositionColor(nearTopRight, nearColor));
-        vertices.Add(new VertexPositionColor(farTopRight, farColor));
+            new VertexPositionColor(nearBottomRight, nearColor),
+            new VertexPositionColor(farBottomRight, farColor),
 
-        vertices.Add(new VertexPositionColor(nearTopLeft, nearColor));
-        vertices.Add(new VertexPositionColor(farTopLeft, farColor));
+            new VertexPositionColor(nearTopRight, nearColor),
+            new VertexPositionColor(farTopRight, farColor),
 
-        vertices.Add(new VertexPositionColor(nearBottomLeft, nearColor));
-        vertices.Add(new VertexPositionColor(farBottomLeft, farColor));
+            new VertexPositionColor(nearTopLeft, nearColor),
+            new VertexPositionColor(farTopLeft, farColor),
 
-        // ---
+            new VertexPositionColor(nearBottomLeft, nearColor),
+            new VertexPositionColor(farBottomLeft, farColor),
 
-        vertices.Add(new VertexPositionColor(farBottomRight, farColor));
-        vertices.Add(new VertexPositionColor(farTopRight, farColor));
 
-        vertices.Add(new VertexPositionColor(farTopRight, farColor));
-        vertices.Add(new VertexPositionColor(farTopLeft, farColor));
 
-        vertices.Add(new VertexPositionColor(farTopLeft, farColor));
-        vertices.Add(new VertexPositionColor(farBottomLeft, farColor));
+            new VertexPositionColor(farBottomRight, farColor),
+            new VertexPositionColor(farTopRight, farColor),
 
-        vertices.Add(new VertexPositionColor(farBottomLeft, farColor));
-        vertices.Add(new VertexPositionColor(farBottomRight, farColor));
+            new VertexPositionColor(farTopRight, farColor),
+            new VertexPositionColor(farTopLeft, farColor),
+
+            new VertexPositionColor(farTopLeft, farColor),
+            new VertexPositionColor(farBottomLeft, farColor),
+
+            new VertexPositionColor(farBottomLeft, farColor),
+            new VertexPositionColor(farBottomRight, farColor)
+        };
         
         return vertices;
     }
@@ -697,8 +715,8 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             
             var modelMeshBB = meshPrimitive.BoundingBox;
             ///*
-            modelMeshBB.Max = Vector3.Transform(modelMeshBB.Max, drawCommand.WorldMatrix);
-            modelMeshBB.Min = Vector3.Transform(modelMeshBB.Min, drawCommand.WorldMatrix);
+            //modelMeshBB.Max = Vector3.Transform(modelMeshBB.Max, drawCommand.WorldMatrix);
+            //modelMeshBB.Min = Vector3.Transform(modelMeshBB.Min, drawCommand.WorldMatrix);
             //*/
             
             _sceneObjects.Add(new SceneObject
@@ -712,13 +730,16 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                 MaterialId = (uint)drawCommand.MaterialIndex
             });
         }
-        
-        _debugOriginalAabbBuffer.Update(debugOriginalAabbLines.ToArray());
-        _sceneObjectBuffer.Update(_sceneObjects.ToArray(), 0);
 
+        var debugOriginalAabbLinesArray = debugOriginalAabbLines.ToArray();
+        _debugOriginalAabbBuffer.Update(ref debugOriginalAabbLinesArray);
+        var sceneObjectsArray = _sceneObjects.ToArray();
+        _sceneObjectBuffer.Update(ref sceneObjectsArray, 0);
+
+        var gpuMaterialsArray = _gpuMaterials.ToArray();
         _gpuMaterialBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuMaterial>("SceneMaterials");
         _gpuMaterialBuffer.AllocateStorage(Marshal.SizeOf<GpuMaterial>() * _gpuMaterials.Count, StorageAllocationFlags.Dynamic);
-        _gpuMaterialBuffer.Update(_gpuMaterials.ToArray(), 0);
+        _gpuMaterialBuffer.Update(ref gpuMaterialsArray, 0);
 
         var meshDatasAsArray = meshPrimitives.ToArray();
 
@@ -763,7 +784,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         _gBufferFramebufferDescriptor = new FramebufferDescriptorBuilder()
             .WithColorAttachment(_gBufferBaseColorTexture, true, Vector4.Zero)
             .WithColorAttachment(_gBufferNormalTexture, true, Vector4.Zero)
-            .WithDepthAttachment(_gBufferDepthTexture, true)
+            .WithDepthAttachment(_gBufferDepthTexture, true, 0.0f)
             .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
             .Build("GBuffer");
 
@@ -806,7 +827,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                 .AddAttribute(0, Format.R32G32B32A32Float, 32)
                 .Build("Scene"))
             .WithCullingEnabled(CullMode.Back)
-            .WithDepthTestEnabled(CompareFunction.Less)
+            .WithDepthTestEnabled(CompareFunction.Greater)
             .WithClipControlDepth(ClipControlDepth.NegativeOneToOne)
             .WithDepthClampEnabled()
             .ClearResourceBindingsOnBind()
@@ -856,6 +877,9 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                 .Build(nameof(VertexPositionColor)))
             .WithTopology(PrimitiveTopology.Lines)
             .WithFaceWinding(FaceWinding.Clockwise)
+            .WithClipControlDepth(ClipControlDepth.ZeroToOne)
+            .WithDepthTestEnabled(CompareFunction.Greater)
+            .WithBlendingEnabled(ColorBlendAttachmentDescriptor.PreMultiplied)
             .ClearResourceBindingsOnBind()
             .Build("Debug-Lines");
 

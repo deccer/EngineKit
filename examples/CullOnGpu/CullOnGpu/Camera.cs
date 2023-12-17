@@ -120,7 +120,7 @@ public sealed class Camera : ICamera
 
     private void UpdateCameraVectors()
     {
-        if (_cameraMode == CameraMode.Perspective)
+        if (_cameraMode != CameraMode.Orthogonal)
         {
             UpdateCameraVectorsForPerspective();
         }
