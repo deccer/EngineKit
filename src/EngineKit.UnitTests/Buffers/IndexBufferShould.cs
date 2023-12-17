@@ -45,7 +45,7 @@ public class IndexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
             100,
             200
         };
-        indexBuffer.Update(indices,  0);
+        indexBuffer.Update(ref indices,  0);
 
         // Assert
         indexBuffer.Count.Should().Be(25);

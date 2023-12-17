@@ -44,7 +44,7 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         {
             BaseColorFactor = Colors.Red.ToVector4()
         };
-        uniformBuffer.Update(globalMatrices,  0);
+        uniformBuffer.Update(ref globalMatrices,  0);
 
         // Assert
         uniformBuffer.Count.Should().Be(1);
@@ -74,7 +74,7 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         {
             BaseColorFactor = Colors.Red.ToVector4()
         };
-        uniformBuffer.Update(globalMatrices,  0);
+        uniformBuffer.Update(ref globalMatrices,  0);
 
         // Assert
         uniformBuffer.Count.Should().Be(initialElementCount);

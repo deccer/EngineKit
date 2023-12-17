@@ -48,7 +48,7 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
             new VertexPositionNormalUvTangent(),
             new VertexPositionNormalUvTangent()
         };
-        vertexBuffer.Update(vertexElements,  0);
+        vertexBuffer.Update(ref vertexElements,  0);
 
         // Assert
         vertexBuffer.Count.Should().Be(2);
