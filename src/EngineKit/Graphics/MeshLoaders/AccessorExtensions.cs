@@ -4,7 +4,7 @@ using SharpGLTF.Schema2;
 
 namespace EngineKit.Graphics.MeshLoaders;
 
-public static class SpanHelper
+public static class AccessorExtensions
 {
     public static Span<T> AsSpan<T>(this Accessor? accessor) where T : unmanaged
     {
