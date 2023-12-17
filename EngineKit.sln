@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_items", "_items", "{7641AC
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\cd.yml = .github\workflows\cd.yml
 		Directory.Build.props = Directory.Build.props
+		EngineKit.sln.DotSettings = EngineKit.sln.DotSettings
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EngineKit", "src\EngineKit\EngineKit.csproj", "{8E305337-228C-4930-B355-91F1E82C64C8}"
@@ -48,6 +49,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CullOnGpu.Assets", "example
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CullOnGpu", "examples\CullOnGpu\CullOnGpu\CullOnGpu.csproj", "{07DC1C3C-76B0-4180-AC36-DDBB426FDFC1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Complex", "Complex", "{7E9EF27C-3748-4782-959F-3AEBF26416F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Complex.Assets", "examples\Complex\Complex.Assets\Complex.Assets.csproj", "{3D623AB0-0EB7-4DD9-9C27-04819106A57F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Complex", "examples\Complex\Complex\Complex.csproj", "{2BDAC710-9074-441E-8AF3-4D50B2C37EE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +78,9 @@ Global
 		{038528BF-56FA-489C-9DC4-A88A22BD8275} = {1E1BD9CA-189A-45FD-8A36-A57C836C6BB6}
 		{D46FA00F-7841-4554-B404-09D1EE2DE572} = {038528BF-56FA-489C-9DC4-A88A22BD8275}
 		{07DC1C3C-76B0-4180-AC36-DDBB426FDFC1} = {038528BF-56FA-489C-9DC4-A88A22BD8275}
+		{7E9EF27C-3748-4782-959F-3AEBF26416F2} = {1E1BD9CA-189A-45FD-8A36-A57C836C6BB6}
+		{3D623AB0-0EB7-4DD9-9C27-04819106A57F} = {7E9EF27C-3748-4782-959F-3AEBF26416F2}
+		{2BDAC710-9074-441E-8AF3-4D50B2C37EE7} = {7E9EF27C-3748-4782-959F-3AEBF26416F2}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{8E305337-228C-4930-B355-91F1E82C64C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -117,5 +127,13 @@ Global
 		{07DC1C3C-76B0-4180-AC36-DDBB426FDFC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07DC1C3C-76B0-4180-AC36-DDBB426FDFC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07DC1C3C-76B0-4180-AC36-DDBB426FDFC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D623AB0-0EB7-4DD9-9C27-04819106A57F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D623AB0-0EB7-4DD9-9C27-04819106A57F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D623AB0-0EB7-4DD9-9C27-04819106A57F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D623AB0-0EB7-4DD9-9C27-04819106A57F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BDAC710-9074-441E-8AF3-4D50B2C37EE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BDAC710-9074-441E-8AF3-4D50B2C37EE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BDAC710-9074-441E-8AF3-4D50B2C37EE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BDAC710-9074-441E-8AF3-4D50B2C37EE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
