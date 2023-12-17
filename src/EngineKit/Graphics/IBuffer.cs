@@ -22,9 +22,15 @@ public interface IBuffer : IDisposable
 
     void Update(nint dataPtr, int offsetInBytes, int sizeInBytes);
 
+    void Update<TElement>(ref TElement item, int elementOffset = 0)
+        where TElement : unmanaged;
+    
     void Update<TElement>(TElement item, int elementOffset = 0)
         where TElement : unmanaged;
 
+    void Update<TElement>(ref TElement[] data, int elementOffset = 0)
+        where TElement : unmanaged;
+    
     void Update<TElement>(TElement[] data, int elementOffset = 0)
         where TElement : unmanaged;
     

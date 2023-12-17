@@ -202,7 +202,7 @@ internal sealed class UIRenderer : IUIRenderer
             0.0f,
             -1.0f,
             1.0f);
-        _uniformBuffer?.Update(mvp, 0);
+        _uniformBuffer?.Update(ref mvp, 0);
     }
 
     private unsafe void AddIconFont(float fontSize)

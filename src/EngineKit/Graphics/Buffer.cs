@@ -63,6 +63,16 @@ internal abstract class Buffer : IBuffer
         GL.NamedBufferSubData(Id, offsetInBytes, sizeInBytes, (void*)dataPtr);
     }
 
+    public void Update<TElement>(ref TElement element, int elementOffset = 0)
+        where TElement : unmanaged
+    {
+        if ((elementOffset * Stride) + Stride > SizeInBytes)
+        {
+            throw new ArgumentOutOfRangeException(nameof(elementOffset));
+        }
+        GL.NamedBufferSubData(Id, elementOffset * Stride, ref element);
+    }
+    
     public void Update<TElement>(TElement element, int elementOffset = 0)
         where TElement : unmanaged
     {
@@ -70,9 +80,19 @@ internal abstract class Buffer : IBuffer
         {
             throw new ArgumentOutOfRangeException(nameof(elementOffset));
         }
-        GL.NamedBufferSubData(Id, elementOffset * Stride, element);
+        GL.NamedBufferSubData(Id, elementOffset * Stride, ref element);
     }
 
+    public void Update<TElement>(ref TElement[] data, int elementOffset = 0)
+        where TElement : unmanaged
+    {
+        if ((elementOffset * Stride) + data.Length * Stride > SizeInBytes)
+        {
+            throw new ArgumentOutOfRangeException(nameof(elementOffset));
+        }
+        GL.NamedBufferSubData(Id, elementOffset * Stride, ref data);
+    }
+    
     public void Update<TElement>(TElement[] data, int elementOffset = 0)
         where TElement : unmanaged
     {
@@ -80,7 +100,7 @@ internal abstract class Buffer : IBuffer
         {
             throw new ArgumentOutOfRangeException(nameof(elementOffset));
         }
-        GL.NamedBufferSubData(Id, elementOffset * Stride, data);
+        GL.NamedBufferSubData(Id, elementOffset * Stride, ref data);
     }
     
     public void Update<TElement>(Span<TElement> data, int elementOffset = 0)

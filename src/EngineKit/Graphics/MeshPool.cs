@@ -49,7 +49,7 @@ internal sealed class MeshPool : IMeshPool
             meshPrimitive.MaterialName);
 
         var vertices = meshPrimitive.GetVertices();
-        VertexBuffer.Update(vertices, pooledMesh.VertexOffset);
+        VertexBuffer.Update(ref vertices, pooledMesh.VertexOffset);
         IndexBuffer.Update(meshPrimitive.Indices.ToArray(), (int)pooledMesh.IndexOffset);
 
         _pooledMeshes.Add(meshPrimitive, pooledMesh);

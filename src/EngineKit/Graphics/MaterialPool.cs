@@ -88,7 +88,7 @@ internal sealed class MaterialPool : IMaterialPool
         };
 
         pooledMaterial = new MaterialId(_pooledMaterials.Count);
-        MaterialBuffer.Update(gpuMaterial, pooledMaterial.Index);
+        MaterialBuffer.Update(ref gpuMaterial, pooledMaterial.Index);
 
         _pooledMaterials.Add(material, pooledMaterial);
         return pooledMaterial;
