@@ -630,6 +630,19 @@ public static unsafe partial class GL
     public static void NamedBufferSubData<TElement>(
         uint buffer,
         nint offset,
+        [In, Out] ref TElement[] data)
+        where TElement : unmanaged
+    {
+        var size = (long)(data.Length * sizeof(TElement));
+        fixed (void* dataPtr = data)
+        {
+            NamedBufferSubData(buffer, offset, size, dataPtr);
+        }
+    }
+    
+    public static void NamedBufferSubData<TElement>(
+        uint buffer,
+        nint offset,
         TElement[] data)
         where TElement : unmanaged
     {
@@ -656,7 +669,7 @@ public static unsafe partial class GL
     public static void NamedBufferSubData<TElement>(
         uint buffer,
         nint offset,
-        in TElement data)
+        [In, Out] ref TElement data)
         where TElement : unmanaged
     {
         var size = (long)sizeof(TElement);
@@ -664,6 +677,16 @@ public static unsafe partial class GL
         {
             NamedBufferSubData(buffer, offset, size, dataPtr);
         }
+    }
+    
+    public static void NamedBufferSubData<TElement>(
+        uint buffer,
+        nint offset,
+        TElement data)
+        where TElement : unmanaged
+    {
+        var size = (long)sizeof(TElement);
+        NamedBufferSubData(buffer, offset, size, &data);
     }
 
     public static void NamedBufferSubData(
@@ -1542,6 +1565,11 @@ public static unsafe partial class GL
     public static void ProgramUniform(uint program, int location, int value)
     {
         _glProgramUniform1iDelegate(program, location, value);
+    }
+    
+    public static void ProgramUniform(uint program, int location, bool transpose, Matrix4x4 value)
+    {
+        _glProgramUniformMatrix4fvDelegate(program, location, 1, transpose ? 1 : 0, &value.M11);
     }
 
     public static void CopyImageSubData(
