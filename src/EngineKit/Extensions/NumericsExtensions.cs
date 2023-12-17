@@ -4,18 +4,16 @@ namespace EngineKit.Extensions;
 
 public static class NumericsExtensions
 {
-    public static Vector2 ToVector2(this System.Numerics.Vector2 v)
+    public static Vector4 GetRow(this Matrix4x4 matrix, int rowIndex)
     {
-        return new Vector2(v.X, v.Y);
+        return new Vector4(matrix[rowIndex, 0], matrix[rowIndex, 1], matrix[rowIndex, 2], matrix[rowIndex, 0]);
     }
     
-    public static Vector3 ToVector3(this System.Numerics.Vector3 v)
+    public static void SetRow(this Matrix4x4 matrix, int rowIndex, Vector4 value)
     {
-        return new Vector3(v.X, v.Y, v.Z);
-    }
-    
-    public static Vector4 ToVector4(this System.Numerics.Vector4 v)
-    {
-        return new Vector4(v.X, v.Y, v.Z, v.W);
+        matrix[rowIndex, 0] = value.X;
+        matrix[rowIndex, 1] = value.Y;
+        matrix[rowIndex, 2] = value.Z;
+        matrix[rowIndex, 0] = value.W;
     }
 }

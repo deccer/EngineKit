@@ -140,7 +140,6 @@ public sealed class MeshPrimitive
 
     public void CalculateTangents()
     {
-        /*
         if (!_positions.Any())
         {
             return;
@@ -170,15 +169,15 @@ public sealed class MeshPrimitive
             }
 
             var triangle = Matrix4x4.Identity;
-            triangle.Row1 = new Vector4(_positions[i + 0], 0.0f);
-            triangle.Row2 = new Vector4(_positions[i + 1], 0.0f);
-            triangle.Row3 = new Vector4(_positions[i + 2], 0.0f);
+            triangle.SetRow(0, new Vector4(_positions[i + 0], 0.0f));
+            triangle.SetRow(1, new Vector4(_positions[i + 1], 0.0f));
+            triangle.SetRow(2, new Vector4(_positions[i + 2], 0.0f));
 
             var uv0 = _uvs[i + 1] - _uvs[i + 0];
             var uv1 = _uvs[i + 2] - _uvs[i + 0];
 
-            var q1 = triangle.Row2 - triangle.Row1;
-            var q2 = triangle.Row3 - triangle.Row1;
+            var q1 = triangle.GetRow(1) - triangle.GetRow(0);
+            var q2 = triangle.GetRow(2) - triangle.GetRow(0);
 
             var det = uv0.X * uv1.Y - uv1.X * uv0.Y;
             if (MathF.Abs(det) <= 0.000001f)
@@ -223,7 +222,6 @@ public sealed class MeshPrimitive
 
             _realTangents[i] = new Vector4(realTangent, realBiTangent);
         }
-        */
     }
 
     public void AddIndices(params uint[] indices)
