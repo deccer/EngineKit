@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using EngineKit.Extensions;
 using EngineKit.Mathematics;
 using Serilog;
 using SharpGLTF.Schema2;
@@ -108,7 +107,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
         {
             if (materialChannel.Key is "BaseColor" or "Diffuse" or "RGB")
             {
-                material.BaseColor = new Color4(materialChannel.Color.ToVector4());
+                material.BaseColor = new Color4(materialChannel.Color);
                 
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
@@ -151,7 +150,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             }
             else if (materialChannel.Key == "SpecularColor")
             {
-                material.SpecularColor = new Color4(materialChannel.Color.ToVector4());
+                material.SpecularColor = new Color4(materialChannel.Color);
             }
             else if (materialChannel.Key == "SpecularFactor")
             {
@@ -185,7 +184,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             else if (materialChannel.Key == "Emissive")
             {
                 // Color
-                material.EmissiveColor = new Color4(materialChannel.Color.ToVector4());
+                material.EmissiveColor = new Color4(materialChannel.Color);
                 
                 if (materialChannel.Texture?.PrimaryImage != null)
                 {
