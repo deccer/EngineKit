@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using EngineKit.Mathematics;
 using Serilog;
+using SharpGLTF.Runtime;
 using SharpGLTF.Schema2;
 using SharpGLTF.Validation;
 
@@ -38,10 +39,10 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
     public IReadOnlyCollection<MeshPrimitive> LoadMeshPrimitivesFromFile(string filePath)
     {
-        //var runtimeOptions = new RuntimeOptions().GpuMeshInstancing == MeshInstancing.SingleMesh;
+        var runtimeOptions = new RuntimeOptions().GpuMeshInstancing = MeshInstancing.SingleMesh;
         var readSettings = new ReadSettings
         {
-            Validation = ValidationMode.Skip
+            Validation = ValidationMode.Skip,
         };
 
         var model = ModelRoot.Load(filePath, readSettings);
