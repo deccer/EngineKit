@@ -298,7 +298,9 @@ public static unsafe partial class GL
         long imageSize,
         void* data)
     {
-        _glCompressedTextureSubImage2DDelegate = (delegate* unmanaged<uint, int, int, int, int, int, uint, long, void*, void>)Glfw.Glfw.GetProcAddress(nameof(glCompressedTextureSubImage2D));
+        _glCompressedTextureSubImage2DDelegate =
+            (delegate* unmanaged<uint, int, int, int, int, int, uint, long, void*, void>)Glfw.Glfw.GetProcAddress(
+                nameof(glCompressedTextureSubImage2D));
         _glCompressedTextureSubImage2DDelegate(texture, level, xOffset, yOffset, width, height, format, imageSize, data);
     }
    
