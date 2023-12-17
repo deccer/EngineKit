@@ -153,7 +153,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     {
         GL.PushDebugGroup("Geometry-Pass");
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
-        _gpuCameraConstantsBuffer.Update(_gpuCameraConstants, Offset.Zero);
+        _gpuCameraConstantsBuffer.Update(ref _gpuCameraConstants, Offset.Zero);
         _gpuModelMeshInstanceBuffer.Update(_gpuModelMeshInstances.ToArray(), 0);
 
         GraphicsContext.BeginRenderPass(_gBufferFramebufferDescriptor);

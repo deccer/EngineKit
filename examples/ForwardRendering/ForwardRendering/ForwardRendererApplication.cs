@@ -199,7 +199,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _gpuIndirectElementDataBuffer.Update(_gpuIndirectElements.ToArray(), 0);
 
         _gpuConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
-        _gpuConstantsBuffer!.Update(_gpuConstants, 0);
+        _gpuConstantsBuffer!.Update(ref _gpuConstants, 0);
 
         GraphicsContext.BeginRenderPass(_swapchainDescriptor);
         GraphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline!);
