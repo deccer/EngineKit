@@ -278,6 +278,7 @@ public static unsafe partial class GL
     private static delegate* unmanaged<uint, int, PixelFormat, DataType, int, void*, void> _glGetTextureImageDelegate = &glGetTextureImage;
     private static delegate* unmanaged<uint, int, float, void> _glProgramUniform1fDelegate = &glProgramUniform1f;
     private static delegate* unmanaged<uint, int, int, void> _glProgramUniform1iDelegate = &glProgramUniform1i;
+    private static delegate* unmanaged<uint, int, int, int, float*, void> _glProgramUniformMatrix4fvDelegate = &glProgramUniformMatrix4fv;
 
     private static delegate* unmanaged<uint, TextureTarget, int, int, int, int, uint, TextureTarget, int, int, int, int, int, int, int,
         void> _glCopyImageSubDataDelegate = &glCopyImageSubData;
@@ -1840,6 +1841,14 @@ public static unsafe partial class GL
     {
         _glProgramUniform1iDelegate = (delegate* unmanaged<uint, int, int, void>)Glfw.Glfw.GetProcAddress(nameof(glProgramUniform1i));
         _glProgramUniform1iDelegate(program, location, value);
+    }
+
+    [UnmanagedCallersOnly]
+    private static void glProgramUniformMatrix4fv(uint program, int location, int count, int transpose, float* value)
+    {
+        _glProgramUniformMatrix4fvDelegate =
+            (delegate* unmanaged<uint, int, int, int, float*, void>)Glfw.Glfw.GetProcAddress(nameof(glProgramUniformMatrix4fv));
+        _glProgramUniformMatrix4fvDelegate(program, location, count, transpose, value);
     }
 
     [UnmanagedCallersOnly]
