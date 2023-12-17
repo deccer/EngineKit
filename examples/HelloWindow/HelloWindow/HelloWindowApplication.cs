@@ -84,8 +84,8 @@ internal sealed class HelloWindowApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
-                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
-                ImGui.TextUnformatted($"Fps: {_metrics.AverageFrameTime}");
+                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 160, 0));
+                ImGui.TextUnformatted($"avg frametime: {_metrics.AverageFrameTime:F2} ms");
 
                 ImGui.EndMenuBar();
             }
