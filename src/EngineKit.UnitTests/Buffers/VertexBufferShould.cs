@@ -20,17 +20,12 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     [Fact]
     public void BeInstantiable()
     {
-        // Arrange
-        var vertexBuffer = new Buffer<VertexPositionNormalUvTangent>(BufferTarget.VertexBuffer, "Label");
-
-        // Act
-        vertexBuffer.AllocateStorage(100, StorageAllocationFlags.None);
+        // Arrange & Act
+        var vertexBuffer = new Buffer("Label", 100);
 
         // Assert
         uint bufferId = vertexBuffer;
         bufferId.Should().BeGreaterThan(0);
-        vertexBuffer.Stride.Should().Be(Marshal.SizeOf<VertexPositionNormalUvTangent>());
-        vertexBuffer.Count.Should().Be(2);
         vertexBuffer.SizeInBytes.Should().Be(100);
         _glfwOpenGLDummyWindow.ErrorMessages.Should().HaveCount(0);
     }
@@ -39,8 +34,7 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeAbleToUpdateDynamicBuffer()
     {
         // Arrange
-        var vertexBuffer = new Buffer<VertexPositionNormalUvTangent>(BufferTarget.VertexBuffer, "Label");
-        vertexBuffer.AllocateStorage(100, StorageAllocationFlags.Dynamic);
+        var vertexBuffer = new TypedBuffer<VertexPositionNormalUvTangent>("Label", 100);
 
         // Act
         var vertexElements = new VertexPositionNormalUvTangent[]
@@ -48,12 +42,10 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
             new VertexPositionNormalUvTangent(),
             new VertexPositionNormalUvTangent()
         };
-        vertexBuffer.Update(ref vertexElements,  0);
+        vertexBuffer.UpdateElements(ref vertexElements,  0);
 
         // Assert
-        vertexBuffer.Count.Should().Be(2);
-        vertexBuffer.SizeInBytes.Should().Be(100);
-        vertexBuffer.Stride.Should().Be(Marshal.SizeOf<VertexPositionNormalUvTangent>());
+        vertexBuffer.SizeInBytes.Should().Be(100 * (uint)Marshal.SizeOf<VertexPositionNormalUvTangent>());
         _glfwOpenGLDummyWindow.ErrorMessages.Should().HaveCount(0);
     }
 }

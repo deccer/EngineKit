@@ -62,24 +62,28 @@ internal sealed class UIRenderer : IUIRenderer
         out_color = v_color * texture(t_font, v_uv);
     }";
 
+    private static readonly unsafe uint ImDrawVertStride = (uint)sizeof(ImDrawVert); 
+    
+    private readonly ILogger _logger;
+    private readonly IGraphicsContext _graphicsContext;
+    private readonly IInputProvider _inputProvider;
+
     private IGraphicsPipeline? _imGuiGraphicsPipeline;
     private IBuffer? _uniformBuffer;
 
     private bool _frameBegun;
 
     private IBuffer? _vertexBuffer;
-    private int _vertexBufferSize;
+    private uint _vertexBufferSize;
     private IBuffer? _indexBuffer;
-    private int _indexBufferSize;
+    private uint _indexBufferSize;
 
     private ImGuiIOPtr _imGuiIo;
 
     private ITexture? _fontTexture;
     private ISampler? _fontSampler;
 
-    private readonly ILogger _logger;
-    private readonly IGraphicsContext _graphicsContext;
-    private readonly IInputProvider _inputProvider;
+
 
     private int _framebufferWidth;
     private int _framebufferHeight;
@@ -173,8 +177,8 @@ internal sealed class UIRenderer : IUIRenderer
             0.0f,
             -1.0f,
             1.0f);
-        _uniformBuffer = _graphicsContext.CreateUniformBuffer<Matrix4x4>("ImGuiProjectionMatrix");
-        _uniformBuffer.AllocateStorage(mvp, StorageAllocationFlags.Dynamic);
+        _uniformBuffer = _graphicsContext.CreateTypedBuffer<Matrix4x4>("ImGuiProjectionMatrix", 1, BufferStorageFlags.DynamicStorage);
+        _uniformBuffer.UpdateElement(mvp, 0u);
 
         var style = ImGui.GetStyle();
         //SetStyleDarker(style);
@@ -202,7 +206,7 @@ internal sealed class UIRenderer : IUIRenderer
             0.0f,
             -1.0f,
             1.0f);
-        _uniformBuffer?.Update(ref mvp, 0);
+        _uniformBuffer?.UpdateElement(mvp, 0);
     }
 
     private unsafe void AddIconFont(float fontSize)
@@ -241,13 +245,11 @@ internal sealed class UIRenderer : IUIRenderer
 
     private void CreateDeviceResources()
     {
-        _vertexBufferSize = 64 * 1024;
-        _indexBufferSize = 64 * 1024;
+        _vertexBufferSize = 64 * 1024u;
+        _indexBufferSize = 64 * 1024u;
 
-        _vertexBuffer = _graphicsContext.CreateVertexBuffer<ImDrawVert>("ImGuiVertices");
-        _vertexBuffer.AllocateStorage(_vertexBufferSize, StorageAllocationFlags.Dynamic);
-        _indexBuffer = _graphicsContext.CreateIndexBuffer<ushort>("ImGuiIndices");
-        _indexBuffer.AllocateStorage(_indexBufferSize, StorageAllocationFlags.Dynamic);
+        _vertexBuffer = _graphicsContext.CreateUntypedBuffer("ImGuiVertices", _vertexBufferSize, BufferStorageFlags.DynamicStorage);
+        _indexBuffer = _graphicsContext.CreateUntypedBuffer("ImGuiIndices", _indexBufferSize, BufferStorageFlags.DynamicStorage);
 
         RecreateFontDeviceTexture();
 
@@ -333,10 +335,10 @@ internal sealed class UIRenderer : IUIRenderer
 
     private void SetPerFrameImGuiData(float deltaSeconds)
     {
-        _imGuiIo.DisplaySize = new System.Numerics.Vector2(
+        _imGuiIo.DisplaySize = new Vector2(
             _framebufferWidth / _scaleFactor.X,
             _framebufferHeight / _scaleFactor.Y);
-        _imGuiIo.DisplayFramebufferScale = new System.Numerics.Vector2(_scaleFactor.X, _scaleFactor.Y);
+        _imGuiIo.DisplayFramebufferScale = new Vector2(_scaleFactor.X, _scaleFactor.Y);
         _imGuiIo.DeltaTime = deltaSeconds;
     }
 
@@ -348,7 +350,7 @@ internal sealed class UIRenderer : IUIRenderer
         _imGuiIo.MouseDown[0] = currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonLeft);
         _imGuiIo.MouseDown[1] = currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonRight);
         _imGuiIo.MouseDown[2] = currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonMiddle);
-        _imGuiIo.MousePos = new System.Numerics.Vector2(currentMouseState.X, currentMouseState.Y);
+        _imGuiIo.MousePos = new Vector2(currentMouseState.X, currentMouseState.Y);
 
         
         var scrollDelta = currentMouseState.Scroll.Y - _scrollWheelValue;
@@ -416,7 +418,7 @@ internal sealed class UIRenderer : IUIRenderer
         _imGuiIo.KeyMap[(int)ImGuiKey.Z] = (int)Glfw.Key.KeyZ;
     }
 
-    private void RenderDrawData(ImDrawDataPtr drawDataPtr)
+    private unsafe void RenderDrawData(ImDrawDataPtr drawDataPtr)
     {
         if (drawDataPtr.CmdListsCount == 0)
         {
@@ -429,32 +431,26 @@ internal sealed class UIRenderer : IUIRenderer
             var vertexSize = commandList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>();
             if (vertexSize > _vertexBufferSize)
             {
-                var newSize = (int)Math.Max(_vertexBufferSize * 1.5f, vertexSize);
+                _vertexBufferSize = (uint)Math.Max(_vertexBufferSize * 1.5f, vertexSize);
 
                 _vertexBuffer?.Dispose();
-                _vertexBuffer = _graphicsContext.CreateVertexBuffer<ImDrawVert>("ImGuiVertices");
-                _vertexBuffer.AllocateStorage(newSize, StorageAllocationFlags.Dynamic);
-
-                _vertexBufferSize = newSize;
+                _vertexBuffer = _graphicsContext.CreateUntypedBuffer("ImGuiVertices", _vertexBufferSize, BufferStorageFlags.DynamicStorage);
             }
 
             var indexSize = commandList.IdxBuffer.Size * sizeof(ushort);
             if (indexSize > _indexBufferSize)
             {
-                var newSize = (int)Math.Max(_indexBufferSize * 1.5f, indexSize);
+                _indexBufferSize = (uint)Math.Max(_indexBufferSize * 1.5f, indexSize);
 
                 _indexBuffer?.Dispose();
-                _indexBuffer = _graphicsContext.CreateIndexBuffer<ushort>("ImGuiIndices");
-                _indexBuffer.AllocateStorage(newSize, StorageAllocationFlags.Dynamic);
-
-                _indexBufferSize = newSize;
+                _indexBuffer = _graphicsContext.CreateUntypedBuffer("ImGuiIndices", _indexBufferSize, BufferStorageFlags.DynamicStorage);
             }
         }
 
         _graphicsContext.BindGraphicsPipeline(_imGuiGraphicsPipeline!);
 
         _imGuiGraphicsPipeline!.BindAsUniformBuffer(_uniformBuffer!, 0);
-        _imGuiGraphicsPipeline.BindAsVertexBuffer(_vertexBuffer!, 0, Offset.Zero);
+        _imGuiGraphicsPipeline.BindAsVertexBuffer(_vertexBuffer!, 0, ImDrawVertStride, Offset.Zero);
         _imGuiGraphicsPipeline.BindAsIndexBuffer(_indexBuffer!);
         _imGuiGraphicsPipeline.BindSampledTexture(_fontSampler!, _fontTexture!, 0);
 
@@ -468,14 +464,14 @@ internal sealed class UIRenderer : IUIRenderer
         {
             var commandList = drawDataPtr.CmdListsRange[n];
 
-            _vertexBuffer!.Update(
+            _vertexBuffer!.UpdateData(
                 commandList.VtxBuffer.Data,
                 0,
-                commandList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>());
-            _indexBuffer!.Update(
+                (uint)(commandList.VtxBuffer.Size * sizeof(ImDrawVert)));
+            _indexBuffer!.UpdateData(
                 commandList.IdxBuffer.Data,
                 0,
-                commandList.IdxBuffer.Size * sizeof(ushort));
+                (uint)(commandList.IdxBuffer.Size * sizeof(ushort)));
 
             var vertexOffset = 0;
             var indexOffset = 0;

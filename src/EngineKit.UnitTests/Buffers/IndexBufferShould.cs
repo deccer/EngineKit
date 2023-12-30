@@ -21,14 +21,11 @@ public class IndexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeInstantiable()
     {
         // Arrange & Act
-        var indexBuffer = new Buffer<uint>(BufferTarget.IndexBuffer, "Label");
-        indexBuffer.AllocateStorage(100, StorageAllocationFlags.None);
+        var indexBuffer = new Buffer("Label", 100);
 
         // Assert
         uint bufferId = indexBuffer;
         bufferId.Should().BeGreaterThan(0);
-        indexBuffer.Stride.Should().Be(Marshal.SizeOf<uint>());
-        indexBuffer.Count.Should().Be(25);
         indexBuffer.SizeInBytes.Should().Be(100);
     }
 
@@ -36,8 +33,7 @@ public class IndexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeAbleToUpdateDynamicBuffer()
     {
         // Arrange
-        var indexBuffer = new Buffer<uint>(BufferTarget.IndexBuffer, "Label");
-        indexBuffer.AllocateStorage(100, StorageAllocationFlags.Dynamic);
+        var indexBuffer = new TypedBuffer<uint>("Label", 100);
 
         // Act
         var indices = new uint[]
@@ -45,10 +41,9 @@ public class IndexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
             100,
             200
         };
-        indexBuffer.Update(ref indices,  0);
+        indexBuffer.UpdateElements(ref indices,  0);
 
         // Assert
-        indexBuffer.Count.Should().Be(25);
-        indexBuffer.SizeInBytes.Should().Be(100);
+        indexBuffer.SizeInBytes.Should().Be(400);
     }
 }

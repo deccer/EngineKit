@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using EngineKit.Extensions;
 using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
@@ -27,7 +28,7 @@ public sealed class MeshPrimitive
     public string MeshName { get; set; }
 
     public Matrix4x4 Transform { get; set; }
-
+    
     public List<uint> Indices => _indices;
 
     public int IndexCount => _indices.Count;

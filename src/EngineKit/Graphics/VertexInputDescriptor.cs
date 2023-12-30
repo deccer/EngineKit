@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using EngineKit.Extensions;
 using ImGuiNET;
@@ -94,7 +95,7 @@ public readonly record struct VertexInputDescriptor(VertexInputBindingDescriptor
     private static VertexInputDescriptor BuildVertexInputDescriptorFor<TVertexType>()
     {
         var vertexType = typeof(TVertexType);
-        var vertexTypeAttributes = vertexType.GetFields();
+        var vertexTypeAttributes = vertexType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.Default);
         var vertexInputBindingDescriptors = vertexTypeAttributes.Select((vertexTypeAttribute, index) =>
         {
             var binding = 0u;

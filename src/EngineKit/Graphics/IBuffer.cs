@@ -1,43 +1,30 @@
-﻿using System;
+using System;
 
 namespace EngineKit.Graphics;
 
 public interface IBuffer : IDisposable
 {
+    Label Label { get; }
+    
     uint Id { get; }
-
-    int Stride { get; }
-
-    int Count { get; }
     
-    bool IsMappable { get; }
-
-    void AllocateStorage(int sizeInBytes, StorageAllocationFlags storageAllocationFlags);
-
-    void AllocateStorage<TElement>(TElement element, StorageAllocationFlags storageAllocationFlags)
-        where TElement : unmanaged;
-
-    void AllocateStorage<TElement>(TElement[] elements, StorageAllocationFlags storageAllocationFlags)
-        where TElement : unmanaged;
-
-    void Update(nint dataPtr, int offsetInBytes, int sizeInBytes);
-
-    void Update<TElement>(ref TElement item, int elementOffset = 0)
-        where TElement : unmanaged;
+    nuint SizeInBytes { get; }
     
-    void Update<TElement>(TElement item, int elementOffset = 0)
-        where TElement : unmanaged;
-
-    void Update<TElement>(ref TElement[] data, int elementOffset = 0)
-        where TElement : unmanaged;
+    nint MappedPointer { get; }
     
-    void Update<TElement>(TElement[] data, int elementOffset = 0)
-        where TElement : unmanaged;
+    void UpdateData(nint data, nuint offset, nuint sizeInBytes);
     
-    void Update<TElement>(Span<TElement> data, int elementOffset = 0)
-        where TElement : unmanaged;
+    //void UpdateElement<TElement>(TElement element, nuint elementOffset) where TElement : unmanaged;
 
-    void ClearWith(BufferClearInfo bufferClearInfo);
+    void UpdateElement<TElement>(in TElement element, nuint elementOffset) where TElement : unmanaged;
+
+    //void UpdateElements<TElement>(TElement[] elements, nuint elementOffset) where TElement : unmanaged;
+    
+    void UpdateElements<TElement>(in TElement[] elements, nuint elementOffset) where TElement : unmanaged;
+    
+    void UpdateElements<TElement>(Span<TElement> elements, nuint elementOffset) where TElement : unmanaged;
     
     void ClearAll();
+    
+    void ClearWith(BufferClearInfo bufferClearInfo);
 }

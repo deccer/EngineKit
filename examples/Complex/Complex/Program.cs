@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
 using Complex.Ecs;
+using Complex.Ecs.Systems;
+using Complex.Windows;
 using EngineKit;
 using EngineKit.Extensions;
 using EngineKit.Input;
@@ -38,7 +40,18 @@ internal static class Program
         services.AddSingleton<IApplication, ComplexApplication>();
         services.AddSingleton<ICamera>(provider => new Camera(provider.GetRequiredService<IApplicationContext>(),
             provider.GetRequiredService<IInputProvider>(), new Vector3(0, 2, 10), Vector3.UnitY));
+        services.AddSingleton<IPhysicsWorld, PhysicsWorld>();
+        services.AddSingleton<IEntityWorld, EntityWorld>();
+        services.AddSingleton<IRenderer, Renderer>();
+        services.AddSingleton<IUpdateCameraSystem, UpdateCameraSystem>();
+        services.AddSingleton<IPreRenderSystem, PreRenderSystem>();
+        services.AddSingleton<ITransformSystem, TransformSystem>();
+        services.AddSingleton<ISystemsUpdater, SystemsUpdater>();
 
+        services.AddSingleton<AssetWindow>();
+        services.AddSingleton<SceneWindow>();
+        services.AddSingleton<PropertyWindow>();
+        
         services.AddSingleton<IAssetLoader, AssetLoader>();
         services.AddSingleton<IScene, Scene>();
         return services.BuildServiceProvider();

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using EngineKit.Graphics;
 using EngineKit.Graphics.MeshLoaders;
 using EngineKit.Graphics.Shaders;

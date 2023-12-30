@@ -1,30 +1,16 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using BepuUtilities;
+using Complex.Windows;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
-using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
+using EngineKit.UI;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
 using Serilog;
-using MathHelper = EngineKit.Mathematics.MathHelper;
 
 namespace Complex;
-
-public struct CameraInformation
-{
-    public Matrix4x4 ProjectionMatrix;
-    public Matrix4x4 ViewMatrix;
-}
-
-public struct InstanceInformation
-{
-    public Matrix4x4 WorldMatrix;
-}
 
 internal sealed class ComplexApplication : GraphicsApplication
 {
@@ -33,23 +19,14 @@ internal sealed class ComplexApplication : GraphicsApplication
     private readonly ICapabilities _capabilities;
     private readonly IMetrics _metrics;
     private readonly IModelLibrary _modelLibrary;
-    private readonly IAssetLoader _assetLoader;
     private readonly ICamera _camera;
     private readonly IScene _scene;
+    private readonly IRenderer _renderer;
+    private readonly AssetWindow _assetWindow;
+    private readonly SceneWindow _sceneWindow;
+    private readonly PropertyWindow _propertyWindow;
 
     private SwapchainDescriptor _swapchainDescriptor;
-    private IGraphicsPipeline _graphicsPipeline;
-
-    private IBuffer? _vertexBuffer;
-    private IBuffer? _indexBuffer;
-    private IBuffer? _drawIndirectBuffer;
-    
-    private CameraInformation _cameraInformation;
-    private IBuffer? _cameraInformationBuffer;
-    private IList<InstanceInformation> _instanceInformation;
-    private IBuffer? _instanceInformationBuffer;
-    
-    private int _meshIdCount;
 
     public ComplexApplication(
         ILogger logger,
@@ -63,9 +40,12 @@ internal sealed class ComplexApplication : GraphicsApplication
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer,
         IModelLibrary modelLibrary,
-        IAssetLoader assetLoader,
         ICamera camera,
-        IScene scene)
+        IScene scene,
+        IRenderer renderer,
+        AssetWindow assetWindow,
+        SceneWindow sceneWindow,
+        PropertyWindow propertyWindow)
         : base(
             logger,
             windowSettings,
@@ -83,13 +63,14 @@ internal sealed class ComplexApplication : GraphicsApplication
         _capabilities = capabilities;
         _metrics = metrics;
         _modelLibrary = modelLibrary;
-        _assetLoader = assetLoader;
         _camera = camera;
         _camera.Sensitivity = 0.125f;
         _camera.Mode = CameraMode.PerspectiveInfinity;
         _scene = scene;
-
-        _instanceInformation = new List<InstanceInformation>();
+        _renderer = renderer;
+        _assetWindow = assetWindow;
+        _sceneWindow = sceneWindow;
+        _propertyWindow = propertyWindow;
     }
     
     protected override bool Initialize()
@@ -112,148 +93,40 @@ internal sealed class ComplexApplication : GraphicsApplication
             return false;
         }
 
-        //_assetLoader.ImportAsset("SM_Mesh", "Data/Props/deccer-cubes/SM_Deccer_Cubes_Textured_Complex.gltf");
-        //_assetLoader.ImportAsset("SM_Mesh", "Data/Props/Scene/Hierarchy.gltf");
-        _modelLibrary.AddModelFromFile("SM_Model", "Data/Props/deccer-cubes/SM_Deccer_Cubes_Textured_Complex.gltf");
+        if (!_renderer.Load())
+        {
+            return false;
+        }
+
+        _modelLibrary.AddModelFromFile("SM_Scene", "Data/Props/Scene/Scene.glb");
+        _modelLibrary.AddModelFromFile("SM_Hierarchy", "Data/Props/Scene/Hierarchy.gltf");
+        _modelLibrary.AddModelFromFile("SM_Deccer_Cubes", "Data/Default/SM_Deccer_Cubes_Textured.gltf");
+        _modelLibrary.AddModelFromFile("SM_Complex", "Data/Default/SM_Deccer_Cubes_Textured_Complex.gltf");
+        
+        /*
+        _modelLibrary.AddModelFromFile("SM_Bistor", "Data/Scenes/Bistro/scene.gltf");
+        _modelLibrary.AddModelFromFile("SM_IntelSponza", "Data/Scenes/IntelSponza/NewSponza_Main_glTF_002.gltf");
+        _modelLibrary.AddModelFromFile("SM_IntelSponzaCurtains", "Data/Scenes/IntelSponzaCurtains/NewSponza_Curtains_glTF.gltf");
+        _modelLibrary.AddModelFromFile("SM_IntelSponzaIvy", "Data/Scenes/IntelSponzaIvy/NewSponza_IvyGrowth_glTF.gltf");
+        _modelLibrary.AddModelFromFile("SM_IntelSponzaTree", "Data/Scenes/IntelSponzaTree/NewSponza_CypressTree_glTF.gltf");
+        _modelLibrary.AddModelFromFile("SM_IntelSponzaCandles", "Data/Scenes/IntelSponzaCandles/NewSponza_4_Combined_glTF.gltf");
+*/        
 
         _swapchainDescriptor = new SwapchainDescriptorBuilder()
-            .ClearColor(Colors.ForestGreen)
-            .ClearDepth(0.0f)
             .EnableSrgb()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build("Swapchain");
 
-        var graphicsPipelineResult = GraphicsContext.CreateGraphicsPipelineBuilder()
-            .WithShadersFromFiles("Shaders/Simple.vs.glsl", "Shaders/Simple.fs.glsl")
-            .WithTopology(PrimitiveTopology.Triangles)
-            .WithVertexAttributesFromVertexType(VertexType.PositionNormalUvTangent)
-            .WithDepthTestEnabled(CompareFunction.Greater)
-            .WithClipControlDepth(ClipControlDepth.ZeroToOne)
-            .Build("GraphicsPipeline");
-
-        if (graphicsPipelineResult.IsFailure)
-        {
-            _logger.Error("{Category} Unable to create. {Error}", "GraphicsPipeline", graphicsPipelineResult.Error);
-            return false;
-        }
-
-        _graphicsPipeline = graphicsPipelineResult.Value;
-
-        _cameraInformationBuffer = GraphicsContext.CreateUniformBuffer<CameraInformation>("Camera");
-        _cameraInformationBuffer.AllocateStorage(_cameraInformation, StorageAllocationFlags.Dynamic);
-
-        _vertexBuffer = _assetLoader.GetVertexBuffer();
-        _indexBuffer = _assetLoader.GetIndexBuffer();
-
-        _scene.AddEntityWithModelRenderer(null, _modelLibrary.GetModelByName("SM_Model"), Vector3.Zero);        
-
-        /*
-        var meshNames = _assetLoader.GetMeshPrimitiveNamesByAssetName("SM_Mesh");
-        var meshIdAndTransforms = meshNames
-            .Select(meshName => _assetLoader.GetMeshIdByMeshPrimitiveName(meshName))
-            .Where(meshId => meshId.HasValue)
-            .Select(meshId => meshId.Value)
-            .ToList();
-            
-        var meshIndirectElements = meshIdAndTransforms            
-            .Select(meshId => new DrawElementIndirectCommand
-            {
-                BaseInstance = 0,
-                BaseVertex = meshId.MeshId.VertexOffset,
-                FirstIndex = meshId.MeshId.IndexOffset,
-                IndexCount = meshId.MeshId.IndexCount,
-                InstanceCount = 1
-            })
-            .ToArray();
-        _meshIdCount = meshIndirectElements.Length;
         
-        _drawIndirectBuffer = GraphicsContext.CreateDrawIndirectBuffer("VisibleObjects");
-        _drawIndirectBuffer.AllocateStorage(meshIndirectElements, StorageAllocationFlags.Dynamic);
-
-        _instanceInformation = meshIdAndTransforms
-            .Select(meshIdAndTransform => new InstanceInformation
-            {
-                WorldMatrix = meshIdAndTransform.Transform
-            }).ToList();
-        _instanceInformationBuffer = GraphicsContext.CreateShaderStorageBuffer<InstanceInformation>("Instances");
-        _instanceInformationBuffer.AllocateStorage(_instanceInformation.ToArray(), StorageAllocationFlags.Dynamic);
-        */
         
         return true;
     }
 
-    private float _angle;
-    private bool _firstFrame = true;
-    private Matrix4x4 _initialTransform;
-    private Vector3 _initialScale;
-    private Quaternion _initialRotation;
-    private Vector3 _initialPosition;
-
     protected override void Render(float deltaTime)
     {
-        _cameraInformation.ProjectionMatrix = _camera.ProjectionMatrix;
-        _cameraInformation.ViewMatrix = _camera.ViewMatrix;
-        _cameraInformationBuffer.Update(ref _cameraInformation);
-
-        if (_firstFrame)
-        {
-            _initialTransform = _instanceInformation[1].WorldMatrix;
-            Matrix4x4.Decompose(
-                _initialTransform,
-                out _initialScale,
-                out _initialRotation,
-                out _initialPosition);
-            _firstFrame = false;
-        }
-        
-        _instanceInformation[1] = new InstanceInformation
-        {
-            WorldMatrix = Matrix4x4.CreateTranslation(-_initialPosition) * 
-                          Matrix4x4.CreateScale(_initialScale) * 
-                          
-                          Matrix4x4.CreateRotationY(MathHelper.ToRadians(_angle++)) *
-                          
-                          Matrix4x4.CreateTranslation(_initialPosition)
-        };
-        var instanceInformationArray = _instanceInformation.ToArray();
-        _instanceInformationBuffer.Update(ref instanceInformationArray);
-        
-        
+        _renderer.Render(_camera);
         GraphicsContext.BeginRenderPass(_swapchainDescriptor);
-        GraphicsContext.BindGraphicsPipeline(_graphicsPipeline);
-        _graphicsPipeline.BindAsVertexBuffer(_vertexBuffer, 0);
-        _graphicsPipeline.BindAsIndexBuffer(_indexBuffer);
-        
-        _graphicsPipeline.BindAsUniformBuffer(_cameraInformationBuffer, 0);
-        _graphicsPipeline.BindAsShaderStorageBuffer(_instanceInformationBuffer, 1);
-
-        _graphicsPipeline.MultiDrawElementsIndirect(_drawIndirectBuffer, _meshIdCount);
-        
-        UIRenderer.BeginLayout();
-        if (ImGui.BeginMainMenuBar())
-        {
-            if (ImGui.BeginMenuBar())
-            {
-                if (ImGui.BeginMenu("File"))
-                {
-                    if (ImGui.MenuItem("Quit"))
-                    {
-                        Close();
-                    }
-                    ImGui.EndMenu();
-                }
-
-                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 160, 0));
-                ImGui.TextUnformatted($"avg frametime: {_metrics.AverageFrameTime:F2} ms");
-
-                ImGui.EndMenuBar();
-            }
-
-            ImGui.EndMainMenuBar();
-        }
-        UIRenderer.ShowDemoWindow();
-        UIRenderer.EndLayout();
-
+        RenderUI();
         GraphicsContext.EndRenderPass();
         if (_capabilities.IsLaunchedByNSightGraphicsOnLinux)
         {
@@ -309,5 +182,76 @@ internal sealed class ComplexApplication : GraphicsApplication
         {
             _camera.ProcessKeyboard(movement, 1 / 60.0f);
         }        
+    }
+
+    protected override void FramebufferResized()
+    {
+        base.FramebufferResized();
+        
+        _swapchainDescriptor = new SwapchainDescriptorBuilder()
+            .EnableSrgb()
+            .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
+            .Build("Swapchain");
+        
+        _renderer.ResizeFramebufferDependentResources();
+    }
+
+    protected override void HandleDebugger(out bool breakOnError)
+    {
+        breakOnError = true;
+    }
+
+    private void RenderUI()
+    {
+        UIRenderer.BeginLayout();
+        if (ImGui.BeginMainMenuBar())
+        {
+            if (ImGui.BeginMenuBar())
+            {
+                if (ImGui.BeginMenu("File"))
+                {
+                    if (ImGui.MenuItem("Quit"))
+                    {
+                        Close();
+                    }
+                    ImGui.EndMenu();
+                }
+
+                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 256, 0));
+                ImGui.TextUnformatted($"avg frametime: {_metrics.AverageFrameTime:F2} ms");
+                ImGui.SameLine();
+                ImGui.Button(MaterialDesignIcons.WindowMinimize);
+                ImGui.SameLine();
+                if (ImGui.Button(IsWindowFullscreen ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
+                {
+                    if (IsWindowFullscreen)
+                    {
+                        RestoreWindow();
+                    }
+                    else
+                    {
+                        MaximizeWindow();
+                    }
+                }
+                ImGui.SameLine();
+                if (ImGui.Button(MaterialDesignIcons.WindowClose))
+                {
+                    Close();
+                }
+
+                ImGui.EndMenuBar();
+            }
+
+            ImGui.EndMainMenuBar();
+        }
+        
+        _assetWindow.Draw();
+        _sceneWindow.Draw();
+        _propertyWindow.Draw();
+
+        _renderer.RenderUI();
+        
+        UIRenderer.ShowDemoWindow();
+        UIRenderer.EndLayout();
     }
 }

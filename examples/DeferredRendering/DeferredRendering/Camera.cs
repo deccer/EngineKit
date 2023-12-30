@@ -2,7 +2,7 @@
 using System.Numerics;
 using EngineKit;
 using EngineKit.Input;
-using MathHelper = EngineKit.MathHelper;
+using EngineKit.Mathematics;
 
 namespace DeferredRendering;
 

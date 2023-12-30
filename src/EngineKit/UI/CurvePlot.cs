@@ -28,7 +28,7 @@ public class CurvePlot
         _graphValues[_sampleOffset] = value;
         if (Damping)
         {
-            _dampedValue = MathHelper.Lerp(_dampedValue, value, 0.01f);
+            _dampedValue = InterpolationHelper.Lerp(_dampedValue, value, 0.01f);
             value = _dampedValue;
         }
 

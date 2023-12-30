@@ -584,7 +584,7 @@ public static unsafe partial class GL
 
     public static void NamedBufferStorage(
         uint buffer,
-        long size,
+        nuint size,
         nint data,
         uint bufferStorageFlags)
     {
@@ -598,7 +598,7 @@ public static unsafe partial class GL
         uint bufferStorageFlags)
         where TElement : unmanaged
     {
-        var size = (long)sizeof(TElement);
+        var size = (uint)sizeof(TElement);
         fixed (void* dataPtr = &data)
         {
             NamedBufferStorage(buffer, size, dataPtr, bufferStorageFlags);
@@ -611,7 +611,35 @@ public static unsafe partial class GL
         uint bufferStorageFlags)
         where TElement : unmanaged
     {
-        var size = (long)(data.Length * sizeof(TElement));
+        var size = (uint)(data.Length * sizeof(TElement));
+        fixed (void* dataPtr = data)
+        {
+            NamedBufferStorage(buffer, size, dataPtr, bufferStorageFlags);
+        }
+    }
+    
+    /*
+    public static void NamedBufferStorage<TElement>(
+        uint buffer,
+        ref TElement[] data,
+        uint bufferStorageFlags)
+        where TElement : unmanaged
+    {
+        var size = (uint)(data.Length * sizeof(TElement));
+        fixed (void* dataPtr = data)
+        {
+            NamedBufferStorage(buffer, size, dataPtr, bufferStorageFlags);
+        }
+    }
+    */
+    
+    public static void NamedBufferStorage<TElement>(
+        uint buffer,
+        in TElement[] data,
+        uint bufferStorageFlags)
+        where TElement : unmanaged
+    {
+        var size = (uint)(data.Length * sizeof(TElement));
         fixed (void* dataPtr = data)
         {
             NamedBufferStorage(buffer, size, dataPtr, bufferStorageFlags);
@@ -620,7 +648,7 @@ public static unsafe partial class GL
 
     private static void NamedBufferStorage(
         uint buffer,
-        long size,
+        nuint size,
         void* dataPtr,
         uint bufferStorageFlags)
     {
@@ -629,11 +657,11 @@ public static unsafe partial class GL
 
     public static void NamedBufferSubData<TElement>(
         uint buffer,
-        nint offset,
-        [In, Out] ref TElement[] data)
+        nuint offset,
+        in TElement[] data)
         where TElement : unmanaged
     {
-        var size = (long)(data.Length * sizeof(TElement));
+        var size = (uint)(data.Length * sizeof(TElement));
         fixed (void* dataPtr = data)
         {
             NamedBufferSubData(buffer, offset, size, dataPtr);
@@ -642,11 +670,11 @@ public static unsafe partial class GL
     
     public static void NamedBufferSubData<TElement>(
         uint buffer,
-        nint offset,
+        nuint offset,
         TElement[] data)
         where TElement : unmanaged
     {
-        var size = (long)(data.Length * sizeof(TElement));
+        var size = (uint)(data.Length * sizeof(TElement));
         fixed (void* dataPtr = data)
         {
             NamedBufferSubData(buffer, offset, size, dataPtr);
@@ -655,11 +683,11 @@ public static unsafe partial class GL
     
     public static void NamedBufferSubData<TElement>(
         uint buffer,
-        nint offset,
+        nuint offset,
         Span<TElement> data)
         where TElement : unmanaged
     {
-        var size = (long)(data.Length * sizeof(TElement));
+        var size = (uint)(data.Length * sizeof(TElement));
         fixed (void* dataPtr = data)
         {
             NamedBufferSubData(buffer, offset, size, dataPtr);
@@ -668,11 +696,11 @@ public static unsafe partial class GL
 
     public static void NamedBufferSubData<TElement>(
         uint buffer,
-        nint offset,
-        [In, Out] ref TElement data)
+        nuint offset,
+        in TElement data)
         where TElement : unmanaged
     {
-        var size = (long)sizeof(TElement);
+        var size = (nuint)sizeof(TElement);
         fixed (void* dataPtr = &data)
         {
             NamedBufferSubData(buffer, offset, size, dataPtr);
@@ -681,18 +709,18 @@ public static unsafe partial class GL
     
     public static void NamedBufferSubData<TElement>(
         uint buffer,
-        nint offset,
+        nuint offset,
         TElement data)
         where TElement : unmanaged
     {
-        var size = (long)sizeof(TElement);
+        var size = (uint)sizeof(TElement);
         NamedBufferSubData(buffer, offset, size, &data);
     }
 
     public static void NamedBufferSubData(
         uint buffer,
-        nint offset,
-        long size,
+        nuint offset,
+        nuint size,
         void* data)
     {
         _glNamedBufferSubDataDelegate(buffer, offset, size, data);
@@ -700,7 +728,7 @@ public static unsafe partial class GL
 
     public static void NamedBufferData(
         uint buffer,
-        nint size,
+        uint size,
         nint data,
         BufferUsage usage)
     {
@@ -714,7 +742,7 @@ public static unsafe partial class GL
         BufferUsage usage)
         where TElement : unmanaged
     {
-        var size = (nint)(data.Length * sizeof(TElement));
+        var size = (uint)(data.Length * sizeof(TElement));
         fixed (void* dataPtr = data)
         {
             NamedBufferDataInternal(buffer, size, dataPtr, usage);
@@ -727,7 +755,7 @@ public static unsafe partial class GL
         BufferUsage usage)
         where TElement : unmanaged
     {
-        var size = (nint)(data.Length * sizeof(TElement));
+        var size = (uint)(data.Length * sizeof(TElement));
         fixed (void* dataPtr = data)
         {
             NamedBufferDataInternal(buffer, size, dataPtr, usage);
@@ -742,13 +770,13 @@ public static unsafe partial class GL
     {
         fixed (void* dataPtr = &data)
         {
-            NamedBufferDataInternal(buffer, sizeof(TElement), dataPtr, usage);
+            NamedBufferDataInternal(buffer, (uint)sizeof(TElement), dataPtr, usage);
         }
     }
 
     private static void NamedBufferDataInternal(
         uint buffer,
-        nint size,
+        uint size,
         void* dataPtr,
         BufferUsage bufferUsage)
     {
@@ -757,8 +785,8 @@ public static unsafe partial class GL
 
     public static void ClearNamedBufferSubData(
         uint buffer,
-        int offset,
-        long size,
+        nuint offset,
+        nuint size,
         void* dataPtr)
     {
         _glClearNamedBufferSubDataDelegate(
@@ -1193,7 +1221,7 @@ public static unsafe partial class GL
         uint bindingIndex,
         uint buffer,
         nint offset,
-        int stride)
+        uint stride)
     {
         _glVertexArrayVertexBufferDelegate(
             vao,
@@ -1223,8 +1251,8 @@ public static unsafe partial class GL
         PrimitiveType primitiveType,
         IndexElementType indexElementType,
         nint indirectData,
-        int indirectDrawCount,
-        int indirectDataStride)
+        uint indirectDrawCount,
+        uint indirectDataStride)
     {
         var indirectDataPtr = (void*)indirectData;
         _glMultiDrawElementsIndirectDelegate(
@@ -1239,8 +1267,8 @@ public static unsafe partial class GL
         PrimitiveType primitiveType,
         IndexElementType indexElementType,
         nint indirectData,
-        int indirectMaxDrawCount,
-        int indirectDataStride)
+        uint indirectMaxDrawCount,
+        uint indirectDataStride)
     {
         var indirectDataPtr = (void*)indirectData;
         _glMultiDrawElementsIndirectCountDelegate(
@@ -1566,6 +1594,11 @@ public static unsafe partial class GL
     {
         _glProgramUniform1iDelegate(program, location, value);
     }
+
+    public static void ProgramUniform(uint program, int location, Vector3 value)
+    {
+        _glProgramUniform3fDelegate(program, location, value.X, value.Y, value.Z);
+    }
     
     public static void ProgramUniform(uint program, int location, bool transpose, Matrix4x4 value)
     {
@@ -1639,9 +1672,14 @@ public static unsafe partial class GL
         };
     }
 
-    public static void* MapBuffer(uint buffer, MemoryAccess memoryAccess)
+    public static void* MapBuffer(uint buffer, MapFlags mapFlags)
     {
-        return _glMapNamedBufferDelegate(buffer, memoryAccess);
+        return _glMapNamedBufferDelegate(buffer, mapFlags);
+    }
+    
+    public static nint MapBufferRange(uint buffer, nuint offset, nuint size, MapFlags mapFlags)
+    {
+        return (nint)_glMapNamedBufferRangeDelegate(buffer, offset, size, mapFlags);
     }
 
     public static bool UnmapBuffer(uint buffer)

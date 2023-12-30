@@ -11,9 +11,9 @@ internal interface IAssetLoader
 
     IReadOnlyList<string> GetAssetNames();
     
-    Maybe<(MeshId MeshId, Matrix4x4 Transform)> GetMeshIdByMeshPrimitiveName(string meshPrimitiveName);
+    Maybe<(PooledMesh MeshId, Matrix4x4 Transform)> GetMeshIdByMeshPrimitiveName(string meshPrimitiveName);
     
-    Maybe<MaterialId> GetMaterialIdByMeshPrimitiveName(string meshPrimitiveName);
+    Maybe<PooledMaterial> GetMaterialIdByMeshPrimitiveName(string meshPrimitiveName);
     
     IReadOnlyList<string> GetMeshPrimitiveNamesByAssetName(string assetName);
     

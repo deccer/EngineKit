@@ -131,8 +131,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             return false;
         }
 
-        _gpuConstantsBuffer = GraphicsContext.CreateUniformBuffer<GpuConstants>("Camera");
-        _gpuConstantsBuffer.AllocateStorage(_gpuConstants, StorageAllocationFlags.Dynamic);
+        _gpuConstantsBuffer = GraphicsContext.CreateTypedBuffer<GpuConstants>("Camera", 1, BufferStorageFlags.DynamicStorage);
 
         _modelMeshInstances.Add(new ModelMeshInstance
         {
@@ -150,10 +149,8 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             World = Matrix4x4.CreateTranslation(+5, 0, 0)
         });
 
-        _gpuModelMeshInstanceBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuModelMeshInstance>("ModelMeshInstances");
-        _gpuModelMeshInstanceBuffer.AllocateStorage(3 * Marshal.SizeOf<GpuModelMeshInstance>(), StorageAllocationFlags.Dynamic);
-        _gpuIndirectElementDataBuffer = GraphicsContext.CreateDrawIndirectBuffer("MeshIndirectDrawElement");
-        _gpuIndirectElementDataBuffer.AllocateStorage(3 * Marshal.SizeOf<DrawElementIndirectCommand>(), StorageAllocationFlags.Dynamic);
+        _gpuModelMeshInstanceBuffer = GraphicsContext.CreateTypedBuffer<GpuModelMeshInstance>("ModelMeshInstances", 3, BufferStorageFlags.DynamicStorage);
+        _gpuIndirectElementDataBuffer = GraphicsContext.CreateTypedBuffer<DrawElementIndirectCommand>("MeshIndirectDrawElement", 3, BufferStorageFlags.DynamicStorage);
 
         _gpuMaterials.Add(new GpuMaterial
         {
@@ -171,8 +168,8 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             BaseColorTextureHandle = _skullBaseColorTexture.TextureHandle
         });
 
-        _gpuMaterialBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuMaterial>("Materials");
-        _gpuMaterialBuffer.AllocateStorage(_gpuMaterials.ToArray(), StorageAllocationFlags.Dynamic);
+        _gpuMaterialBuffer = GraphicsContext.CreateTypedBuffer<GpuMaterial>("Materials", (uint)_gpuMaterials.Count, BufferStorageFlags.DynamicStorage);
+        _gpuMaterialBuffer.UpdateElements(_gpuMaterials.ToArray(), 0);
 
         return true;
     }
@@ -180,7 +177,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     protected override void Render(float deltaTime)
     {
         _gpuModelMeshInstances = _modelMeshInstances.Select(mm => new GpuModelMeshInstance { World = mm.World }).ToList();
-        _gpuModelMeshInstanceBuffer.Update(_gpuModelMeshInstances.ToArray(), 0);
+        _gpuModelMeshInstanceBuffer.UpdateElements(_gpuModelMeshInstances.ToArray(), 0);
 
         _gpuIndirectElements.Clear();
         foreach (var modelMeshInstance in _modelMeshInstances)
@@ -189,21 +186,21 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             {
                 IndexCount = (uint)modelMeshInstance.ModelMesh.IndexCount,
                 BaseInstance = 0,
-                BaseVertex = modelMeshInstance.ModelMesh.VertexOffset,
+                BaseVertex = (uint)modelMeshInstance.ModelMesh.VertexOffset,
                 FirstIndex = (uint)modelMeshInstance.ModelMesh.IndexOffset,
                 InstanceCount = 1
             };
             _gpuIndirectElements.Add(gpuIndirectElement);
         }
 
-        _gpuIndirectElementDataBuffer.Update(_gpuIndirectElements.ToArray(), 0);
+        _gpuIndirectElementDataBuffer.UpdateElements(_gpuIndirectElements.ToArray(), 0);
 
         _gpuConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
-        _gpuConstantsBuffer!.Update(ref _gpuConstants, 0);
+        _gpuConstantsBuffer!.UpdateElement(_gpuConstants, 0);
 
         GraphicsContext.BeginRenderPass(_swapchainDescriptor);
         GraphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline!);
-        _sceneGraphicsPipeline!.BindAsVertexBuffer(_skullVertexBuffer!, 0, 0);
+        _sceneGraphicsPipeline!.BindAsVertexBuffer(_skullVertexBuffer!, 0, VertexPositionNormalUvTangent.Stride, 0);
         _sceneGraphicsPipeline.BindAsIndexBuffer(_skullIndexBuffer!);
 
         _sceneGraphicsPipeline.BindAsUniformBuffer(_gpuConstantsBuffer, 0);
@@ -211,7 +208,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _sceneGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer!, 2);
         _sceneGraphicsPipeline.BindSampledTexture(_linearMipmapLinear!, _skullBaseColorTexture!, 0);
 
-        _sceneGraphicsPipeline.MultiDrawElementsIndirect(_gpuIndirectElementDataBuffer, _gpuIndirectElements.Count);
+        _sceneGraphicsPipeline.MultiDrawElementsIndirect(_gpuIndirectElementDataBuffer, (uint)_gpuIndirectElements.Count);
 
         GraphicsContext.EndRenderPass();
 
@@ -241,6 +238,11 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _gpuModelMeshInstanceBuffer?.Dispose();
 
         base.Unload();
+    }
+
+    protected override void HandleDebugger(out bool breakOnError)
+    {
+        breakOnError = true;
     }
 
     protected override void Update(float deltaTime)

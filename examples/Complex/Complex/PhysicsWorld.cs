@@ -1,32 +1,18 @@
 using System;
-using Arch.Core;
-using Arch.System;
+using System.Numerics;
 using BepuPhysics;
 using BepuUtilities;
 using BepuUtilities.Memory;
 
-namespace Complex.Ecs;
+namespace Complex;
 
-public partial class PreRenderSystem : BaseSystem<World, float>
-{
-    public PreRenderSystem(World world) : base(world)
-    {
-    }
-
-    [Query]
-    public void UpdateTransforms([Data] float deltaTime, ref ParentOf parentOf, ref TransformComponent transformComponent)
-    {
-        
-    }
-}
-
-internal class PhysicsSystem : BaseSystem<World, float>
+internal class PhysicsWorld : IPhysicsWorld
 {
     private readonly BufferPool _bufferPool;
     private readonly ThreadDispatcher _threadDispatcher;
     private readonly Simulation _simulation;
 
-    public PhysicsSystem(World world) : base(world)
+    public PhysicsWorld()
     {
         _bufferPool = new BufferPool();
         _threadDispatcher = new ThreadDispatcher(Environment.ProcessorCount - 2);
@@ -42,9 +28,18 @@ internal class PhysicsSystem : BaseSystem<World, float>
         _simulation.Timestep(1.0f / 60.0f, _threadDispatcher);    
     }
 
-    public override void Dispose()
+    public Matrix4x4 GetBodyPoseByBodyHandle(BodyHandle handle)
+    {
+        var bodyReference = _simulation.Bodies.GetBodyReference(handle);
+        return Matrix4x4.CreateScale(1.0f) * 
+               Matrix4x4.CreateFromQuaternion(bodyReference.Pose.Orientation) * 
+               Matrix4x4.CreateTranslation(bodyReference.Pose.Position);
+    }
+
+    public void Dispose()
     {
         _bufferPool.Clear();
-        base.Dispose();
+        _threadDispatcher.Dispose();
+        _simulation.Dispose();
     }
 }

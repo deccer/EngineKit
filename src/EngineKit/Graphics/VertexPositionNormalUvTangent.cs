@@ -6,6 +6,8 @@ namespace EngineKit.Graphics;
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public readonly struct VertexPositionNormalUvTangent
 {
+    public static readonly unsafe uint Stride = (uint)sizeof(VertexPositionNormalUvTangent);
+        
     public VertexPositionNormalUvTangent(
         Vector3 position,
         Vector3 normal,

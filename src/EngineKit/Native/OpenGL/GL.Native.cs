@@ -121,16 +121,16 @@ public static unsafe partial class GL
     private static delegate* unmanaged<float, void> _glLineWidthDelegate = &glLineWidth;
     private static delegate* unmanaged<LogicOperation, void> _glLogicOpDelegate = &glLogicOp;
 
-    private static delegate* unmanaged<uint, long, void*, uint, void> _glNamedBufferStorageDelegate =
+    private static delegate* unmanaged<uint, nuint, void*, uint, void> _glNamedBufferStorageDelegate =
         &glNamedBufferStorage;
 
-    private static delegate* unmanaged<uint, nint, void*, BufferUsage, void> _glNamedBufferDataDelegate =
+    private static delegate* unmanaged<uint, uint, void*, BufferUsage, void> _glNamedBufferDataDelegate =
         &glNamedBufferData;
 
-    private static delegate* unmanaged<uint, long, long, void*, void> _glNamedBufferSubDataDelegate =
+    private static delegate* unmanaged<uint, nuint, nuint, void*, void> _glNamedBufferSubDataDelegate =
         &glNamedBufferSubData;
 
-    private static delegate* unmanaged<uint, SizedInternalFormat, nint, long, PixelFormat, DataType, void*, void>
+    private static delegate* unmanaged<uint, SizedInternalFormat, nuint, nuint, PixelFormat, DataType, void*, void>
         _glClearNamedBufferSubDataDelegate = &glClearNamedBufferSubData;
 
     private static delegate* unmanaged<ObjectIdentifier, uint, int, byte*, void>
@@ -186,7 +186,7 @@ public static unsafe partial class GL
     private static delegate* unmanaged<nint, void*, void> _glDebugMessageCallbackDelegate = &glDebugMessageCallback;
     private static delegate* unmanaged<DebugSource, DebugType, uint, DebugSeverity, int, byte*, void> _glDebugMessageInsertDelegate = &glDebugMessageInsert;
 
-    private static delegate* unmanaged<uint, uint, uint, nint, int, void> _glVertexArrayVertexBufferDelegate =
+    private static delegate* unmanaged<uint, uint, uint, nint, uint, void> _glVertexArrayVertexBufferDelegate =
         &glVertexArrayVertexBuffer;
 
     private static delegate* unmanaged<uint, uint, void> _glVertexArrayElementBufferDelegate =
@@ -200,10 +200,10 @@ public static unsafe partial class GL
     private static delegate* unmanaged<PrimitiveType, int, int, int, void>
         _glMultiDrawArraysIndirectDelegate = &glMultiDrawArraysIndirect;
 
-    private static delegate* unmanaged<PrimitiveType, IndexElementType, void*, int, int, void>
+    private static delegate* unmanaged<PrimitiveType, IndexElementType, void*, uint, uint, void>
         _glMultiDrawElementsIndirectDelegate = &glMultiDrawElementsIndirect;
     
-    private static delegate* unmanaged<PrimitiveType, IndexElementType, void*, int, int, int, void>
+    private static delegate* unmanaged<PrimitiveType, IndexElementType, void*, int, uint, uint, void>
         _glMultiDrawElementsIndirectCountDelegate = &glMultiDrawElementsIndirectCount;
 
     private static delegate* unmanaged<uint, ulong> _glGetTextureHandleARBDelegate = &glGetTextureHandleARB;
@@ -267,7 +267,9 @@ public static unsafe partial class GL
     private static delegate* unmanaged<uint, float*, void> _glGetFloatvDelegate = &glGetFloatv;
     private static delegate* unmanaged<uint, uint, byte*> _glGetStringiDelegate = &glGetStringi;
     
-    private static delegate* unmanaged<uint, MemoryAccess, void*> _glMapNamedBufferDelegate = &glMapNamedBuffer;
+    private static delegate* unmanaged<uint, MapFlags, void*> _glMapNamedBufferDelegate = &glMapNamedBuffer;
+    private static delegate* unmanaged<uint, nuint, nuint, MapFlags, void*> _glMapNamedBufferRangeDelegate =
+        &glMapNamedBufferRange;
     private static delegate* unmanaged<uint, int> _glUnmapNamedBufferDelegate = &glUnmapNamedBuffer;
     
     private static delegate* unmanaged<uint, int, int, byte, int, MemoryAccess, SizedInternalFormat, void> _glBindImageTextureDelegate = &glBindImageTexture;
@@ -278,6 +280,7 @@ public static unsafe partial class GL
     private static delegate* unmanaged<uint, int, PixelFormat, DataType, int, void*, void> _glGetTextureImageDelegate = &glGetTextureImage;
     private static delegate* unmanaged<uint, int, float, void> _glProgramUniform1fDelegate = &glProgramUniform1f;
     private static delegate* unmanaged<uint, int, int, void> _glProgramUniform1iDelegate = &glProgramUniform1i;
+    private static delegate* unmanaged<uint, int, float, float, float, void> _glProgramUniform3fDelegate = &glProgramUniform3f;
     private static delegate* unmanaged<uint, int, int, int, float*, void> _glProgramUniformMatrix4fvDelegate = &glProgramUniformMatrix4fv;
 
     private static delegate* unmanaged<uint, TextureTarget, int, int, int, int, uint, TextureTarget, int, int, int, int, int, int, int,
@@ -985,12 +988,12 @@ public static unsafe partial class GL
     [UnmanagedCallersOnly]
     private static void glNamedBufferStorage(
         uint buffer,
-        long size,
+        nuint size,
         void* dataPtr,
         uint bufferStorageFlags)
     {
         _glNamedBufferStorageDelegate =
-            (delegate* unmanaged<uint, long, void*, uint, void>)Glfw.Glfw.GetProcAddress(
+            (delegate* unmanaged<uint, nuint, void*, uint, void>)Glfw.Glfw.GetProcAddress(
                 nameof(glNamedBufferStorage));
         _glNamedBufferStorageDelegate(buffer, size, dataPtr, bufferStorageFlags);
     }
@@ -998,12 +1001,12 @@ public static unsafe partial class GL
     [UnmanagedCallersOnly]
     private static void glNamedBufferData(
         uint buffer,
-        nint size,
+        uint size,
         void* dataPtr,
         BufferUsage bufferUsage)
     {
         _glNamedBufferDataDelegate =
-            (delegate* unmanaged<uint, nint, void*, BufferUsage, void>)Glfw.Glfw.GetProcAddress(
+            (delegate* unmanaged<uint, uint, void*, BufferUsage, void>)Glfw.Glfw.GetProcAddress(
                 nameof(glNamedBufferData));
         _glNamedBufferDataDelegate(buffer, size, dataPtr, bufferUsage);
     }
@@ -1011,12 +1014,12 @@ public static unsafe partial class GL
     [UnmanagedCallersOnly]
     private static void glNamedBufferSubData(
         uint buffer,
-        long offset,
-        long size,
+        nuint offset,
+        nuint size,
         void* dataPtr)
     {
         _glNamedBufferSubDataDelegate =
-            (delegate* unmanaged<uint, long, long, void*, void>)Glfw.Glfw.GetProcAddress(nameof(glNamedBufferSubData));
+            (delegate* unmanaged<uint, nuint, nuint, void*, void>)Glfw.Glfw.GetProcAddress(nameof(glNamedBufferSubData));
         _glNamedBufferSubDataDelegate(buffer, offset, size, dataPtr);
     }
 
@@ -1024,13 +1027,13 @@ public static unsafe partial class GL
     private static void glClearNamedBufferSubData(
         uint buffer,
         SizedInternalFormat internalFormat,
-        nint offset,
-        long size,
+        nuint offset,
+        nuint size,
         PixelFormat uploadType,
         DataType uploadFormat,
         void* data)
     {
-        _glClearNamedBufferSubDataDelegate = (delegate* unmanaged<uint, SizedInternalFormat, nint, long, PixelFormat, DataType, void*, void>)Glfw
+        _glClearNamedBufferSubDataDelegate = (delegate* unmanaged<uint, SizedInternalFormat, nuint, nuint, PixelFormat, DataType, void*, void>)Glfw
             .Glfw.GetProcAddress(nameof(glClearNamedBufferSubData));
         _glClearNamedBufferSubDataDelegate(buffer, internalFormat, offset, size, uploadType, uploadFormat, data);
     }
@@ -1345,10 +1348,10 @@ public static unsafe partial class GL
         uint bindingIndex,
         uint buffer,
         nint offset,
-        int stride)
+        uint stride)
     {
         _glVertexArrayVertexBufferDelegate =
-            (delegate* unmanaged<uint, uint, uint, nint, int, void>)Glfw.Glfw.GetProcAddress(
+            (delegate* unmanaged<uint, uint, uint, nint, uint, void>)Glfw.Glfw.GetProcAddress(
                 nameof(glVertexArrayVertexBuffer));
         _glVertexArrayVertexBufferDelegate(vao, bindingIndex, buffer, offset, stride);
     }
@@ -1405,11 +1408,11 @@ public static unsafe partial class GL
         PrimitiveType primitiveType,
         IndexElementType indexElementType,
         void* indirectDataPtr,
-        int indirectDrawCount,
-        int indirectDataStride)
+        uint indirectDrawCount,
+        uint indirectDataStride)
     {
         _glMultiDrawElementsIndirectDelegate =
-            (delegate* unmanaged<PrimitiveType, IndexElementType, void*, int, int, void>)Glfw.Glfw.GetProcAddress(
+            (delegate* unmanaged<PrimitiveType, IndexElementType, void*, uint, uint, void>)Glfw.Glfw.GetProcAddress(
                 nameof(glMultiDrawElementsIndirect));
         _glMultiDrawElementsIndirectDelegate(
             primitiveType,
@@ -1425,11 +1428,11 @@ public static unsafe partial class GL
         IndexElementType indexElementType,
         void* indirectDataPtr,
         int indirectDrawCount,
-        int indirectMaxCount,
-        int indirectDataStride)
+        uint indirectMaxCount,
+        uint indirectDataStride)
     {
         _glMultiDrawElementsIndirectCountDelegate =
-            (delegate* unmanaged<PrimitiveType, IndexElementType, void*, int, int, int, void>)Glfw.Glfw.GetProcAddress(
+            (delegate* unmanaged<PrimitiveType, IndexElementType, void*, int, uint, uint, void>)Glfw.Glfw.GetProcAddress(
                 nameof(glMultiDrawElementsIndirectCount));
         _glMultiDrawElementsIndirectCountDelegate(
             primitiveType,
@@ -1804,10 +1807,17 @@ public static unsafe partial class GL
     }
     
     [UnmanagedCallersOnly]
-    private static void* glMapNamedBuffer(uint buffer, MemoryAccess memoryAccess)
+    private static void* glMapNamedBuffer(uint buffer, MapFlags mapFlags)
     {
-        _glMapNamedBufferDelegate = (delegate* unmanaged<uint, MemoryAccess, void*>)Glfw.Glfw.GetProcAddress(nameof(glMapNamedBuffer));
-        return _glMapNamedBufferDelegate(buffer, memoryAccess);
+        _glMapNamedBufferDelegate = (delegate* unmanaged<uint, MapFlags, void*>)Glfw.Glfw.GetProcAddress(nameof(glMapNamedBuffer));
+        return _glMapNamedBufferDelegate(buffer, mapFlags);
+    }
+
+    [UnmanagedCallersOnly]
+    private static void* glMapNamedBufferRange(uint buffer, nuint offset, nuint size, MapFlags mapFlags)
+    {
+        _glMapNamedBufferRangeDelegate = (delegate* unmanaged<uint, nuint, nuint, MapFlags, void*>)Glfw.Glfw.GetProcAddress(nameof(glMapNamedBufferRange));
+        return _glMapNamedBufferRangeDelegate(buffer, offset, size, mapFlags);
     }
 
     [UnmanagedCallersOnly]
@@ -1843,6 +1853,15 @@ public static unsafe partial class GL
     {
         _glProgramUniform1iDelegate = (delegate* unmanaged<uint, int, int, void>)Glfw.Glfw.GetProcAddress(nameof(glProgramUniform1i));
         _glProgramUniform1iDelegate(program, location, value);
+    }
+
+    [UnmanagedCallersOnly]
+    private static void glProgramUniform3f(uint program, int location, float x, float y, float z)
+    {
+        _glProgramUniform3fDelegate =
+            (delegate* unmanaged<uint, int, float, float, float, void>)Glfw.Glfw.GetProcAddress(
+                nameof(glProgramUniform3f));
+        _glProgramUniform3fDelegate(program, location, x, y, z);
     }
 
     [UnmanagedCallersOnly]

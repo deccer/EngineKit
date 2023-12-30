@@ -109,12 +109,10 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             if (materialChannel.Key is "BaseColor" or "Diffuse" or "RGB")
             {
                 material.BaseColor = new Color4(materialChannel.Color);
-                
-                if (materialChannel.Texture?.PrimaryImage != null)
+                if (materialChannel.Texture != null)
                 {
                     material.BaseColorImage = GetImageInformationFromChannel(materialChannel);
                 }
-
                 if (materialChannel.TextureSampler != null)
                 {
                     material.BaseColorTextureSamplerInformation = new SamplerInformation(materialChannel.TextureSampler);
@@ -123,11 +121,10 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             else if (materialChannel.Key == "Normal")
             {
                 // NormalScale
-                if (materialChannel.Texture?.PrimaryImage != null)
+                if (materialChannel.Texture != null)
                 {
                     material.NormalImage = GetImageInformationFromChannel(materialChannel);
                 }
-
                 if (materialChannel.TextureSampler != null)
                 {
                     material.NormalTextureSamplerInformation = new SamplerInformation(materialChannel.TextureSampler);
@@ -137,8 +134,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             {
                 material.MetallicFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "MetallicFactor")?.Value ?? 1.0f;
                 material.RoughnessFactor = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "RoughnessFactor")?.Value ?? 1.0f;
-
-                if (materialChannel.Texture?.PrimaryImage != null)
+                if (materialChannel.Texture != null)
                 {
                     material.MetalnessRoughnessImage = GetImageInformationFromChannel(materialChannel);
                 }
@@ -171,8 +167,8 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             else if (materialChannel.Key == "Occlusion")
             {
                 material.OcclusionStrength = (float?)materialChannel.Parameters.FirstOrDefault(x => x.Name == "OcclusionStrength")?.Value ?? 1.0f;
-                
-                if (materialChannel.Texture?.PrimaryImage != null)
+
+                if (materialChannel.Texture != null)
                 {
                     material.OcclusionImage = GetImageInformationFromChannel(materialChannel);
                 }
@@ -186,10 +182,9 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             {
                 // Color
                 material.EmissiveColor = new Color4(materialChannel.Color);
-                
-                if (materialChannel.Texture?.PrimaryImage != null)
+                if (materialChannel.Texture != null)
                 {
-                    material.EmissiveImage = GetImageInformationFromChannel(materialChannel); 
+                    material.EmissiveImage = GetImageInformationFromChannel(materialChannel);
                 }
 
                 if (materialChannel.TextureSampler != null)
@@ -203,7 +198,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
         return material;
     }
 
-    private void ProcessNode(ICollection<MeshPrimitive> meshPrimitives, Node node, ICollection<Material> materials)
+    private void ProcessNode(List<MeshPrimitive> meshPrimitives, Node node, ICollection<Material> materials)
     {
         foreach (var primitive in node.Mesh.Primitives)
         {
@@ -233,9 +228,13 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             }      
             
             var meshPrimitive = new MeshPrimitive(meshName);
-            meshPrimitive.Transform = node.WorldMatrix;
-            meshPrimitive.MaterialName = primitive.Material?.Name ?? (primitive.Material == null ? Material.MaterialNotFoundName : materials.ElementAt(primitive.Material.LogicalIndex)?.Name) ?? Material.MaterialNotFoundName;
-            meshPrimitive.BoundingBox = BoundingBox.CreateFromPoints(positions.ToArray());
+            meshPrimitive.Transform = node.WorldMatrix;// .LocalTransform.Matrix;
+            meshPrimitive.MaterialName = primitive.Material?.Name ?? (primitive.Material == null ? Material.MaterialNotFoundName : materials.ElementAt(primitive.Material.LogicalIndex).Name) ?? Material.MaterialNotFoundName;
+
+            var boundingBox = BoundingBox.CreateFromPoints(positions.ToArray());
+            //boundingBox.Min = Vector3.Transform(boundingBox.Min, meshPrimitive.Transform);
+            //boundingBox.Max = Vector3.Transform(boundingBox.Max, meshPrimitive.Transform);
+            meshPrimitive.BoundingBox = boundingBox;
             
             var vertexType = GetVertexTypeFromVertexAccessorNames(primitive!.VertexAccessors!.Keys.ToList());
             var normalsAccessor = primitive.VertexAccessors.GetValueOrDefault(VertexAccessorName.Normal);
@@ -266,9 +265,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
             for (var i = 0; i < positions.Length; i++)
             {
-                //var position = Vector3.TransformPosition(positions[i], meshPrimitive.Transform);
                 ref var position = ref positions[i];
-                //var normal = Vector3.TransformDirection(normals[i], meshPrimitive.Transform);
                 ref var normal = ref normals[i];
                 
                 var realTangentXyz = new Vector3(realTangents[i].X, realTangents[i].Y, realTangents[i].Z);

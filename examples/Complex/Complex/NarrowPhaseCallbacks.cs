@@ -2,7 +2,7 @@ using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 
-namespace Complex.Ecs;
+namespace Complex;
 
 public struct NarrowPhaseCallbacks : INarrowPhaseCallbacks
 {

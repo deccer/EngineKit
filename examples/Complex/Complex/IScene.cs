@@ -1,15 +1,21 @@
 using System;
 using System.Numerics;
-using Arch.Core;
+using Complex.Ecs;
 using EngineKit.Graphics;
 
 namespace Complex;
 
-internal interface IScene : IDisposable
+public interface IScene : IDisposable
 {
-    void AddEntityWithModelRenderer(Entity? parent, Model model, Vector3 startPosition);
+    void AddEntityWithModelRenderer(string name, EntityId? parent, Model model, Matrix4x4 startWorldMatrix);
 
-    Entity GetRoot();
+    EntityId GetRoot();
     
     void Update(float deltaTime);
+
+    void AddEntityWithModelMeshRenderer(
+        string name,
+        EntityId? parent,
+        ModelMesh modelMesh,
+        Matrix4x4 startWorldMatrix);
 }

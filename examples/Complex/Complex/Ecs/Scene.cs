@@ -1,137 +1,93 @@
 using System.Numerics;
-using Arch.Core;
-using Arch.Relationships;
-using BepuPhysics.Collidables;
+using Complex.Ecs.Components;
+using Complex.Ecs.Systems;
 using EngineKit.Graphics;
 
 namespace Complex.Ecs;
 
-public struct TransformComponent
-{
-    public Vector3 Position;
-    public Quaternion Rotation;
-    public Vector3 Scale;
-
-    public Matrix4x4 LocalWorldMatrix;
-}
-
-public struct NameComponent
-{
-    public NameComponent(string name)
-    {
-        Name = name;
-    }
-
-    public string Name;
-}
-
-public struct ModelComponent
-{
-    public ModelComponent(string modelName)
-    {
-        ModelName = modelName;
-    }
-
-    public string ModelName;
-}
-
-public struct ModelMeshComponent
-{
-    public string ModelMeshName;
-    public MeshId? MeshId;
-}
-
-public struct MaterialComponent
-{
-    public string MaterialName;
-    public MaterialId? MaterialId;
-}
-
-public struct ColliderComponent
-{
-    public Collidable Collidable;
-}
-
-public struct ParentOf
-{
-}
-
 internal class Scene : IScene
 {
-    private readonly World _world;
+    private readonly IEntityWorld _world;
+    private readonly IModelLibrary _modelLibrary;
+    private readonly IMaterialLibrary _materialLibrary;
+    private readonly ISystemsUpdater _systemsUpdater;
+    private readonly EntityId _rootEntity;
     private bool _isDisposed;
-    private readonly Entity _rootEntity;
 
-    private readonly Arch.System.Group<float> _systems;
-
-    public Scene()
+    public Scene(
+        IEntityWorld world,
+        IModelLibrary modelLibrary,
+        IMaterialLibrary materialLibrary,
+        ISystemsUpdater systemsUpdater)
     {
-        _world = World.Create();
-        _rootEntity = _world.Create(new NameComponent("Root"));
-
-        _systems = new Arch.System.Group<float>(
-            new PhysicsSystem(_world),
-            new PreRenderSystem(_world));
+        _world = world;
+        _modelLibrary = modelLibrary;
+        _materialLibrary = materialLibrary;
+        _systemsUpdater = systemsUpdater;
+        _rootEntity = _world.CreateEntity("Root");
+        _world.AddComponent(_rootEntity, new NameComponent("Root"));
     }
     
     public void Update(float deltaTime)
     {
-        _systems.BeforeUpdate(deltaTime);
-        _systems.Update(deltaTime);
-        _systems.AfterUpdate(deltaTime);
+        _systemsUpdater.Update(deltaTime);
     }
 
     public void Dispose()
     {
         if (!_isDisposed)
         {
-            _systems.Dispose();
-            _world.Dispose();
             _isDisposed = true;
         }
     }
 
-    public Entity CreateEntity()
-    {
-        return _world.Create();
-    }
-
-    public Entity GetRoot()
+    public EntityId GetRoot()
     {
         return _rootEntity;
     }
 
-    public void AddEntityWithModelRenderer(Entity? parent, Model model, Vector3 startPosition)
+    public void AddEntityWithModelMeshRenderer(
+        string name,
+        EntityId? parent,
+        ModelMesh modelMesh,
+        Matrix4x4 startWorldMatrix)
     {
         var parentEntity = parent ?? _rootEntity;
-        var modelEntity = _world.Create(
-            new NameComponent
-            {
-                Name = model.Name
-            },
-            new TransformComponent
-            {
-                Position = startPosition,
-                Rotation = Quaternion.Identity,
-                Scale = Vector3.One
-            });
-        parentEntity.AddRelationship<ParentOf>(modelEntity);
+        var modelEntityId = _world.CreateEntity(name, parentEntity);
+        var modelEntity = _world.GetEntity(modelEntityId);
+        
+        modelEntity.LocalMatrix = modelMesh.MeshPrimitive.Transform;
+        
+        _world.AddComponent(modelEntityId, new NameComponent(name));
+        _world.AddComponent(modelEntityId, new ModelMeshComponent(modelMesh.MeshPrimitive));
+        _world.AddComponent(modelEntityId, new MaterialComponent(_materialLibrary.GetMaterialByName(modelMesh.MeshPrimitive.MaterialName)));
+    }
+
+    public void AddEntityWithModelRenderer(
+        string name,
+        EntityId? parent,
+        Model model,
+        Matrix4x4 startWorldMatrix)
+    {
+        var parentEntity = parent ?? _rootEntity;
+        var modelEntityId = _world.CreateEntity(name, parentEntity);
+        var modelEntity = _world.GetEntity(modelEntityId);
+        modelEntity.LocalMatrix = startWorldMatrix;
+        
+        _world.AddComponent(modelEntityId, new NameComponent(name));
+        
         foreach (var modelMesh in model.ModelMeshes)
         {
-            var modelMeshEntity = _world.Create(
-                new NameComponent
-                {
-                    Name = modelMesh.Name
-                },
-                new TransformComponent
-                {
-                    LocalWorldMatrix = modelMesh.MeshPrimitive.Transform
-                },
-                new ModelMeshComponent
-                {
-                    ModelMeshName = modelMesh.MeshPrimitive.MeshName
-                });
-            modelEntity.AddRelationship<ParentOf>(modelMeshEntity);
+            var modelMeshName = string.IsNullOrEmpty(modelMesh.Name)
+                ? $"Mesh-{System.Guid.NewGuid().ToString()}"
+                : modelMesh.Name;
+            var modelMeshEntityId = _world.CreateEntity(modelMeshName, modelEntityId);
+            var modelMeshEntity = _world.GetEntity(modelMeshEntityId);
+            modelMeshEntity.LocalMatrix = modelMesh.MeshPrimitive.Transform;
+           
+            _world.AddComponent(modelMeshEntityId, new NameComponent(modelMeshName));
+            _world.AddComponent(modelMeshEntityId, new ModelMeshComponent(modelMesh.MeshPrimitive));
+            _world.AddComponent(modelMeshEntityId, new MaterialComponent(_materialLibrary.GetMaterialByName(modelMesh.MeshPrimitive.MaterialName)));
         }
     }
 }

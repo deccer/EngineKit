@@ -187,7 +187,7 @@ public struct Viewport : IEquatable<Viewport>
         Vector3 vector = Vector3.Transform(source, worldViewProjection);
         float a = (source.X * worldViewProjection.M14) + (source.Y * worldViewProjection.M24) + (source.Z * worldViewProjection.M34) + worldViewProjection.M44;
 
-        if (!MathHelper.IsOne(a))
+        if (!IsOne(a))
         {
             vector.X /= a;
             vector.Y /= a;
@@ -231,7 +231,7 @@ public struct Viewport : IEquatable<Viewport>
         float a = (source.X * matrix.M14) + (source.Y * matrix.M24) + (source.Z * matrix.M34) + matrix.M44;
         source = Vector3.Transform(source, matrix);
 
-        if (!MathHelper.IsOne(a))
+        if (!IsOne(a))
         {
             source /= a;
         }

@@ -7,13 +7,13 @@ namespace EngineKit.Extensions;
 
 public static class SharpGltfExtensions
 {
-    public static TextureAddressMode ToAddressingMode(this SharpGLTF.Schema2.TextureWrapMode textureWrapMode)
+    public static TextureAddressMode ToAddressingMode(this TextureWrapMode textureWrapMode)
     {
         return textureWrapMode switch
         {
-            SharpGLTF.Schema2.TextureWrapMode.REPEAT => TextureAddressMode.Repeat,
-            SharpGLTF.Schema2.TextureWrapMode.CLAMP_TO_EDGE => TextureAddressMode.ClampToEdge,
-            SharpGLTF.Schema2.TextureWrapMode.MIRRORED_REPEAT => TextureAddressMode.MirroredRepeat,
+            TextureWrapMode.REPEAT => TextureAddressMode.Repeat,
+            TextureWrapMode.CLAMP_TO_EDGE => TextureAddressMode.ClampToEdge,
+            TextureWrapMode.MIRRORED_REPEAT => TextureAddressMode.MirroredRepeat,
             _ => throw new ArgumentOutOfRangeException(nameof(textureWrapMode), textureWrapMode, null)
         };
     }
@@ -30,7 +30,7 @@ public static class SharpGltfExtensions
         };
     }
 
-    public static TextureMipmapFilter ToMipmapFilter(this SharpGLTF.Schema2.TextureMipMapFilter mipMapFilter)
+    public static TextureMipmapFilter ToMipmapFilter(this TextureMipMapFilter mipMapFilter)
     {
         return mipMapFilter switch
         {

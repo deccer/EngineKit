@@ -21,10 +21,10 @@ internal sealed class ComputePipeline : Pipeline, IComputePipeline
         GL.Dispatch(numGroupX, numGroupY, numGroupZ);
     }
 
-    public void DispatchIndirect(IBuffer dispatchIndirectBuffer, int indirectElementIndex)
+    public unsafe void DispatchIndirect(IBuffer dispatchIndirectBuffer, int indirectElementIndex)
     {
         GL.BindBuffer(BufferTarget.DispatchIndirectBuffer.ToGL(), dispatchIndirectBuffer.Id);
-        GL.DispatchIndirect(new nint(indirectElementIndex * dispatchIndirectBuffer.Stride));
+        GL.DispatchIndirect(new nint(indirectElementIndex * sizeof(GpuIndirectDispatchData)));
     }
 
     public void Uniform(int location, float value)

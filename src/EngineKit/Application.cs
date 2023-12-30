@@ -43,6 +43,13 @@ public class Application : IApplication
     private readonly FrameTimeAverager _frameTimeAverager;
     private long _previousFrameTicks;
 
+    private int _windowPositionLeft;
+    private int _windowPositionTop;
+    private int _windowSizeWidth;
+    private int _windowSizeHeight;
+    
+    protected bool IsWindowFullscreen;
+
     protected Application(
         ILogger logger,
         IOptions<WindowSettings> windowSettings,
@@ -439,6 +446,32 @@ public class Application : IApplication
     protected void Close()
     {
         Glfw.SetWindowShouldClose(_windowHandle, 1);
+    }
+
+    protected void MaximizeWindow()
+    {
+        /*
+        Glfw.GetWindowPos(_windowHandle, out _windowPositionLeft, out _windowPositionTop);
+        Glfw.GetWindowSize(_windowHandle, out _windowSizeWidth, out _windowSizeHeight);
+        
+        Glfw.GetMonitorPos(Glfw.GetPrimaryMonitor(), out var monitorLeft, out var monitorTop);
+        Glfw.SetWindowPos(_windowHandle, monitorLeft, monitorTop);
+        Glfw.SetWindowSize(_windowHandle, _applicationContext.ScreenSize.X, _applicationContext.ScreenSize.Y);
+        */
+        Glfw.MaximizeWindow(_windowHandle);
+        
+        IsWindowFullscreen = true;
+    }
+
+    protected void RestoreWindow()
+    {
+        /*
+        Glfw.SetWindowPos(_windowHandle, _windowPositionLeft, _windowPositionTop);
+        Glfw.SetWindowSize(_windowHandle, _windowSizeWidth, _windowSizeHeight);
+        */
+        Glfw.RestoreWindow(_windowHandle);
+        
+        IsWindowFullscreen = false;
     }
 
     private void BindCallbacks()

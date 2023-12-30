@@ -86,7 +86,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
     private IList<SceneObject> _sceneObjects;
 
     private IGraphicsPipeline? _debugLinesGraphicsPipeline;
-    private IBuffer? _debugLinesBuffer;
+    private IBuffer? _cameraFrustumDebugLineBuffer;
     private IBuffer? _debugOriginalAabbBuffer;
     private BoundingFrustum _frozenFrustum;
     private Vector4[] _frozenFrustumPlanes;
@@ -165,7 +165,6 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
 
         CreateSamplers();
         CreateResolutionDependentResources();
-        CreateSwapchainDescriptor();
 
         if (!CreatePipelines())
         {
@@ -174,29 +173,21 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
 
         LoadModels();
         
-        _gpuModelMeshInstanceBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuModelMeshInstance>("ModelMeshInstances");
-        _gpuModelMeshInstanceBuffer.AllocateStorage(Marshal.SizeOf<GpuModelMeshInstance>() * 20000, StorageAllocationFlags.Dynamic);
+        _gpuModelMeshInstanceBuffer = GraphicsContext.CreateTypedBuffer<GpuModelMeshInstance>("ModelMeshInstances", 8 * 1024, BufferStorageFlags.DynamicStorage);
 
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
-        _gpuCameraConstantsBuffer = GraphicsContext.CreateUniformBuffer<GpuCameraConstants>("CameraConstants");
-        _gpuCameraConstantsBuffer.AllocateStorage(_gpuCameraConstants, StorageAllocationFlags.Dynamic);
+        _gpuCameraConstantsBuffer = GraphicsContext.CreateTypedBuffer<GpuCameraConstants>("CameraConstants", 1, BufferStorageFlags.DynamicStorage);
 
-        _culledDrawCountBuffer = GraphicsContext.CreateShaderStorageBuffer<uint>("DrawCount");
-        _culledDrawCountBuffer.AllocateStorage<uint>(0, StorageAllocationFlags.Dynamic);
+        _culledDrawCountBuffer = GraphicsContext.CreateTypedBuffer<uint>("DrawCount", 1, BufferStorageFlags.DynamicStorage);
+        _culledDrawCountBuffer.UpdateElement(0, 0);
 
-        _culledDrawElementCommandsBuffer = GraphicsContext.CreateShaderStorageBuffer<DrawElementIndirectCommand>("CullDrawElements");
-        _culledDrawElementCommandsBuffer.AllocateStorage(64 * 1024 * Marshal.SizeOf<DrawElementIndirectCommand>(), StorageAllocationFlags.Dynamic);
+        _culledDrawElementCommandsBuffer = GraphicsContext.CreateTypedBuffer<DrawElementIndirectCommand>("CullDrawElements", 8 * 1024, BufferStorageFlags.DynamicStorage);
+        _sceneObjectBuffer = GraphicsContext.CreateTypedBuffer<SceneObject>("SceneObjects", 8 * 1024, BufferStorageFlags.DynamicStorage);
+        _cullFrustumBuffer = GraphicsContext.CreateTypedBuffer<Vector4>("FrustumPlanes", 6, BufferStorageFlags.DynamicStorage);
 
-        _sceneObjectBuffer = GraphicsContext.CreateShaderStorageBuffer<SceneObject>("SceneObjects");
-        _sceneObjectBuffer.AllocateStorage(64 * 1024 * Marshal.SizeOf<SceneObject>(), StorageAllocationFlags.Dynamic);
+        _debugOriginalAabbBuffer = GraphicsContext.CreateTypedBuffer<VertexPositionColor>("DebugAabbRaw", 24 * 8 * 1024, BufferStorageFlags.DynamicStorage);
 
-        _cullFrustumBuffer = GraphicsContext.CreateShaderStorageBuffer<Vector4>("FrustumPlanes");
-        _cullFrustumBuffer.AllocateStorage(6 * Marshal.SizeOf<Vector4>(), StorageAllocationFlags.Dynamic);
-
-        _debugOriginalAabbBuffer = GraphicsContext.CreateVertexBuffer<VertexPositionColor>("DebugAabbRaw");
-        _debugOriginalAabbBuffer.AllocateStorage(24 * 20000 * Marshal.SizeOf<VertexPositionColor>(), StorageAllocationFlags.Dynamic);
-
-        SetDebugLines(_camera);
+        SetCameraFrustumDebugLines(_camera);
         
         PrepareScene();
        
@@ -205,6 +196,11 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         _frozenFrustumPlanes = MakeFrustumPlanes(_camera.ViewMatrix * _camera.ProjectionMatrix);
         
         return true;
+    }
+
+    protected override void HandleDebugger(out bool breakOnError)
+    {
+        breakOnError = true;
     }
 
     protected override void Render(float deltaTime)
@@ -220,25 +216,25 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             if (!_isCameraFrustumFrozen)
             {
                 _frozenFrustum = new BoundingFrustum(_gpuCameraConstants.ViewProjection);
-                SetDebugLines(_camera);
+                SetCameraFrustumDebugLines(_camera);
             }
             BoundingFrustum boundingFrustum = _isCameraFrustumFrozen
                 ? _frozenFrustum
                 : cameraFrustum;
             
             var drawCommands = _sceneObjects
-                .Where(so => boundingFrustum.Intersects(new BoundingBox(so.AabbMin, so.AabbMax)))
+                //.Where(so => boundingFrustum.Intersects(new BoundingBox(so.AabbMin, so.AabbMax)))
                 .Select(so => new DrawElementIndirectCommand
                 {
                     BaseInstance = 1,
-                    BaseVertex = so.VertexOffset,
+                    BaseVertex = (uint)so.VertexOffset,
                     FirstIndex = (uint)so.IndexOffset,
                     IndexCount = (uint)so.IndexCount,
                     InstanceCount = 1
                 }).ToArray();
-            _culledDrawElementCommandsBuffer.Update(ref drawCommands, 0);
+            _culledDrawElementCommandsBuffer.UpdateElements(drawCommands, 0);
             var drawCommandCount = drawCommands.Length;
-            _culledDrawCountBuffer.Update(ref drawCommandCount);
+            _culledDrawCountBuffer.UpdateElement(drawCommandCount, 0);
 
             var instances = _sceneObjects
                 .Where(so => boundingFrustum.Intersects(new BoundingBox(so.AabbMin, so.AabbMax)))
@@ -248,10 +244,10 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                     MaterialId = new Int4((int)so.MaterialId, 0, 0, 0)
                 })
                 .ToArray();
-            _gpuModelMeshInstanceBuffer.Update(ref instances, 0);
+            _gpuModelMeshInstanceBuffer.UpdateElements(instances, 0);
         }
         
-        _gpuCameraConstantsBuffer.Update(ref _gpuCameraConstants, Offset.Zero);
+        _gpuCameraConstantsBuffer.UpdateElement(_gpuCameraConstants, Offset.Zero);
 
         GraphicsContext.BeginRenderPass(_gBufferFramebufferDescriptor);
         
@@ -265,16 +261,16 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         _gBufferGraphicsPipeline.MultiDrawElementsIndirectCount(
             _culledDrawElementCommandsBuffer,
             _culledDrawCountBuffer,
-            _sceneObjects.Count);
+            (uint)_sceneObjects.Count);
 
         // debug lines - render camera frustum
         GraphicsContext.BindGraphicsPipeline(_debugLinesGraphicsPipeline);
-        _debugLinesGraphicsPipeline.BindAsVertexBuffer(_debugLinesBuffer, 0, 0);
+        _debugLinesGraphicsPipeline.BindAsVertexBuffer(_cameraFrustumDebugLineBuffer, 0, VertexPositionColor.Stride, 0);
         _debugLinesGraphicsPipeline.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0);
-        _debugLinesGraphicsPipeline.DrawArrays((uint)_debugLinesBuffer.Count, 0);
+        _debugLinesGraphicsPipeline.DrawArrays(24, 0);
         // debug lines - render cube aabbs
-        _debugLinesGraphicsPipeline.BindAsVertexBuffer(_debugOriginalAabbBuffer, 0, 0);
-        _debugLinesGraphicsPipeline.DrawArrays((uint)_debugOriginalAabbBuffer.Count, 0);
+        _debugLinesGraphicsPipeline.BindAsVertexBuffer(_debugOriginalAabbBuffer, 0, VertexPositionColor.Stride, 0);
+        _debugLinesGraphicsPipeline.DrawArrays(24 * (uint)_drawCommands.Count, 0);
         GraphicsContext.EndRenderPass();
 
         GraphicsContext.BeginRenderPass(_finalFramebufferDescriptor);
@@ -324,7 +320,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                 {
                     _frozenFrustum = new BoundingFrustum(_camera.ViewMatrix * _camera.ProjectionMatrix);
                     _frozenFrustumPlanes = MakeFrustumPlanes(_camera.ViewMatrix * _camera.ProjectionMatrix);
-                    SetDebugLines(_camera);
+                    SetCameraFrustumDebugLines(_camera);
                 }
 
                 ImGui.Image((nint)_gBufferBaseColorTexture.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
@@ -401,15 +397,9 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         }
     }
 
-    protected override void WindowResized()
-    {
-        CreateSwapchainDescriptor();
-    }
-
-    private void SetDebugLines(ICamera camera)
+    private void SetCameraFrustumDebugLines(ICamera camera)
     {
         var cameraFrustum = new BoundingFrustum(camera.ViewMatrix * camera.ProjectionMatrix);
-
 
         var nearColor = Colors.Orange.ToVector3();
         var farColor = Colors.DarkOrange.ToVector3();
@@ -468,15 +458,9 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             new VertexPositionColor(farBottomRight, farColor)
         };
         
-        _debugLinesBuffer?.Dispose();
-        _debugLinesBuffer = GraphicsContext.CreateVertexBuffer<VertexPositionColor>("DebugLines");
-        unsafe
-        {
-            var sizeInBytes = sizeof(VertexPositionColor) * vertices.Length;
-            _debugLinesBuffer.AllocateStorage(sizeInBytes, StorageAllocationFlags.Dynamic);
-        }
-
-        _debugLinesBuffer.Update(ref vertices);
+        _cameraFrustumDebugLineBuffer?.Dispose();
+        _cameraFrustumDebugLineBuffer = GraphicsContext.CreateTypedBuffer<VertexPositionColor>("DebugLines", (uint)vertices.Length, BufferStorageFlags.DynamicStorage);
+        _cameraFrustumDebugLineBuffer.UpdateElements(vertices, 0);
     }
 
     private void RenderComputeCull(ICamera camera)
@@ -497,14 +481,14 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         GraphicsContext.BindComputePipeline(_cullComputePipeline);
         if (_isCameraFrustumFrozen)
         {
-            _cullFrustumBuffer.Update(ref _frozenFrustumPlanes);            
+            _cullFrustumBuffer.UpdateElements(_frozenFrustumPlanes, 0);            
         }
         else
         {
-            _cullFrustumBuffer.Update(ref planes);            
+            _cullFrustumBuffer.UpdateElements(planes, 0);            
         }
 
-        _culledDrawElementCommandsBuffer.ClearWith(new BufferClearInfo{Offset = 0, Size = SizeInBytes.Whole, Data = 0u});
+        _culledDrawElementCommandsBuffer.ClearWith(new BufferClearInfo{Offset = 0, Size = SizeInBytes.Whole, Value = 0u});
         _culledDrawCountBuffer.ClearAll();
 
         _cullComputePipeline.BindAsShaderStorageBuffer(_sceneObjectBuffer, 0);
@@ -630,10 +614,10 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             "Cube.001"
         };
 
-        var range = Enumerable.Range(0, 20000);
+        var range = Enumerable.Range(0, 1024);
         foreach (var i in range)
         {
-            var position = new Vector3(-200.0f + 400 * Random.Shared.NextSingle(), -200.0f + 400 * Random.Shared.NextSingle(), -200.0f + 400 * Random.Shared.NextSingle());
+            var position = new Vector3(-100.0f + 200 * Random.Shared.NextSingle(), -100.0f + 200 * Random.Shared.NextSingle(), -100.0f + 200 * Random.Shared.NextSingle());
             var randomCube = cubes[Random.Shared.Next(0, cubes.Length)];
             
             _drawCommands.Add(new DrawCommand
@@ -732,14 +716,12 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         }
 
         var debugOriginalAabbLinesArray = debugOriginalAabbLines.ToArray();
-        _debugOriginalAabbBuffer.Update(ref debugOriginalAabbLinesArray);
+        _debugOriginalAabbBuffer.UpdateElements(debugOriginalAabbLinesArray, 0);
         var sceneObjectsArray = _sceneObjects.ToArray();
-        _sceneObjectBuffer.Update(ref sceneObjectsArray, 0);
+        _sceneObjectBuffer.UpdateElements(sceneObjectsArray, 0);
 
         var gpuMaterialsArray = _gpuMaterials.ToArray();
-        _gpuMaterialBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuMaterial>("SceneMaterials");
-        _gpuMaterialBuffer.AllocateStorage(Marshal.SizeOf<GpuMaterial>() * _gpuMaterials.Count, StorageAllocationFlags.Dynamic);
-        _gpuMaterialBuffer.Update(ref gpuMaterialsArray, 0);
+        _gpuMaterialBuffer = GraphicsContext.CreateTypedBuffer("SceneMaterials", gpuMaterialsArray, BufferStorageFlags.DynamicStorage);
 
         var meshDatasAsArray = meshPrimitives.ToArray();
 
@@ -806,29 +788,13 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             .Build("Swapchain");
     }
 
-    private void CreateSwapchainDescriptor()
-    {
-        /*
-        _swapchainDescriptor = new SwapchainDescriptorBuilder()
-            .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
-            .ClearDepth(0.0f)
-            .Build("Swapchain");
-            */
-    }
-
     private bool CreatePipelines()
     {
         var gBufferGraphicsPipelineResult = GraphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromFiles("Shaders/SceneVertexPulling.vs.glsl", "Shaders/Scene.fs.glsl")
-            .WithVertexAttributesFromDescriptor(new VertexInputDescriptorBuilder()
-                .AddAttribute(0, Format.R32G32B32Float, 0)
-                .AddAttribute(0, Format.R32G32B32Float, 12)
-                .AddAttribute(0, Format.R32G32Float, 24)
-                .AddAttribute(0, Format.R32G32B32A32Float, 32)
-                .Build("Scene"))
             .WithCullingEnabled(CullMode.Back)
             .WithDepthTestEnabled(CompareFunction.Greater)
-            .WithClipControlDepth(ClipControlDepth.NegativeOneToOne)
+            .WithClipControlDepth(ClipControlDepth.ZeroToOne)
             .WithDepthClampEnabled()
             .ClearResourceBindingsOnBind()
             .Build("GBuffer-Pipeline");

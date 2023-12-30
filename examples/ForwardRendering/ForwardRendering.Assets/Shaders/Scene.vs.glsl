@@ -21,7 +21,7 @@ void main()
     v_model_mesh_instance_id = gl_DrawID;
     GpuModelMeshInstance modelMeshInstance = modelMeshInstanceBuffer.Instances[v_model_mesh_instance_id];
     v_position = (modelMeshInstance.World * vec4(i_position, 1.0)).xyz;
-    v_normal = normalize(inverse(transpose(mat3(modelMeshInstance.World))) * i_normal);
+    v_normal = normalize(inverse(transpose(mat3(modelMeshInstance.World))) * i_normal) + 0.00001 * vec3(i_tangent.xyz);
     v_uv = i_uv;
     gl_Position = ViewProj * vec4(v_position, 1.0);
 }

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Numerics;
+using BepuUtilities;
 using EngineKit;
 using EngineKit.Input;
-using MathHelper = EngineKit.MathHelper;
 
 namespace Complex;
 

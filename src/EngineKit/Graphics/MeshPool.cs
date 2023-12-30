@@ -1,25 +1,30 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace EngineKit.Graphics;
 
 internal sealed class MeshPool : IMeshPool
 {
-    private readonly IDictionary<MeshPrimitive, MeshId> _pooledMeshes;
+    private readonly Dictionary<MeshPrimitive, PooledMesh> _pooledMeshes;
 
-    public MeshPool(Label label, IGraphicsContext graphicsContext, int vertexBufferCapacity, int indexBufferCapacity)
+    public MeshPool(
+        Label label,
+        IGraphicsContext graphicsContext,
+        uint maxVertexCount,
+        uint maxIndexCount)
     {
-        _pooledMeshes = new Dictionary<MeshPrimitive, MeshId>(1024);
+        _pooledMeshes = new Dictionary<MeshPrimitive, PooledMesh>(1024);
         
-        VertexBuffer = graphicsContext.CreateVertexBuffer<VertexPositionNormalUvTangent>(label);
-        VertexBuffer.AllocateStorage(vertexBufferCapacity, StorageAllocationFlags.Dynamic);
-        IndexBuffer = graphicsContext.CreateIndexBuffer<uint>(label);
-        IndexBuffer.AllocateStorage(indexBufferCapacity, StorageAllocationFlags.Dynamic);
+        VertexBuffer = graphicsContext.CreateUntypedBuffer(label + "Vertices", (nuint)(maxVertexCount * Unsafe.SizeOf<VertexPositionNormalUvTangent>()), BufferStorageFlags.DynamicStorage);
+        IndexBuffer = graphicsContext.CreateUntypedBuffer(label + "Indices", (nuint)(maxIndexCount * Unsafe.SizeOf<uint>()), BufferStorageFlags.DynamicStorage);
     }
 
     public IBuffer VertexBuffer { get; }
 
     public IBuffer IndexBuffer { get; }
+    
+    public uint VertexBufferStride => VertexPositionNormalUvTangent.Stride;
 
     public void Dispose()
     {
@@ -27,7 +32,7 @@ internal sealed class MeshPool : IMeshPool
         IndexBuffer.Dispose();
     }
 
-    public MeshId GetOrAdd(MeshPrimitive meshPrimitive)
+    public PooledMesh GetOrAdd(MeshPrimitive meshPrimitive)
     {
         if (_pooledMeshes.TryGetValue(meshPrimitive, out var pooledMesh))
         {
@@ -36,10 +41,10 @@ internal sealed class MeshPool : IMeshPool
 
         var indexOffset = _pooledMeshes.Values.Sum(pm => pm.IndexCount);
         var indexCount = meshPrimitive.IndexCount;
-        var vertexOffset = _pooledMeshes.Values.Sum(pm => pm.VertexCount);
+        var vertexOffset = (uint)_pooledMeshes.Values.Sum(pm => pm.VertexCount);
         var vertexCount = meshPrimitive.VertexCount;
         
-        pooledMesh = new MeshId(
+        pooledMesh = new PooledMesh(
             (uint)indexCount,
             (uint)indexOffset,
             vertexCount,
@@ -49,8 +54,8 @@ internal sealed class MeshPool : IMeshPool
             meshPrimitive.MaterialName);
 
         var vertices = meshPrimitive.GetVertices();
-        VertexBuffer.Update(ref vertices, pooledMesh.VertexOffset);
-        IndexBuffer.Update(meshPrimitive.Indices.ToArray(), (int)pooledMesh.IndexOffset);
+        VertexBuffer.UpdateElements(vertices, pooledMesh.VertexOffset);
+        IndexBuffer.UpdateElements(meshPrimitive.Indices.ToArray(), pooledMesh.IndexOffset);
 
         _pooledMeshes.Add(meshPrimitive, pooledMesh);
         return pooledMesh;

@@ -6,9 +6,9 @@ public struct BufferClearInfo
     {
     }
 
-    public int Offset = 0;
+    public uint Offset = 0;
 
-    public int Size = SizeInBytes.Whole;
+    public uint Size = SizeInBytes.Whole;
 
-    public uint Data = 0;
+    public uint Value = 0;
 };

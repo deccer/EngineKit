@@ -4,94 +4,8 @@ using System.Runtime.CompilerServices;
 
 namespace EngineKit;
 
-public static class MathHelper
+public static class MathUtils
 {
-    public static float ToRad => (float)(Math.PI / 180.0);
-    public static float ToDegree => (float)(180.0 / Math.PI);
-    
-    public const float TwoPi = (float)Math.PI * 2;
-    
-    public static float ToRadians(float degrees)
-    {
-        return degrees * ToRad;
-    }
-    
-    public static float PerlinNoise(float value, float period, int octaves, int seed)
-    {
-        var noiseSum = 0.0f;
-
-        var frequency = period;
-        var amplitude = 0.5f;
-        for (var octave = 0; octave < octaves - 1; octave++)
-        {
-            var v = value * frequency + seed * 12.468f;
-            var a = Noise((int)v, seed);
-            var b = Noise((int)v + 1, seed);
-            var t = Fade(v - (float)Math.Floor(v));
-            noiseSum += Lerp(a, b, t) * amplitude;
-            frequency *= 2;
-            amplitude *= 0.5f;
-        }
-
-        return noiseSum;
-    }
-
-    private static float Noise(int x, int seed)
-    {
-        int n = x + seed * 137;
-        n = (n << 13) ^ n;
-        return (float)(1.0 - ((n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0);
-    }
-
-    public static uint XxHash(uint p)
-    {
-        const uint PRIME32_2 = 2246822519U, PRIME32_3 = 3266489917U;
-        const uint PRIME32_4 = 668265263U, PRIME32_5 = 374761393U;
-
-        uint h32 = p + PRIME32_5;
-        h32 = PRIME32_4 * ((h32 << 17) | (h32 >> (32 - 17)));
-        h32 = PRIME32_2 * (h32 ^ (h32 >> 15));
-        h32 = PRIME32_3 * (h32 ^ (h32 >> 13));
-
-        return h32 ^ (h32 >> 16);
-    }
-
-    private static float Fade(float t)
-    {
-        return t * t * t * (t * (t * 6 - 15) + 10);
-    }
-
-    public static float SmootherStep(float min, float max, float value)
-    {
-        var t = Math.Max(0, Math.Min(1, (value - min) / (max - min)));
-        return Fade(t);
-    }
-
-    public static float SmoothStep(float min, float max, float value)
-    {
-        var x = Math.Max(0, Math.Min(1, (value - min) / (max - min)));
-        return x * x * x;
-    }
-
-    public static double SmoothStep(double min, double max, double value)
-    {
-        var x = Math.Max(0, Math.Min(1, (value - min) / (max - min)));
-        return x * x * x;
-    }
-
-    public static float Step(float edge, float value)
-    {
-        return value < edge ? 0.0f : (float)1.0;
-    }
-    
-    public static Vector3 Step(float edge, Vector3 value)
-    {
-        return new Vector3(
-            value.X < edge ? 0.0f : 1.0f,
-            value.Y < edge ? 0.0f : 1.0f,
-            value.Z < edge ? 0.0f : 1.0f);
-    }
-    
     public static Vector3 Exp(float edge, Vector3 value)
     {
         return new Vector3(
@@ -110,19 +24,19 @@ public static class MathHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Min<T>(T lhs, T rhs) where T : System.IComparable<T>
+    public static T Min<T>(T lhs, T rhs) where T : IComparable<T>
     {
         return lhs.CompareTo(rhs) < 0 ? lhs : rhs;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Max<T>(T lhs, T rhs) where T : System.IComparable<T>
+    public static T Max<T>(T lhs, T rhs) where T : IComparable<T>
     {
         return lhs.CompareTo(rhs) >= 0 ? lhs : rhs;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Clamp<T>(this T val, T min, T max) where T : System.IComparable<T>
+    public static T Clamp<T>(this T val, T min, T max) where T : IComparable<T>
     {
         if (val.CompareTo(min) < 0) return min;
         else if (val.CompareTo(max) > 0) return max;
@@ -132,12 +46,6 @@ public static class MathHelper
     public static int ClampForEnum<T>(this int i) where T : Enum
     {
         return i.Clamp(0, Enum.GetValues(typeof(T)).Length - 1);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float Lerp(float a, float b, float t)
-    {
-        return (float)(a + (b - a) * t);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

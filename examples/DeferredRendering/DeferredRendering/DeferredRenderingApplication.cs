@@ -137,12 +137,10 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         LoadModels();
         PrepareScene();
 
-        _gpuModelMeshInstanceBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuModelMeshInstance>("ModelMeshInstances");
-        _gpuModelMeshInstanceBuffer.AllocateStorage(Marshal.SizeOf<GpuModelMeshInstance>() * 256, StorageAllocationFlags.Dynamic);
+        _gpuModelMeshInstanceBuffer = GraphicsContext.CreateTypedBuffer<GpuModelMeshInstance>("ModelMeshInstances", 256, BufferStorageFlags.DynamicStorage);
 
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
-        _gpuCameraConstantsBuffer = GraphicsContext.CreateUniformBuffer<GpuCameraConstants>("CameraConstants");
-        _gpuCameraConstantsBuffer.AllocateStorage(_gpuCameraConstants, StorageAllocationFlags.Dynamic);
+        _gpuCameraConstantsBuffer = GraphicsContext.CreateTypedBuffer<GpuCameraConstants>("CameraConstants", 1, BufferStorageFlags.DynamicStorage);
 
         _camera.ProcessMouseMovement();
         
@@ -151,10 +149,9 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     protected override void Render(float deltaTime)
     {
-        GL.PushDebugGroup("Geometry-Pass");
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
-        _gpuCameraConstantsBuffer.Update(ref _gpuCameraConstants, Offset.Zero);
-        _gpuModelMeshInstanceBuffer.Update(_gpuModelMeshInstances.ToArray(), 0);
+        _gpuCameraConstantsBuffer.UpdateElement(_gpuCameraConstants, Offset.Zero);
+        _gpuModelMeshInstanceBuffer.UpdateElements(_gpuModelMeshInstances.ToArray(), 0);
 
         GraphicsContext.BeginRenderPass(_gBufferFramebufferDescriptor);
         if (_useVertexPulling)
@@ -183,7 +180,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             _gBufferGraphicsPipeline.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0);
             _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
             _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer, 2);
-            _gBufferGraphicsPipeline.BindAsVertexBuffer(_gpuVertexBuffer, 0);
+            _gBufferGraphicsPipeline.BindAsVertexBuffer(_gpuVertexBuffer, 0, VertexPositionNormalUvTangent.Stride, 0);
             _gBufferGraphicsPipeline.BindAsIndexBuffer(_gpuIndexBuffer);
 
             for (var i = 0; i < _drawCommands.Count; i++)
@@ -198,17 +195,13 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             }
         }
         GraphicsContext.EndRenderPass();
-        GL.PopDebugGroup();
 
-        GL.PushDebugGroup("Resolve-Pass");
         GraphicsContext.BeginRenderPass(_finalFramebufferDescriptor);
         GraphicsContext.BindGraphicsPipeline(_finalGraphicsPipeline);
         _finalGraphicsPipeline.BindSampledTexture(_pointSampler, _gBufferBaseColorTexture, 0);
         _finalGraphicsPipeline.DrawArrays(3, 0);
         GraphicsContext.EndRenderPass();
-        GL.PopDebugGroup();
 
-        GL.PushDebugGroup("UI-Pass");
         GraphicsContext.BeginRenderPass(_swapchainDescriptor);
         GraphicsContext.BlitFramebufferToSwapchain(
             _applicationContext.ScaledFramebufferSize.X,
@@ -254,7 +247,6 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         }
         UIRenderer.EndLayout();
         GraphicsContext.EndRenderPass();
-        GL.PopDebugGroup();
         GL.Finish();
     }
 
@@ -385,9 +377,8 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             drawCommand.VertexOffset = meshPrimitive.VertexOffset;
         }
 
-        _gpuMaterialBuffer = GraphicsContext.CreateShaderStorageBuffer<GpuMaterial>("SceneMaterials");
-        _gpuMaterialBuffer.AllocateStorage(Marshal.SizeOf<GpuMaterial>() * _gpuMaterials.Count, StorageAllocationFlags.Dynamic);
-        _gpuMaterialBuffer.Update(_gpuMaterials.ToArray(), 0);
+        _gpuMaterialBuffer = GraphicsContext.CreateTypedBuffer<GpuMaterial>("SceneMaterials", (uint)_gpuMaterials.Count, BufferStorageFlags.DynamicStorage);
+        _gpuMaterialBuffer.UpdateElements(_gpuMaterials.ToArray(), 0);
 
         var meshDatasAsArray = meshPrimitives.ToArray();
 

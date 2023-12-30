@@ -11,7 +11,7 @@ public struct DrawElementIndirectCommand
 
     public uint FirstIndex;
 
-    public int BaseVertex;
+    public uint BaseVertex;
 
     public uint BaseInstance;
 }

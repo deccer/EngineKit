@@ -9,7 +9,7 @@ internal sealed class MaterialPool : IMaterialPool
     private readonly ICapabilities _capabilities;
     private readonly IGraphicsContext _graphicsContext;
     private readonly ISamplerLibrary _samplerLibrary;
-    private readonly IDictionary<Material, MaterialId> _pooledMaterials;
+    private readonly IDictionary<Material, PooledMaterial> _pooledMaterials;
     private readonly IDictionary<string, ITexture> _textures;
 
     private readonly ISampler _sampler;
@@ -20,13 +20,13 @@ internal sealed class MaterialPool : IMaterialPool
         ICapabilities capabilities,
         IGraphicsContext graphicsContext,
         ISamplerLibrary samplerLibrary,
-        int materialBufferCapacity)
+        uint maxMaterialCount)
     {
         _logger = logger.ForContext<MaterialPool>();
         _capabilities = capabilities;
         _graphicsContext = graphicsContext;
         _samplerLibrary = samplerLibrary;
-        _pooledMaterials = new Dictionary<Material, MaterialId>();
+        _pooledMaterials = new Dictionary<Material, PooledMaterial>();
         _textures = new Dictionary<string, ITexture>();
 
         _sampler = _graphicsContext.CreateSampler(new SamplerDescriptor
@@ -42,8 +42,7 @@ internal sealed class MaterialPool : IMaterialPool
             MaxLod = 1000.0f
         });
         
-        MaterialBuffer = graphicsContext.CreateShaderStorageBuffer<GpuMaterial>(label);
-        MaterialBuffer.AllocateStorage(materialBufferCapacity, StorageAllocationFlags.Dynamic);
+        MaterialBuffer = graphicsContext.CreateTypedBuffer<GpuMaterial>(label, maxMaterialCount, BufferStorageFlags.DynamicStorage);
     }
 
     public IBuffer MaterialBuffer { get; }
@@ -59,7 +58,7 @@ internal sealed class MaterialPool : IMaterialPool
         MaterialBuffer.Dispose();
     }
 
-    public MaterialId GetOrAdd(Material material)
+    public PooledMaterial GetOrAdd(Material material)
     {
         if (_pooledMaterials.TryGetValue(material, out var pooledMaterial))
         {
@@ -68,7 +67,7 @@ internal sealed class MaterialPool : IMaterialPool
 
         if (!material.TexturesLoaded)
         {
-            material.LoadTextures(_logger, _graphicsContext, _samplerLibrary, _textures, _capabilities.SupportsBindlessTextures);
+            //material.LoadTextures(_logger, _graphicsContext, _samplerLibrary, _textures, _capabilities.SupportsBindlessTextures);
         }
 
         var gpuMaterial = new GpuMaterial
@@ -87,8 +86,8 @@ internal sealed class MaterialPool : IMaterialPool
             AlphaCutOff = 1.0f
         };
 
-        pooledMaterial = new MaterialId(_pooledMaterials.Count);
-        MaterialBuffer.Update(ref gpuMaterial, pooledMaterial.Index);
+        pooledMaterial = new PooledMaterial((uint)_pooledMaterials.Count);
+        MaterialBuffer.UpdateElement(gpuMaterial, pooledMaterial.Index);
 
         _pooledMaterials.Add(material, pooledMaterial);
         return pooledMaterial;

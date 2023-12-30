@@ -25,36 +25,47 @@ public interface IGraphicsContext : IDisposable
         int sourceWidth,
         int sourceHeight,
         int targetWidth,
-        int targetHeight);    
+        int targetHeight);
 
-    bool TryMapBuffer(
-        IBuffer buffer,
-        MemoryAccess memoryAccess,
-        out nint bufferPtr);
+    IBuffer CreateUntypedBuffer(
+        Label label,
+        nuint sizeInBytes,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None);
 
-    void UnmapBuffer(IBuffer buffer);
+    IBuffer CreateUntypedBuffer(
+        Label label,
+        nuint sizeInBytes,
+        nint dataPtr,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None);
 
-    IBuffer CreateIndexBuffer<TIndex>(Label label)
-        where TIndex : unmanaged;
+    IBuffer CreateTypedBuffer<TElement>(
+        Label label,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
+        where TElement : unmanaged;
+    
+    IBuffer CreateTypedBuffer<TElement>(
+        Label label,
+        TElement element,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
+        where TElement : unmanaged;
+    
+    IBuffer CreateTypedBuffer<TElement>(
+        Label label,
+        TElement[] elements,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
+        where TElement : unmanaged;
 
-    IBuffer CreateIndexBuffer(
+    IBuffer CreateTypedBuffer<TElement>(
+        Label label,
+        uint elementCount,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
+        where TElement : unmanaged;
+
+    IBuffer CreateVertexBuffer(
         Label label,
         MeshPrimitive[] meshPrimitives);
 
-    IBuffer CreateDrawIndirectBuffer(Label label);
-
-    IBuffer CreateDispatchIndirectBuffer(Label label);
-
-    IBuffer CreateShaderStorageBuffer<TShaderStorageData>(Label label)
-        where TShaderStorageData : unmanaged;
-
-    IBuffer CreateUniformBuffer<TUniformData>(Label label)
-        where TUniformData: unmanaged;
-
-    IBuffer CreateVertexBuffer<TVertex>(Label label)
-        where TVertex : unmanaged;
-
-    IBuffer CreateVertexBuffer(
+    IBuffer CreateIndexBuffer(
         Label label,
         MeshPrimitive[] meshPrimitives);
 
@@ -110,12 +121,12 @@ public interface IGraphicsContext : IDisposable
     
     IMeshPool CreateMeshPool(
         Label label,
-        int vertexBufferCapacity,
-        int indexBufferCapacity);
+        uint vertexBufferCapacity,
+        uint indexBufferCapacity);
     
     IMaterialPool CreateMaterialPool(
         Label label,
-        int materialBufferCapacity,
+        uint materialBufferCapacity,
         ISamplerLibrary samplerLibrary);
 
     void EndRenderPass();

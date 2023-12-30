@@ -7,6 +7,7 @@ public interface IMeshPool : IDisposable
     IBuffer VertexBuffer { get; }
     
     IBuffer IndexBuffer { get; }
+    uint VertexBufferStride { get; }
 
-    MeshId GetOrAdd(MeshPrimitive meshPrimitive);
+    PooledMesh GetOrAdd(MeshPrimitive meshPrimitive);
 }

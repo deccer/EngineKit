@@ -6,5 +6,5 @@ public interface IMaterialPool : IDisposable
 {
     IBuffer MaterialBuffer { get; }
     
-    MaterialId GetOrAdd(Material material);
+    PooledMaterial GetOrAdd(Material material);
 }

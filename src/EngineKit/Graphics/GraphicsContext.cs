@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using EngineKit.Extensions;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Mathematics;
@@ -97,12 +98,12 @@ internal sealed class GraphicsContext : IGraphicsContext
         GL.Viewport(viewport);
     }
 
-    public IMeshPool CreateMeshPool(Label label, int vertexBufferCapacity, int indexBufferCapacity)
+    public IMeshPool CreateMeshPool(Label label, uint vertexBufferCapacity, uint indexBufferCapacity)
     {
         return new MeshPool(label, this, vertexBufferCapacity, indexBufferCapacity);
     }
 
-    public IMaterialPool CreateMaterialPool(Label label, int materialBufferCapacity, ISamplerLibrary samplerLibrary)
+    public IMaterialPool CreateMaterialPool(Label label, uint materialBufferCapacity, ISamplerLibrary samplerLibrary)
     {
         return new MaterialPool(_logger, label, _capabilities, this, samplerLibrary, materialBufferCapacity);
     }
@@ -117,92 +118,92 @@ internal sealed class GraphicsContext : IGraphicsContext
         return new ComputePipelineBuilder(_computePipelineCache, _shaderProgramFactory);
     }
 
-    public unsafe bool TryMapBuffer(IBuffer buffer, MemoryAccess memoryAccess, out nint bufferPtr)
+    public IBuffer CreateUntypedBuffer(
+        Label label,
+        nuint sizeInBytes,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
     {
-        if (!buffer.IsMappable)
-        {
-            bufferPtr = IntPtr.Zero;
-            return false;
-        }
-
-        bufferPtr = (nint)GL.MapBuffer(buffer.Id, memoryAccess.ToGL());
-        return true;
-    }
-
-    public void UnmapBuffer(IBuffer buffer)
-    {
-        GL.UnmapBuffer(buffer.Id);
-    }
-
-    public IBuffer CreateIndexBuffer(Label label, MeshPrimitive[] meshPrimitives)
-    {
-        var indices = meshPrimitives
-            .SelectMany(meshPrimitive => meshPrimitive.Indices)
-            .ToArray();
-        var indexBuffer = new Buffer<uint>(BufferTarget.IndexBuffer, label);
-        indexBuffer.AllocateStorage(indices, StorageAllocationFlags.None);
-        return indexBuffer;
-    }
-
-    public IBuffer CreateIndexBuffer<TIndex>(Label label)
-        where TIndex : unmanaged
-    {
-        return new Buffer<TIndex>(BufferTarget.IndexBuffer, label);
-    }
-
-    public IBuffer CreateDrawIndirectBuffer(Label label)
-    {
-        return new Buffer<DrawElementIndirectCommand>(BufferTarget.DrawIndirectBuffer, label);
+        return new Buffer(label, sizeInBytes, bufferStorageFlags);
     }
     
-    public IBuffer CreateDispatchIndirectBuffer(Label label)
+    public IBuffer CreateUntypedBuffer(
+        Label label,
+        nuint sizeInBytes,
+        nint dataPtr,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
     {
-        return new Buffer<GpuIndirectDispatchData>(BufferTarget.DrawIndirectBuffer, label);
+        return new Buffer(label, sizeInBytes, dataPtr, bufferStorageFlags);
     }
 
-    public IBuffer CreateShaderStorageBuffer<TShaderStorageData>(Label label)
-        where TShaderStorageData : unmanaged
+    public IBuffer CreateTypedBuffer<TElement>(
+        Label label,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
+        where TElement : unmanaged
     {
-        return new Buffer<TShaderStorageData>(BufferTarget.ShaderStorageBuffer, label);
+        return new TypedBuffer<TElement>(label, bufferStorageFlags);
     }
 
-    public IBuffer CreateUniformBuffer<TUniformData>(Label label)
-        where TUniformData: unmanaged
+    public IBuffer CreateTypedBuffer<TElement>(
+        Label label,
+        TElement element,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
+        where TElement : unmanaged
     {
-        return new Buffer<TUniformData>(BufferTarget.UniformBuffer, label);
+        return new TypedBuffer<TElement>(label, element, bufferStorageFlags);
     }
 
-    public IBuffer CreateVertexBuffer<TVertex>(Label label)
-        where TVertex : unmanaged
+    public IBuffer CreateTypedBuffer<TElement>(
+        Label label,
+        TElement[] elements,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
+        where TElement : unmanaged
     {
-        return new Buffer<TVertex>(BufferTarget.VertexBuffer, label);
+        return new TypedBuffer<TElement>(label, elements, bufferStorageFlags);
+    }
+    
+    public IBuffer CreateTypedBuffer<TElement>(
+        Label label,
+        uint elementCount,
+        BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
+        where TElement : unmanaged
+    {
+        return new TypedBuffer<TElement>(label, elementCount, bufferStorageFlags);
     }
 
     public IBuffer CreateVertexBuffer(
         Label label,
         MeshPrimitive[] meshPrimitives)
     {
-        var bufferData = new List<VertexPositionNormalUvTangent>(1_024_000);
+        var vertexCount = meshPrimitives.Sum(mp => mp.Positions.Count);
+        var bufferData = new VertexPositionNormalUvTangent[vertexCount];
+
+        var bufferDataIndex = 0;
         foreach (var meshPrimitive in meshPrimitives)
         {
-            if (!meshPrimitive.RealTangents.Any())
+            if (meshPrimitive.RealTangents.Count == 0)
             {
                 meshPrimitive.CalculateTangents();
             }
 
             for (var i = 0; i < meshPrimitive.Positions.Count; ++i)
             {
-                bufferData.Add(new VertexPositionNormalUvTangent(
+                bufferData[bufferDataIndex++] = new VertexPositionNormalUvTangent(
                     meshPrimitive.Positions[i],
                     meshPrimitive.Normals[i],
                     meshPrimitive.Uvs[i],
-                    meshPrimitive.RealTangents[i]));
+                    meshPrimitive.RealTangents[i]);
             }
         }
         
-        var vertexBuffer = new Buffer<VertexPositionNormalUvTangent>(BufferTarget.VertexBuffer, label);
-        vertexBuffer.AllocateStorage(bufferData.ToArray(), StorageAllocationFlags.None);
-        return vertexBuffer;
+        return new TypedBuffer<VertexPositionNormalUvTangent>(label, in bufferData);
+    }
+    
+    public IBuffer CreateIndexBuffer(Label label, MeshPrimitive[] meshPrimitives)
+    {
+        var indices = meshPrimitives
+            .SelectMany(meshPrimitive => meshPrimitive.Indices)
+            .ToArray();
+        return new TypedBuffer<uint>(label, ref indices);
     }
 
     public ISampler CreateSampler(SamplerDescriptor samplerDescriptor)

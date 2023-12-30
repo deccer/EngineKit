@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace EngineKit.Graphics;
 
 public interface IGraphicsPipeline : IPipeline
@@ -5,7 +7,8 @@ public interface IGraphicsPipeline : IPipeline
     void BindAsVertexBuffer(
         IBuffer vertexBuffer,
         uint binding,
-        int offset = 0);
+        uint stride,
+        int offset);
 
     void BindAsIndexBuffer(IBuffer indexBuffer);
 
@@ -45,16 +48,18 @@ public interface IGraphicsPipeline : IPipeline
         IBuffer drawIndirectBuffer,
         int indirectElementIndex= 0);
 
-    void MultiDrawElementsIndirect(IBuffer drawIndirectBuffer, int drawCount);
+    void MultiDrawElementsIndirect(IBuffer drawIndirectBuffer, uint drawCount);
 
     void MultiDrawElementsIndirectCount(
         IBuffer drawElementsIndirectBuffer,
         IBuffer drawCountBuffer,
-        int maxDrawCount);
+        uint maxDrawCount);
 
     void VertexUniform(int location, float value);
 
     void VertexUniform(int location, int value);
+
+    void VertexUniform(int location, Vector3 value);
 
     void FragmentUniform(int location, float value);
 

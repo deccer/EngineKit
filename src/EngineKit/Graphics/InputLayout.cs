@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;

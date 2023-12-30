@@ -22,34 +22,12 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeInstantiable()
     {
         // Arrange & Act
-        var uniformBuffer = new Buffer<GpuMaterial>(BufferTarget.UniformBuffer, "Label");
+        var uniformBuffer = new Buffer("Label", 0u);
 
         // Assert
         uint bufferId = uniformBuffer;
         bufferId.Should().BeGreaterThan(0);
-        uniformBuffer.Stride.Should().Be(Marshal.SizeOf<GpuMaterial>());
-        uniformBuffer.Count.Should().Be(0);
-        uniformBuffer.SizeInBytes.Should().Be(0);
-    }
-
-    [Fact]
-    public void BeAbleToUpdateDynamicBufferWhenInitializedWithZeroSize()
-    {
-        // Arrange
-        var uniformBuffer = new Buffer<GpuMaterial>(BufferTarget.UniformBuffer, "Label");
-        uniformBuffer.AllocateStorage(Marshal.SizeOf<GpuMaterial>(), StorageAllocationFlags.None);
-
-        // Act
-        var globalMatrices = new GpuMaterial
-        {
-            BaseColorFactor = Colors.Red.ToVector4()
-        };
-        uniformBuffer.Update(ref globalMatrices,  0);
-
-        // Assert
-        uniformBuffer.Count.Should().Be(1);
-        uniformBuffer.Stride.Should().Be(Marshal.SizeOf<GpuMaterial>());
-        uniformBuffer.SizeInBytes.Should().Be(uniformBuffer.Stride);
+        uniformBuffer.SizeInBytes.Should().Be(4);
     }
 
     [Theory]
@@ -63,21 +41,19 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     [InlineData(4)]
     [InlineData(2)]
     [InlineData(1)]
-    public void BeAbleToUpdateDynamicBuffer(int initialElementCount)
+    public unsafe void BeAbleToUpdateDynamicBuffer(uint initialElementCount)
     {
         // Arrange
-        var uniformBuffer = new Buffer<GpuMaterial>(BufferTarget.UniformBuffer, "Label");
-        uniformBuffer.AllocateStorage(initialElementCount * Marshal.SizeOf<GpuMaterial>(), StorageAllocationFlags.Dynamic);
+        var uniformBuffer = new TypedBuffer<GpuMaterial>("Label", initialElementCount);
 
         // Act
         var globalMatrices = new GpuMaterial
         {
             BaseColorFactor = Colors.Red.ToVector4()
         };
-        uniformBuffer.Update(ref globalMatrices,  0);
+        uniformBuffer.UpdateElement(ref globalMatrices,  0);
 
         // Assert
-        uniformBuffer.Count.Should().Be(initialElementCount);
-        uniformBuffer.SizeInBytes.Should().Be(initialElementCount * uniformBuffer.Stride);
+        uniformBuffer.SizeInBytes.Should().Be((nuint)(initialElementCount * sizeof(GpuMaterial)));
     }
 }

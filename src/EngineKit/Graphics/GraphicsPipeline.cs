@@ -1,3 +1,4 @@
+using System.Numerics;
 using EngineKit.Extensions;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Native.OpenGL;
@@ -30,8 +31,13 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
 
     public void BindAsVertexBuffer(IBuffer vertexBuffer,
         uint binding,
+        uint stride,
         int offset = Offset.Zero)
     {
+        if (stride == 0)
+        {
+            GL.DebugMessageInsert(GL.DebugSource.Application, GL.DebugType.Error, 0, GL.DebugSeverity.High, "Stride must not be 0");
+        }
         if (_currentVertexBuffer != vertexBuffer)
         {
             GL.VertexArrayVertexBuffer(
@@ -39,7 +45,7 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
                 binding,
                 vertexBuffer.Id,
                 offset,
-                vertexBuffer.Stride);
+                stride);
             _currentVertexBuffer = vertexBuffer;
         }
     }
@@ -69,12 +75,16 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
             instanceOffset);
     }
 
-    public void DrawArrays(uint vertexCount, int vertexOffset = 0)
+    public void DrawArrays(
+        uint vertexCount,
+        int vertexOffset = 0)
     {
         GL.DrawArrays(_graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(), 0, vertexCount);
     }
 
-    public void DrawElements(int elementCount, int offset = 0)
+    public void DrawElements(
+        int elementCount,
+        int offset = 0)
     {
         GL.DrawElements(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
@@ -83,7 +93,10 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
             offset);
     }
 
-    public void DrawElementsInstanced(int elementCount, int elementOffset, int instanceCount)
+    public void DrawElementsInstanced(
+        int elementCount,
+        int elementOffset,
+        int instanceCount)
     {
         GL.DrawElementsInstanced(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
@@ -125,7 +138,7 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
             baseInstance);
     }
 
-    public void DrawElementsIndirect(
+    public unsafe void DrawElementsIndirect(
         IBuffer indirectBuffer,
         int indirectElementIndex = 0)
     {
@@ -133,10 +146,10 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
         GL.DrawElementsIndirect(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
             GL.IndexElementType.UnsignedInt,
-            indirectElementIndex * indirectBuffer.Stride);
+            indirectElementIndex * sizeof(DrawElementIndirectCommand));
     }
 
-    public void MultiDrawElementsIndirect(IBuffer drawIndirectBuffer, int drawCount)
+    public unsafe void MultiDrawElementsIndirect(IBuffer drawIndirectBuffer, uint drawCount)
     {
         GL.BindBuffer(BufferTarget.DrawIndirectBuffer.ToGL(), drawIndirectBuffer.Id);
         GL.MultiDrawElementsIndirect(
@@ -144,13 +157,13 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
             GL.IndexElementType.UnsignedInt,
             nint.Zero,
             drawCount,
-            drawIndirectBuffer.Stride);
+            (uint)sizeof(DrawElementIndirectCommand));
     }
 
-    public void MultiDrawElementsIndirectCount(
+    public unsafe void MultiDrawElementsIndirectCount(
         IBuffer drawElementsIndirectBuffer,
         IBuffer drawCountBuffer,
-        int maxDrawCount)
+        uint maxDrawCount)
     {
         GL.BindBuffer(BufferTarget.DrawIndirectBuffer.ToGL(), drawElementsIndirectBuffer.Id);
         GL.BindBuffer(BufferTarget.ParameterBuffer.ToGL(), drawCountBuffer.Id);
@@ -159,7 +172,7 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
             GL.IndexElementType.UnsignedInt,
             nint.Zero,
             maxDrawCount,
-            drawElementsIndirectBuffer.Stride);
+            (uint)sizeof(DrawElementIndirectCommand));
     }
     
     public void VertexUniform(int location, float value)
@@ -168,6 +181,11 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
     }
     
     public void VertexUniform(int location, int value)
+    {
+        GL.ProgramUniform(ShaderProgram.VertexShader.Id, location, value);
+    }
+    
+    public void VertexUniform(int location, Vector3 value)
     {
         GL.ProgramUniform(ShaderProgram.VertexShader.Id, location, value);
     }

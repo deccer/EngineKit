@@ -15,8 +15,8 @@ internal class AssetLoader : IAssetLoader
     private readonly IMaterialLibrary _materialLibrary;
 
     private readonly IDictionary<string, IList<string>> _assetNameToMeshPrimitiveNames;
-    private readonly IDictionary<string, (MeshId MeshId, Matrix4x4 Transform)> _meshPrimitiveNameToMeshId;
-    private readonly IDictionary<string, MaterialId> _meshPrimitiveNameToMaterialId;
+    private readonly IDictionary<string, (PooledMesh MeshId, Matrix4x4 Transform)> _meshPrimitiveNameToMeshId;
+    private readonly IDictionary<string, PooledMaterial> _meshPrimitiveNameToMaterialId;
 
     private readonly Lazy<IMeshPool> _meshPool;
     private readonly Lazy<IMaterialPool> _materialPool;
@@ -33,8 +33,8 @@ internal class AssetLoader : IAssetLoader
         _meshPool = new Lazy<IMeshPool>(() => _graphicsContext.CreateMeshPool("ModelVertices", 512 * 1024 * 1024, 768 * 1024 * 1024));
         _materialPool = new Lazy<IMaterialPool>(() => _graphicsContext.CreateMaterialPool("ModelMaterials", 1024 * 1024, samplerLibrary));
         _assetNameToMeshPrimitiveNames = new Dictionary<string, IList<string>>();
-        _meshPrimitiveNameToMeshId = new Dictionary<string, (MeshId MeshId, Matrix4x4 Transform)>();
-        _meshPrimitiveNameToMaterialId = new Dictionary<string, MaterialId>();
+        _meshPrimitiveNameToMeshId = new Dictionary<string, (PooledMesh MeshId, Matrix4x4 Transform)>();
+        _meshPrimitiveNameToMaterialId = new Dictionary<string, PooledMaterial>();
     }
 
     public IBuffer GetVertexBuffer()
@@ -97,17 +97,17 @@ internal class AssetLoader : IAssetLoader
         _assetNameToMeshPrimitiveNames.Add(name, meshPrimitiveNames);
     }
 
-    public Maybe<(MeshId MeshId, Matrix4x4 Transform)> GetMeshIdByMeshPrimitiveName(string meshPrimitiveName)
+    public Maybe<(PooledMesh MeshId, Matrix4x4 Transform)> GetMeshIdByMeshPrimitiveName(string meshPrimitiveName)
     {
         return _meshPrimitiveNameToMeshId.TryGetValue(meshPrimitiveName, out var meshIdAndTransform) 
             ? (meshIdAndTransform.MeshId, meshIdAndTransform.Transform)
-            : Maybe<(MeshId, Matrix4x4)>.None;
+            : Maybe<(PooledMesh, Matrix4x4)>.None;
     }
     
-    public Maybe<MaterialId> GetMaterialIdByMeshPrimitiveName(string meshPrimitiveName)
+    public Maybe<PooledMaterial> GetMaterialIdByMeshPrimitiveName(string meshPrimitiveName)
     {
         return _meshPrimitiveNameToMaterialId.TryGetValue(meshPrimitiveName, out var meshId) 
             ? meshId
-            : Maybe<MaterialId>.None;
+            : Maybe<PooledMaterial>.None;
     }
 }

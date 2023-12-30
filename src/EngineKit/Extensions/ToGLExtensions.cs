@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography.X509Certificates;
 using EngineKit.Graphics;
 using EngineKit.Native.OpenGL;
 
@@ -6,6 +7,43 @@ namespace EngineKit.Extensions;
 
 public static class ToGLExtensions
 {
+    public static GL.MapFlags ToGL(this MapFlags mapFlags)
+    {
+        var result = GL.MapFlags.Read;
+        if ((mapFlags & MapFlags.Read) == MapFlags.Read)
+        {
+            result |= GL.MapFlags.Read;
+        }
+
+        if ((mapFlags & MapFlags.Write) == MapFlags.Write)
+        {
+            result |= GL.MapFlags.Write;
+        }
+
+        if ((mapFlags & MapFlags.Persistent) == MapFlags.Persistent)
+        {
+            result |= GL.MapFlags.Persistent;
+        }
+        
+        if ((mapFlags & MapFlags.Coherent) == MapFlags.Coherent)
+        {
+            result |= GL.MapFlags.Coherent;
+        }
+        return result;
+    }
+    
+    public static uint ToGL(this BufferStorageFlags bufferStorageFlags)
+    {
+        var result = 0u;
+        result |= (bufferStorageFlags & BufferStorageFlags.ClientStorage) == BufferStorageFlags.ClientStorage ? (uint)GL.BufferStorageFlags.ClientStorageBit : 0u;
+        result |= (bufferStorageFlags & BufferStorageFlags.DynamicStorage) == BufferStorageFlags.DynamicStorage ? (uint)GL.BufferStorageFlags.DynamicStorageBit : 0u;
+        const uint memoryMappingFlags = (uint)GL.MapFlags.Read |
+                                        (uint)GL.MapFlags.Write |
+                                        (uint)GL.MapFlags.Persistent |
+                                        (uint)GL.MapFlags.Coherent;
+        result |= (bufferStorageFlags & BufferStorageFlags.MemoryMapped) == BufferStorageFlags.MemoryMapped ? memoryMappingFlags : 0u;
+        return result;
+    }
     public static GL.BlitFramebufferFilter ToGL(this BlitFramebufferFilter blitFramebufferFilter)
     {
         return blitFramebufferFilter switch

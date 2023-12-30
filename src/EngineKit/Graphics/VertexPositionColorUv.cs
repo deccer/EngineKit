@@ -6,6 +6,8 @@ namespace EngineKit.Graphics;
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public readonly struct VertexPositionColorUv
 {
+    public static readonly unsafe uint Stride = (uint)sizeof(VertexPositionColorUv);
+    
     public VertexPositionColorUv(Vector3 position, Vector3 color, Vector2 uv)
     {
         Position = position;
