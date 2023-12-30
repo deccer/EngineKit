@@ -48,6 +48,10 @@ public static unsafe partial class Glfw
 
     private static delegate* unmanaged<IntPtr, int, int, void> _glfwSetWindowSizeDelegate = &glfwSetWindowSize;
 
+    private static delegate* unmanaged<IntPtr, int*, int*, void> _glfwGetWindowPosDelegate = &glfwGetWindowPos;
+
+    private static delegate* unmanaged<IntPtr, int*, int*, void> _glfwGetWindowSizeDelegate = &glfwGetWindowSize;
+
     private static delegate* unmanaged<IntPtr> _glfwGetPrimaryMonitorDelegate = &glfwGetPrimaryMonitor;
 
     private static delegate* unmanaged<IntPtr, IntPtr> _glfwGetVideoModeDelegate = &glfwGetVideoMode;
@@ -83,6 +87,10 @@ public static unsafe partial class Glfw
     private static delegate* unmanaged<IntPtr, void> _glfwSetErrorCallbackDelegate = &glfwSetErrorCallback;
 
     private static delegate* unmanaged<IntPtr, int, Image*, void> _glfwSetWindowIconDelegate = &glfwSetWindowIcon;
+
+    private static delegate* unmanaged<IntPtr, void> _glfwMaximizeWindowDelegate = &glfwMaximizeWindow;
+
+    private static delegate* unmanaged<IntPtr, void> _glfwRestoreWindowDelegate = &glfwRestoreWindow;
 
     [UnmanagedCallersOnly]
     private static void glfwSetErrorCallback(IntPtr callback)
@@ -288,6 +296,26 @@ public static unsafe partial class Glfw
     }
 
     [UnmanagedCallersOnly]
+    private static void glfwGetWindowSize(
+        IntPtr windowHandle,
+        int* width,
+        int* height)
+    {
+        _glfwGetWindowSizeDelegate = (delegate* unmanaged<IntPtr, int*, int*, void>)NativeLibrary.GetExport(_glfwLibraryHandle, nameof(glfwGetWindowSize));
+        _glfwGetWindowSizeDelegate(windowHandle, width, height);
+    }
+    
+    [UnmanagedCallersOnly]
+    private static void glfwGetWindowPos(
+        IntPtr windowHandle,
+        int* left,
+        int* top)
+    {
+        _glfwGetWindowPosDelegate = (delegate* unmanaged<IntPtr, int*, int*, void>)NativeLibrary.GetExport(_glfwLibraryHandle, nameof(glfwGetWindowPos));
+        _glfwGetWindowPosDelegate(windowHandle, left, top);
+    }
+
+    [UnmanagedCallersOnly]
     private static IntPtr glfwGetPrimaryMonitor()
     {
         _glfwGetPrimaryMonitorDelegate =
@@ -408,5 +436,19 @@ public static unsafe partial class Glfw
     {
         _glfwSetWindowIconDelegate = (delegate* unmanaged<IntPtr, int, Image*, void>)NativeLibrary.GetExport(_glfwLibraryHandle, nameof(glfwSetWindowIcon));
         _glfwSetWindowIconDelegate(windowHandle, imageCount, images);
+    }
+    
+    [UnmanagedCallersOnly]
+    private static void glfwMaximizeWindow(IntPtr windowHandle)
+    {
+        _glfwMaximizeWindowDelegate = (delegate* unmanaged<IntPtr, void>)NativeLibrary.GetExport(_glfwLibraryHandle, nameof(glfwMaximizeWindow));
+        _glfwMaximizeWindowDelegate(windowHandle);
+    }
+    
+    [UnmanagedCallersOnly]
+    private static void glfwRestoreWindow(IntPtr windowHandle)
+    {
+        _glfwRestoreWindowDelegate = (delegate* unmanaged<IntPtr, void>)NativeLibrary.GetExport(_glfwLibraryHandle, nameof(glfwRestoreWindow));
+        _glfwRestoreWindowDelegate(windowHandle);
     }
 }

@@ -278,6 +278,30 @@ public static unsafe partial class Glfw
         _glfwSetWindowSizeDelegate(windowHandle, width, height);
     }
 
+    public static void GetWindowSize(
+        IntPtr windowHandle,
+        out int width,
+        out int height)
+    {
+        var windowWidth = 0;
+        var windowHeight = 0;
+        _glfwGetWindowSizeDelegate(windowHandle, &windowWidth, &windowHeight);
+        width = windowWidth;
+        height = windowHeight;
+    }
+    
+    public static void GetWindowPos(
+        IntPtr windowHandle,
+        out int left,
+        out int top)
+    {
+        var windowPosLeft = 0;
+        var windowPosTop = 0;
+        _glfwGetWindowPosDelegate(windowHandle, &windowPosLeft, &windowPosTop);
+        left = windowPosLeft;
+        top = windowPosTop;
+    }
+
     public static IntPtr GetPrimaryMonitor()
     {
         return _glfwGetPrimaryMonitorDelegate();
@@ -396,5 +420,15 @@ public static unsafe partial class Glfw
     public static void SetWindowIcon(IntPtr windowHandle, Image image)
     {
         _glfwSetWindowIconDelegate(windowHandle, 1, &image);
+    }
+
+    public static void MaximizeWindow(IntPtr windowHandle)
+    {
+        _glfwMaximizeWindowDelegate(windowHandle);
+    }
+
+    public static void RestoreWindow(IntPtr windowHandle)
+    {
+        _glfwRestoreWindowDelegate(windowHandle);
     }
 }
