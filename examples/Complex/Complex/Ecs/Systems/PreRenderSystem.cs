@@ -55,7 +55,7 @@ internal class PreRenderSystem : IPreRenderSystem
                 : materialComponent.Material;
 
             var meshGlobalMatrix = meshEntity.GetGlobalMatrix();
-            var transformedMeshAabb = meshComponent.MeshPrimitive.BoundingBox;
+            var transformedMeshAabb = meshComponent!.MeshPrimitive.BoundingBox;
             
             transformedMeshAabb = new BoundingBox(
                 Vector3.Transform(transformedMeshAabb.Min, meshGlobalMatrix),

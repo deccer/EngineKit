@@ -4,7 +4,7 @@ namespace Complex.Windows;
 
 public class Window
 {
-    public string Caption { get; set; }
+    protected string? Caption { get; init; }
     
     public void Draw()
     {

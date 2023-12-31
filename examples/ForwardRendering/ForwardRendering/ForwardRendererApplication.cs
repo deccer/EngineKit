@@ -214,9 +214,9 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _sceneGraphicsPipeline!.BindAsVertexBuffer(_skullVertexBuffer!, 0, VertexPositionNormalUvTangent.Stride, 0);
         _sceneGraphicsPipeline.BindAsIndexBuffer(_skullIndexBuffer!);
 
-        _sceneGraphicsPipeline.BindAsUniformBuffer(_gpuConstantsBuffer, 0);
-        _sceneGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer!, 1);
-        _sceneGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer!, 2);
+        _sceneGraphicsPipeline.BindAsUniformBuffer(_gpuConstantsBuffer, 0, Offset.Zero, SizeInBytes.Whole);
+        _sceneGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer!, 1, Offset.Zero, SizeInBytes.Whole);
+        _sceneGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer!, 2, Offset.Zero, SizeInBytes.Whole);
         _sceneGraphicsPipeline.BindSampledTexture(_linearMipmapLinear!, _skullBaseColorTexture!, 0);
 
         _sceneGraphicsPipeline.MultiDrawElementsIndirect(_gpuIndirectElementDataBuffer, (uint)_gpuIndirectElements.Count);
@@ -429,6 +429,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             "Data/Props/Skull/TD_Checker_Base_Color.png",
             Format.R8G8B8A8Srgb,
             true,
+            false,
             false);
         if (_skullBaseColorTexture == null)
         {

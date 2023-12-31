@@ -56,7 +56,7 @@ internal class Scene : IScene
         var modelEntityId = _world.CreateEntity(name, parentEntity);
         var modelEntity = _world.GetEntity(modelEntityId);
         
-        modelEntity.LocalMatrix = modelMesh.MeshPrimitive.Transform;
+        modelEntity!.LocalMatrix = modelMesh.MeshPrimitive.Transform;
         
         _world.AddComponent(modelEntityId, new NameComponent(name));
         _world.AddComponent(modelEntityId, new ModelMeshComponent(modelMesh.MeshPrimitive));
@@ -72,7 +72,7 @@ internal class Scene : IScene
         var parentEntity = parent ?? _rootEntity;
         var modelEntityId = _world.CreateEntity(name, parentEntity);
         var modelEntity = _world.GetEntity(modelEntityId);
-        modelEntity.LocalMatrix = startWorldMatrix;
+        modelEntity!.LocalMatrix = startWorldMatrix;
         
         _world.AddComponent(modelEntityId, new NameComponent(name));
         
@@ -83,7 +83,7 @@ internal class Scene : IScene
                 : modelMesh.Name;
             var modelMeshEntityId = _world.CreateEntity(modelMeshName, modelEntityId);
             var modelMeshEntity = _world.GetEntity(modelMeshEntityId);
-            modelMeshEntity.LocalMatrix = modelMesh.MeshPrimitive.Transform;
+            modelMeshEntity!.LocalMatrix = modelMesh.MeshPrimitive.Transform;
            
             _world.AddComponent(modelMeshEntityId, new NameComponent(modelMeshName));
             _world.AddComponent(modelMeshEntityId, new ModelMeshComponent(modelMesh.MeshPrimitive));

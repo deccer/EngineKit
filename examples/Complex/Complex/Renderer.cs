@@ -133,10 +133,10 @@ internal class Renderer : IRenderer
         Matrix4x4 transform,
         BoundingBox transformedMeshAabb)
     {
-        var meshId = _meshPool.GetOrAdd(meshPrimitive);
-        var materialId = _materialPool.GetOrAdd(material);
+        var meshId = _meshPool!.GetOrAdd(meshPrimitive);
+        var materialId = _materialPool!.GetOrAdd(material);
         
-        _indirectBuffer.UpdateElement(new DrawElementIndirectCommand
+        _indirectBuffer!.UpdateElement(new DrawElementIndirectCommand
         {
             BaseInstance = 0,
             BaseVertex = meshId.VertexOffset,
@@ -144,7 +144,7 @@ internal class Renderer : IRenderer
             IndexCount = meshId.IndexCount,
             InstanceCount = 1
         }, _meshInstanceCount);
-        _instanceBuffer.UpdateElement(new InstanceInformation
+        _instanceBuffer!.UpdateElement(new InstanceInformation
         {
             WorldMatrix = transform,
             MaterialIndex = new UInt4(materialId.Index, 0, 0, 0)
@@ -157,7 +157,76 @@ internal class Renderer : IRenderer
 
         _meshInstanceCount++;
     }
-    
+
+    public void Render(ICamera camera)
+    {
+        _cameraInformation.ProjectionMatrix = camera.ProjectionMatrix;
+        _cameraInformation.ViewMatrix = camera.ViewMatrix;
+        _cameraInformationBuffer!.UpdateElement(_cameraInformation, 0);
+        
+        _graphicsContext.BeginRenderPass(_forwardRenderPass);
+        _graphicsContext.BindGraphicsPipeline(_forwardGraphicsPipeline!);
+        
+        _forwardGraphicsPipeline!.VertexUniform(0, _uColor);
+        
+        _forwardGraphicsPipeline.BindAsVertexBuffer(_vertexBuffer!, 0, _meshPool!.VertexBufferStride, Offset.Zero);
+        _forwardGraphicsPipeline.BindAsIndexBuffer(_indexBuffer!);
+        _forwardGraphicsPipeline.BindAsUniformBuffer(_cameraInformationBuffer, 0, Offset.Zero, SizeInBytes.Whole);
+        _forwardGraphicsPipeline.BindAsShaderStorageBuffer(_instanceBuffer!, 1, Offset.Zero, SizeInBytes.Whole);
+        _forwardGraphicsPipeline.BindAsShaderStorageBuffer(_materialBuffer!, 2, Offset.Zero, SizeInBytes.Whole);        
+        _forwardGraphicsPipeline.MultiDrawElementsIndirect(_indirectBuffer!, _meshInstanceCount);
+
+        if (ShowAaBb && _aabbCounter > 0)
+        {
+            _graphicsContext.BindGraphicsPipeline(_lineRendererGraphicsPipeline!);
+            _lineRendererGraphicsPipeline!.BindAsVertexBuffer(_lineVertexBuffer!, 0, VertexPositionColor.Stride, Offset.Zero);
+            _lineRendererGraphicsPipeline.BindAsUniformBuffer(_cameraInformationBuffer, 0, Offset.Zero, SizeInBytes.Whole);
+            _lineRendererGraphicsPipeline.DrawArrays(24 * _aabbCounter, Offset.Zero);
+        }
+        
+        _graphicsContext.EndRenderPass();
+
+        _graphicsContext.BlitFramebufferToSwapchain(
+            _applicationContext.ScaledFramebufferSize.X,
+            _applicationContext.ScaledFramebufferSize.Y,
+            _applicationContext.FramebufferSize.X,
+            _applicationContext.FramebufferSize.Y);
+    }
+
+    public void RenderUI()
+    {
+        if (ImGui.Begin("Render Debug"))
+        {
+            if (ImGui.SliderFloat3("Colors", ref _uColor, 0.01f, 2.0f))
+            {
+                
+            }
+
+            ImGui.Checkbox("Show AABBs", ref ShowAaBb);
+        }
+        ImGui.End();
+    }
+
+    public void Dispose()
+    {
+        DestroyFramebufferDependentResources();
+        
+        _lineRendererGraphicsPipeline?.Dispose();
+        _forwardGraphicsPipeline?.Dispose();
+        
+        _cameraInformationBuffer?.Dispose();
+        _indirectBuffer?.Dispose();
+        _instanceBuffer?.Dispose();
+        _meshPool?.Dispose();
+        _materialPool?.Dispose();
+    }
+
+    public void ResizeFramebufferDependentResources()
+    {
+        DestroyFramebufferDependentResources();
+        CreateFramebufferDependentResources();
+    }
+
     private void AddAabbLines(BoundingBox boundingBox)
     {
         var nearColor = Colors.Orange.ToVector3();
@@ -216,79 +285,10 @@ internal class Renderer : IRenderer
             new VertexPositionColor(farBottomRight, farColor)
         };
         
-        _lineVertexBuffer.UpdateElements(vertices, _aabbCounter * 24);
+        _lineVertexBuffer!.UpdateElements(vertices, _aabbCounter * 24);
         _aabbCounter++;
     }
 
-    public void Render(ICamera camera)
-    {
-        _cameraInformation.ProjectionMatrix = camera.ProjectionMatrix;
-        _cameraInformation.ViewMatrix = camera.ViewMatrix;
-        _cameraInformationBuffer.UpdateElement(_cameraInformation, 0);
-        
-        _graphicsContext.BeginRenderPass(_forwardRenderPass);
-        _graphicsContext.BindGraphicsPipeline(_forwardGraphicsPipeline);
-        
-        _forwardGraphicsPipeline.VertexUniform(0, _uColor);
-        
-        _forwardGraphicsPipeline.BindAsVertexBuffer(_vertexBuffer, 0, _meshPool.VertexBufferStride, Offset.Zero);
-        _forwardGraphicsPipeline.BindAsIndexBuffer(_indexBuffer);
-        _forwardGraphicsPipeline.BindAsUniformBuffer(_cameraInformationBuffer, 0, Offset.Zero, SizeInBytes.Whole);
-        _forwardGraphicsPipeline.BindAsShaderStorageBuffer(_instanceBuffer, 1, Offset.Zero, SizeInBytes.Whole);
-        _forwardGraphicsPipeline.BindAsShaderStorageBuffer(_materialBuffer, 2, Offset.Zero, SizeInBytes.Whole);        
-        _forwardGraphicsPipeline.MultiDrawElementsIndirect(_indirectBuffer, _meshInstanceCount);
-
-        if (ShowAaBb && _aabbCounter > 0)
-        {
-            _graphicsContext.BindGraphicsPipeline(_lineRendererGraphicsPipeline);
-            _lineRendererGraphicsPipeline.BindAsVertexBuffer(_lineVertexBuffer, 0, VertexPositionColor.Stride, Offset.Zero);
-            _lineRendererGraphicsPipeline.BindAsUniformBuffer(_cameraInformationBuffer, 0, Offset.Zero, SizeInBytes.Whole);
-            _lineRendererGraphicsPipeline.DrawArrays(24 * _aabbCounter);
-        }
-        
-        _graphicsContext.EndRenderPass();
-
-        _graphicsContext.BlitFramebufferToSwapchain(
-            _applicationContext.ScaledFramebufferSize.X,
-            _applicationContext.ScaledFramebufferSize.Y,
-            _applicationContext.FramebufferSize.X,
-            _applicationContext.FramebufferSize.Y);
-    }
-
-    public void RenderUI()
-    {
-        if (ImGui.Begin("Render Debug"))
-        {
-            if (ImGui.SliderFloat3("Colors", ref _uColor, 0.01f, 2.0f))
-            {
-                
-            }
-
-            ImGui.Checkbox("Show AABBs", ref ShowAaBb);
-        }
-        ImGui.End();
-    }
-
-    public void Dispose()
-    {
-        DestroyFramebufferDependentResources();
-        
-        _lineRendererGraphicsPipeline?.Dispose();
-        _forwardGraphicsPipeline?.Dispose();
-        
-        _cameraInformationBuffer?.Dispose();
-        _indirectBuffer?.Dispose();
-        _instanceBuffer?.Dispose();
-        _meshPool?.Dispose();
-        _materialPool?.Dispose();
-    }
-
-    public void ResizeFramebufferDependentResources()
-    {
-        DestroyFramebufferDependentResources();
-        CreateFramebufferDependentResources();
-    }
-    
     private void CreateFramebufferDependentResources()
     {
         _forwardRenderPassColorAttachment = _graphicsContext.CreateTexture2D(

@@ -26,7 +26,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     private readonly IMeshLoader _meshLoader;
     private readonly IMaterialLibrary _materialLibrary;
 
-    private Model _deccerCubesModel;
+    private Model? _deccerCubesModel;
 
     private IBuffer? _gpuVertexBuffer;
     private IBuffer? _gpuIndexBuffer;
@@ -55,7 +55,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     private readonly List<GpuMaterial> _gpuMaterials;
     private readonly List<string> _gpuMaterialsInUse;
-    private IBuffer _gpuMaterialBuffer;
+    private IBuffer? _gpuMaterialBuffer;
 
     private readonly Dictionary<string, ITexture> _textures;
     private bool _useVertexPulling;
@@ -150,18 +150,18 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     protected override void Render(float deltaTime, float elapsedMilliseconds)
     {
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
-        _gpuCameraConstantsBuffer.UpdateElement(_gpuCameraConstants, Offset.Zero);
-        _gpuModelMeshInstanceBuffer.UpdateElements(_gpuModelMeshInstances.ToArray(), 0);
+        _gpuCameraConstantsBuffer!.UpdateElement(_gpuCameraConstants, Offset.Zero);
+        _gpuModelMeshInstanceBuffer!.UpdateElements(_gpuModelMeshInstances.ToArray(), 0);
 
         GraphicsContext.BeginRenderPass(_gBufferFramebufferDescriptor);
         if (_useVertexPulling)
         {
-            GraphicsContext.BindGraphicsPipeline(_gBufferVertexPullingGraphicsPipeline);
-            _gBufferVertexPullingGraphicsPipeline.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0);
-            _gBufferVertexPullingGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
-            _gBufferVertexPullingGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer, 2);
-            _gBufferVertexPullingGraphicsPipeline.BindAsShaderStorageBuffer(_gpuVertexBuffer, 3);
-            _gBufferVertexPullingGraphicsPipeline.BindAsIndexBuffer(_gpuIndexBuffer);
+            GraphicsContext.BindGraphicsPipeline(_gBufferVertexPullingGraphicsPipeline!);
+            _gBufferVertexPullingGraphicsPipeline!.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0, Offset.Zero, SizeInBytes.Whole);
+            _gBufferVertexPullingGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1, Offset.Zero, SizeInBytes.Whole);
+            _gBufferVertexPullingGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer!, 2, Offset.Zero, SizeInBytes.Whole);
+            _gBufferVertexPullingGraphicsPipeline.BindAsShaderStorageBuffer(_gpuVertexBuffer!, 3, Offset.Zero, SizeInBytes.Whole);
+            _gBufferVertexPullingGraphicsPipeline.BindAsIndexBuffer(_gpuIndexBuffer!);
 
             for (var i = 0; i < _drawCommands.Count; i++)
             {
@@ -176,12 +176,12 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         }
         else
         {
-            GraphicsContext.BindGraphicsPipeline(_gBufferGraphicsPipeline);
-            _gBufferGraphicsPipeline.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0);
-            _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1);
-            _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer, 2);
-            _gBufferGraphicsPipeline.BindAsVertexBuffer(_gpuVertexBuffer, 0, VertexPositionNormalUvTangent.Stride, 0);
-            _gBufferGraphicsPipeline.BindAsIndexBuffer(_gpuIndexBuffer);
+            GraphicsContext.BindGraphicsPipeline(_gBufferGraphicsPipeline!);
+            _gBufferGraphicsPipeline!.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0, Offset.Zero, SizeInBytes.Whole);
+            _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1, Offset.Zero, SizeInBytes.Whole);
+            _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer!, 2, Offset.Zero, SizeInBytes.Whole);
+            _gBufferGraphicsPipeline.BindAsVertexBuffer(_gpuVertexBuffer!, 0, VertexPositionNormalUvTangent.Stride, Offset.Zero);
+            _gBufferGraphicsPipeline.BindAsIndexBuffer(_gpuIndexBuffer!);
 
             for (var i = 0; i < _drawCommands.Count; i++)
             {
@@ -197,8 +197,8 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         GraphicsContext.EndRenderPass();
 
         GraphicsContext.BeginRenderPass(_finalFramebufferDescriptor);
-        GraphicsContext.BindGraphicsPipeline(_finalGraphicsPipeline);
-        _finalGraphicsPipeline.BindSampledTexture(_pointSampler, _gBufferBaseColorTexture, 0);
+        GraphicsContext.BindGraphicsPipeline(_finalGraphicsPipeline!);
+        _finalGraphicsPipeline!.BindSampledTexture(_pointSampler!, _gBufferBaseColorTexture!, 0);
         _finalGraphicsPipeline.DrawArrays(3, 0);
         GraphicsContext.EndRenderPass();
 
@@ -267,9 +267,9 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
                 ImGui.Checkbox("Use Vertex Pulling", ref _useVertexPulling);
 
-                ImGui.Image((nint)_gBufferBaseColorTexture.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
-                ImGui.Image((nint)_gBufferNormalTexture.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
-                ImGui.Image((nint)_gBufferDepthTexture.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
+                ImGui.Image((nint)_gBufferBaseColorTexture!.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
+                ImGui.Image((nint)_gBufferNormalTexture!.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
+                ImGui.Image((nint)_gBufferDepthTexture!.Id, new Vector2(320, 180), new Vector2(0, 1), new Vector2(1, 0));
 
                 ImGui.End();
             }
@@ -348,18 +348,18 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
         foreach (var drawCommand in _drawCommands)
         {
-            var modelMesh = _deccerCubesModel.ModelMeshes.FirstOrDefault(m => m.Name == drawCommand.Name);
+            var modelMesh = _deccerCubesModel!.ModelMeshes.FirstOrDefault(m => m.Name == drawCommand.Name);
 
-            if (!_gpuMaterialsInUse.Contains(modelMesh.MeshData.MaterialName))
+            if (!_gpuMaterialsInUse.Contains(modelMesh!.MeshData.MaterialName!))
             {
                 var material = _materialLibrary.GetMaterialByName(modelMesh.MeshData.MaterialName);
-                if (!_textures.TryGetValue(material.BaseColorImage.Name, out var texture))
+                if (!_textures.TryGetValue(material.BaseColorImage!.Name, out var texture))
                 {
                     texture = material.BaseColorImage.ImageData.HasValue
                         ? GraphicsContext.CreateTextureFromMemory(material.BaseColorImage,
                             Format.R8G8B8A8Srgb,
-                            material.BaseColorImage.Name, true)
-                        : GraphicsContext.CreateTextureFromFile(material.BaseColorImage.FileName, Format.R8G8B8A8Srgb, true);
+                            material.BaseColorImage.Name, true, true, false)
+                        : GraphicsContext.CreateTextureFromFile(material.BaseColorImage.FileName!, Format.R8G8B8A8Srgb, true, true, false);
                     if (texture != null)
                     {
                         texture.MakeResident();
@@ -370,12 +370,12 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                 _gpuMaterials.Add(new GpuMaterial
                 {
                     BaseColor = new Color4(0.1f, 0.1f, 0.1f, 1.0f),
-                    BaseColorTexture = texture.TextureHandle
+                    BaseColorTexture = texture!.TextureHandle
                 });
-                _gpuMaterialsInUse.Add(modelMesh.MeshData.MaterialName);
+                _gpuMaterialsInUse.Add(modelMesh.MeshData.MaterialName!);
             }
 
-            var materialIndex = _gpuMaterialsInUse.IndexOf(modelMesh.MeshData.MaterialName);
+            var materialIndex = _gpuMaterialsInUse.IndexOf(modelMesh.MeshData.MaterialName!);
             _gpuModelMeshInstances.Add(new GpuModelMeshInstance
             {
                 WorldMatrix = drawCommand.WorldMatrix,
@@ -401,7 +401,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         foreach (var drawCommand in _drawCommands)
         {
             var meshPrimitive = meshPrimitives.FirstOrDefault(m => m.MeshName == drawCommand.Name);
-            drawCommand.IndexCount = meshPrimitive.IndexCount;
+            drawCommand.IndexCount = meshPrimitive!.IndexCount;
             drawCommand.IndexOffset = meshPrimitive.IndexOffset;
             drawCommand.VertexOffset = meshPrimitive.VertexOffset;
         }

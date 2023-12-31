@@ -12,6 +12,4 @@ public class ModelMeshComponent : Component
     public MeshPrimitive MeshPrimitive;
     
     public PooledMesh? MeshId;
-
-    public Entity Entity;
 }

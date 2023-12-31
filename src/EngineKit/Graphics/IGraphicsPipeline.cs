@@ -14,7 +14,7 @@ public interface IGraphicsPipeline : IPipeline
 
     void DrawArrays(
         uint vertexCount,
-        int vertexOffset = 0);
+        int vertexOffset);
 
     void DrawArraysInstanced(
         int firstVertex,
@@ -24,7 +24,7 @@ public interface IGraphicsPipeline : IPipeline
 
     void DrawElements(
         int elementCount,
-        int offset = 0);
+        int offset);
 
     void DrawElementsInstanced(
         int elementCount,
@@ -46,9 +46,11 @@ public interface IGraphicsPipeline : IPipeline
     
     void DrawElementsIndirect(
         IBuffer drawIndirectBuffer,
-        int indirectElementIndex= 0);
+        int indirectElementIndex);
 
-    void MultiDrawElementsIndirect(IBuffer drawIndirectBuffer, uint drawCount);
+    void MultiDrawElementsIndirect(
+        IBuffer drawIndirectBuffer,
+        uint drawCount);
 
     void MultiDrawElementsIndirectCount(
         IBuffer drawElementsIndirectBuffer,

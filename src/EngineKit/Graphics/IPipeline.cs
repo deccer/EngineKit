@@ -40,12 +40,12 @@ public interface IPipeline : IDisposable
     void BindAsUniformBuffer(
         IBuffer uniformBuffer,
         uint bindingIndex,
-        int offsetInBytes = Offset.Zero,
-        uint sizeInBytes = SizeInBytes.Whole);
+        int offsetInBytes,
+        uint sizeInBytes);
 
     void BindAsShaderStorageBuffer(
         IBuffer shaderStorageBuffer,
         uint bindingIndex,
-        int offsetInBytes = Offset.Zero,
-        uint sizeInBytes = SizeInBytes.Whole);
+        int offsetInBytes,
+        uint sizeInBytes);
 }

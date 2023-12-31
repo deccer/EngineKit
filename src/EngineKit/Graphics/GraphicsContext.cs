@@ -225,7 +225,11 @@ internal sealed class GraphicsContext : IGraphicsContext
         return new Texture(textureCreateDescriptor);
     }
 
-    public ITexture CreateTexture2D(int width, int height, Format format, Label? label)
+    public ITexture CreateTexture2D(
+        int width,
+        int height,
+        Format format,
+        Label? label)
     {
         var textureCreateDescriptor = new TextureCreateDescriptor
         {
@@ -243,9 +247,9 @@ internal sealed class GraphicsContext : IGraphicsContext
     public ITexture? CreateTextureFromFile(
         string filePath,
         Format format,
-        bool generateMipmaps = true,
-        bool flipVertical = true,
-        bool flipHorizontal = false)
+        bool generateMipmaps,
+        bool flipVertical,
+        bool flipHorizontal)
     {
         if (!File.Exists(filePath))
         {
@@ -266,9 +270,9 @@ internal sealed class GraphicsContext : IGraphicsContext
     public ITexture? CreateTextureFromMemory(ImageInformation imageInformation,
         Format format,
         Label label,
-        bool generateMipmaps = true,
-        bool flipVertical = true,
-        bool flipHorizontal = false)
+        bool generateMipmaps,
+        bool flipVertical,
+        bool flipHorizontal)
     {
         if (!imageInformation.ImageData.HasValue)
         {

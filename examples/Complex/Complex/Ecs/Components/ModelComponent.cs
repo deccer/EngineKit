@@ -8,6 +8,4 @@ public class ModelComponent : Component
     }
 
     public string ModelName;
-    
-    public Entity Entity { get; set; }
 }

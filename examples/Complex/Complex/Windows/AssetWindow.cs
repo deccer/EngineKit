@@ -49,7 +49,7 @@ public class AssetWindow : Window
                 var model = _modelLibrary.GetModelByName(modelName);
                 
                 ImGui.TableSetColumnIndex(0);
-                var isExpanded = ImGui.TreeNodeEx(model.Name);
+                var isExpanded = ImGui.TreeNodeEx(model!.Name);
                 
                 ImGui.TableSetColumnIndex(2);
                 if (ImGui.Button($"{MaterialDesignIcons.Plus}"))

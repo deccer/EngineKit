@@ -18,6 +18,7 @@ public sealed class FramebufferDescriptorBuilder : IFramebufferDescriptorBuilder
     public FramebufferDescriptorBuilder Reset()
     {
         _framebufferDescriptor = new FramebufferDescriptor();
+        _renderAttachments.Clear();
         return this;
     }
 

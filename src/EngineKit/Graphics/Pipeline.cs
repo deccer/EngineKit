@@ -46,12 +46,12 @@ public abstract class Pipeline : IPipeline
     public void BindAsUniformBuffer(
         IBuffer uniformBuffer,
         uint bindingIndex,
-        int offsetInBytes = Offset.Zero,
-        uint sizeInBytes = SizeInBytes.Whole)
+        int offsetInBytes,
+        uint sizeInBytes)
     {
         if (sizeInBytes == SizeInBytes.Whole)
         {
-            sizeInBytes = (uint)(uniformBuffer.SizeInBytes);
+            sizeInBytes = (uint)uniformBuffer.SizeInBytes;
             if (offsetInBytes == Offset.Zero)
             {
                 GL.BindBufferBase(GL.BufferTarget.UniformBuffer, bindingIndex, uniformBuffer.Id);
@@ -65,12 +65,12 @@ public abstract class Pipeline : IPipeline
     public void BindAsShaderStorageBuffer(
         IBuffer shaderStorageBuffer,
         uint bindingIndex,
-        int offsetInBytes = Offset.Zero,
-        uint sizeInBytes = SizeInBytes.Whole)
+        int offsetInBytes,
+        uint sizeInBytes)
     {
         if (sizeInBytes == SizeInBytes.Whole)
         {
-            sizeInBytes = (uint)(shaderStorageBuffer.SizeInBytes);
+            sizeInBytes = (uint)shaderStorageBuffer.SizeInBytes;
             if (offsetInBytes == Offset.Zero)
             {
                 GL.BindBufferBase(GL.BufferTarget.ShaderStorageBuffer, bindingIndex, shaderStorageBuffer.Id);

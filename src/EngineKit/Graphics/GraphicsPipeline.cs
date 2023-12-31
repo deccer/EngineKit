@@ -77,14 +77,14 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
 
     public void DrawArrays(
         uint vertexCount,
-        int vertexOffset = 0)
+        int vertexOffset)
     {
         GL.DrawArrays(_graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(), 0, vertexCount);
     }
 
     public void DrawElements(
         int elementCount,
-        int offset = 0)
+        int offset)
     {
         GL.DrawElements(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
@@ -140,7 +140,7 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
 
     public unsafe void DrawElementsIndirect(
         IBuffer indirectBuffer,
-        int indirectElementIndex = 0)
+        int indirectElementIndex)
     {
         GL.BindBuffer(BufferTarget.DrawIndirectBuffer.ToGL(), indirectBuffer.Id);
         GL.DrawElementsIndirect(
@@ -149,7 +149,9 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
             indirectElementIndex * sizeof(DrawElementIndirectCommand));
     }
 
-    public unsafe void MultiDrawElementsIndirect(IBuffer drawIndirectBuffer, uint drawCount)
+    public unsafe void MultiDrawElementsIndirect(
+        IBuffer drawIndirectBuffer,
+        uint drawCount)
     {
         GL.BindBuffer(BufferTarget.DrawIndirectBuffer.ToGL(), drawIndirectBuffer.Id);
         GL.MultiDrawElementsIndirect(

@@ -450,7 +450,7 @@ internal sealed class UIRenderer : IUIRenderer
 
         _graphicsContext.BindGraphicsPipeline(_imGuiGraphicsPipeline!);
 
-        _imGuiGraphicsPipeline!.BindAsUniformBuffer(_uniformBuffer!, 0);
+        _imGuiGraphicsPipeline!.BindAsUniformBuffer(_uniformBuffer!, 0, Offset.Zero, SizeInBytes.Whole);
         _imGuiGraphicsPipeline.BindAsVertexBuffer(_vertexBuffer!, 0, ImDrawVertStride, Offset.Zero);
         _imGuiGraphicsPipeline.BindAsIndexBuffer(_indexBuffer!);
         _imGuiGraphicsPipeline.BindSampledTexture(_fontSampler!, _fontTexture!, 0);
@@ -515,7 +515,7 @@ internal sealed class UIRenderer : IUIRenderer
                 indexOffset += (int)drawCmdPtr.ElemCount;
             }
 
-            vertexOffset += commandList.VtxBuffer.Size;
+            //vertexOffset += commandList.VtxBuffer.Size;
         }
 
         GL.Disable(GL.EnableType.Blend);

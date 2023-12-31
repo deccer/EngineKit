@@ -88,22 +88,22 @@ public interface IGraphicsContext : IDisposable
     ITexture? CreateTextureFromFile(
         string filePath,
         Format format,
-        bool generateMipmaps = true,
-        bool flipVertical = true,
-        bool flipHorizontal = false);
+        bool generateMipmaps,
+        bool flipVertical,
+        bool flipHorizontal);
 
     ITexture? CreateTextureFromMemory(ImageInformation image,
         Format format,
         Label label,
-        bool generateMipmaps = true,
-        bool flipVertical = true,
-        bool flipHorizontal = false);
+        bool generateMipmaps,
+        bool flipVertical,
+        bool flipHorizontal);
 
     ITexture? CreateTextureCubeFromFiles(
         Label label,
         string[] filePaths,
-        bool flipVertical = true,
-        bool flipHorizontal = false);
+        bool flipVertical,
+        bool flipHorizontal);
 
     IFramebufferDescriptorBuilder GetFramebufferDescriptorBuilder();
 

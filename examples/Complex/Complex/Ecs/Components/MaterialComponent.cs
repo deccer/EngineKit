@@ -12,6 +12,4 @@ public class MaterialComponent : Component
     public Material Material;
     
     public PooledMaterial? MaterialId;
-
-    public Entity Entity;
 }

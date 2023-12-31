@@ -7,7 +7,5 @@ public class NameComponent : Component
         Name = name;
     }
 
-    public string Name;
-    
-    public Entity Entity { get; set; }
+    public string Name { get; set; }
 }
