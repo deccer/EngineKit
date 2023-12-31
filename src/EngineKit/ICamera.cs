@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Complex;
+namespace EngineKit;
 
 public interface ICamera
 {

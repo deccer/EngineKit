@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Numerics;
-using EngineKit;
 using EngineKit.Input;
 using EngineKit.Mathematics;
 
-namespace CullOnGpu;
+namespace EngineKit;
 
 public sealed class Camera : ICamera
 {

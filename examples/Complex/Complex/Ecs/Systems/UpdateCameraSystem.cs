@@ -1,3 +1,5 @@
+using EngineKit;
+
 namespace Complex.Ecs.Systems;
 
 internal class UpdateCameraSystem : IUpdateCameraSystem
