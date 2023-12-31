@@ -2,6 +2,7 @@ using System.Numerics;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
+using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
 using EngineKit.UI;
@@ -17,6 +18,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
     private readonly IApplicationContext _applicationContext;
     private readonly ICapabilities _capabilities;
     private readonly IMetrics _metrics;
+    private readonly Color4 _clearColor;
 
     public HelloWindowApplication(
         ILogger logger,
@@ -43,6 +45,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         _applicationContext = applicationContext;
         _capabilities = capabilities;
         _metrics = metrics;
+        _clearColor = MathHelper.GammaToLinear(Colors.DarkSlateBlue);
     }
     
     protected override bool Initialize()
@@ -65,11 +68,11 @@ internal sealed class HelloWindowApplication : GraphicsApplication
             return false;
         }
 
-        GL.ClearColor(0.95f, 0.5f, 0.4f, 1.0f);
+        GL.ClearColor(_clearColor.R, _clearColor.G, _clearColor.B, 1.0f);
         return true;
     }
 
-    protected override void Render(float deltaTime)
+    protected override void Render(float deltaTime, float elapsedMilliseconds)
     {
         GL.Clear(GL.FramebufferBit.ColorBufferBit | GL.FramebufferBit.DepthBufferBit);
 
@@ -139,9 +142,9 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update(float deltaTime)
+    protected override void Update(float deltaTime, float elapsedMilliseconds)
     {
-        base.Update(deltaTime);
+        base.Update(deltaTime, elapsedMilliseconds);
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();

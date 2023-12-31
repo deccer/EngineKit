@@ -691,11 +691,21 @@ public static class MathHelper
     public static float GammaToLinear(float value)
     {
         if (value <= 0.04045f)
+        {
             return value / 12.92f;
-        else if (value < 1.0f)
+        }
+        
+        if (value < 1.0f)
+        {
             return MathF.Pow((value + 0.055f) / 1.055f, 2.4f);
-        else
-            return MathF.Pow(value, 2.2f);
+        }
+        
+        return MathF.Pow(value, 2.2f);
+    }
+
+    public static Color4 GammaToLinear(Color4 color)
+    {
+        return new Color4(GammaToLinear(color.R), GammaToLinear(color.G), GammaToLinear(color.B), color.A);
     }
 
     /// <summary>

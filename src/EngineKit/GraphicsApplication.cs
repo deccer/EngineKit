@@ -73,7 +73,7 @@ public abstract class GraphicsApplication : Application
         base.Unload();
     }
 
-    protected override void Update(float deltaTime)
+    protected override void Update(float deltaTime, float elapsedMilliseconds)
     {
         UIRenderer.Update(deltaTime);
     }

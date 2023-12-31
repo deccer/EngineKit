@@ -88,7 +88,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render(float deltaTime)
+    protected override void Render(float deltaTime, float elapsedMilliseconds)
     {
         if (_metrics.FrameCounter == 0)
         {
@@ -118,9 +118,9 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update(float deltaTime)
+    protected override void Update(float deltaTime, float elapsedMilliseconds)
     {
-        base.Update(deltaTime);
+        base.Update(deltaTime, elapsedMilliseconds);
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();

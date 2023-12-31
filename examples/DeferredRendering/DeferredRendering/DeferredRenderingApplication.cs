@@ -147,7 +147,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render(float deltaTime)
+    protected override void Render(float deltaTime, float elapsedMilliseconds)
     {
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
         _gpuCameraConstantsBuffer.UpdateElement(_gpuCameraConstants, Offset.Zero);
@@ -288,9 +288,9 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update(float deltaTime)
+    protected override void Update(float deltaTime, float elapsedMilliseconds)
     {
-        base.Update(deltaTime);
+        base.Update(deltaTime, elapsedMilliseconds);
 
         if (IsMousePressed(Glfw.MouseButton.ButtonRight))
         {
@@ -445,7 +445,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             _applicationContext.ScaledFramebufferSize.Y, Format.D32UNorm, "Depth");
 
         _gBufferFramebufferDescriptor = new FramebufferDescriptorBuilder()
-            .WithColorAttachment(_gBufferBaseColorTexture, true, Vector4.Zero)
+            .WithColorAttachment(_gBufferBaseColorTexture, true, Colors.DarkSlateBlue)
             .WithColorAttachment(_gBufferNormalTexture, true, Vector4.Zero)
             .WithDepthAttachment(_gBufferDepthTexture, true)
             .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
@@ -463,6 +463,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     {
         _swapchainDescriptor = new SwapchainDescriptorBuilder()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
+            .ClearColor(MathHelper.GammaToLinear(Colors.DarkSlateBlue))
             .Build("Swapchain");
     }
 

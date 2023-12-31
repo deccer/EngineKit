@@ -21,7 +21,6 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private readonly IApplicationContext _applicationContext;
     private readonly ICapabilities _capabilities;
     private readonly IMetrics _metrics;
-    private readonly IImageLoader _imageLoader;
     private readonly IMeshLoader _meshLoader;
     private readonly ICamera _camera;
     private readonly IList<ModelMeshInstance> _modelMeshInstances;
@@ -77,13 +76,12 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _capabilities = capabilities;
         _applicationContext.ShowResizeInLog = true;
         _metrics = metrics;
-        _imageLoader = imageLoader;
         _meshLoader = meshLoader;
         _camera = camera;
 
         _gpuConstants = new GpuConstants();
         _gpuMaterials = new List<GpuMaterial>();
-        _camera.Sensitivity = 0.25f;
+        _camera.Sensitivity = 0.125f;
 
         _modelMeshes = new List<ModelMesh>();
         _modelMeshInstances = new List<ModelMeshInstance>();
@@ -174,9 +172,23 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render(float deltaTime)
+    protected override void Render(float deltaTime, float elapsedMilliseconds)
     {
-        _gpuModelMeshInstances = _modelMeshInstances.Select(mm => new GpuModelMeshInstance { World = mm.World }).ToList();
+        _gpuModelMeshInstances = _modelMeshInstances.Select((mm, index) =>
+        {
+            var rotationMatrix = index switch 
+            {
+                0 => Matrix4x4.CreateRotationX(0.0010f * elapsedMilliseconds),
+                1 => Matrix4x4.CreateRotationZ(0.0005f * elapsedMilliseconds),
+                2 => Matrix4x4.CreateRotationY(0.0020f * elapsedMilliseconds),                
+                _ => Matrix4x4.Identity
+            };
+            
+            return new GpuModelMeshInstance
+            {
+                World = rotationMatrix * mm.World
+            };
+        }).ToList();
         _gpuModelMeshInstanceBuffer.UpdateElements(_gpuModelMeshInstances.ToArray(), 0);
 
         _gpuIndirectElements.Clear();
@@ -219,7 +231,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     {
         base.FramebufferResized();
         _swapchainDescriptor = new SwapchainDescriptorBuilder()
-            .ClearColor(Colors.DimGray)
+            .ClearColor(MathHelper.GammaToLinear(Colors.DarkSlateBlue))
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build("Swapchain");
@@ -245,9 +257,9 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         breakOnError = true;
     }
 
-    protected override void Update(float deltaTime)
+    protected override void Update(float deltaTime, float elapsedMilliseconds)
     {
-        base.Update(deltaTime);
+        base.Update(deltaTime, elapsedMilliseconds);
 
         if (IsMousePressed(Glfw.MouseButton.ButtonRight))
         {
@@ -344,7 +356,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private bool LoadRenderDescriptors()
     {
         _swapchainDescriptor = new SwapchainDescriptorBuilder()
-            .ClearColor(Colors.DimGray)
+            .ClearColor(MathHelper.GammaToLinear(Colors.DarkSlateBlue))
             .ClearDepth()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build("Swapchain");

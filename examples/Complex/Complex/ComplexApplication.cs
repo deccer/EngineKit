@@ -120,7 +120,7 @@ internal sealed class ComplexApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render(float deltaTime)
+    protected override void Render(float deltaTime, float elapsedMilliseconds)
     {
         _renderer.Render(_camera);
         GraphicsContext.BeginRenderPass(_swapchainDescriptor);
@@ -138,9 +138,9 @@ internal sealed class ComplexApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update(float deltaTime)
+    protected override void Update(float deltaTime, float elapsedMilliseconds)
     {
-        base.Update(deltaTime);
+        base.Update(deltaTime, elapsedMilliseconds);
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();
