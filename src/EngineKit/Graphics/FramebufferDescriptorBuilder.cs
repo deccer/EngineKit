@@ -4,15 +4,21 @@ using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
-public sealed class FramebufferDescriptorBuilder
+public sealed class FramebufferDescriptorBuilder : IFramebufferDescriptorBuilder
 {
-    private readonly IList<FramebufferRenderAttachment> _renderAttachments;
+    private readonly List<FramebufferRenderAttachment> _renderAttachments;
     private FramebufferDescriptor _framebufferDescriptor;
 
-    public FramebufferDescriptorBuilder()
+    internal FramebufferDescriptorBuilder()
     {
         _framebufferDescriptor = new FramebufferDescriptor();
         _renderAttachments = new List<FramebufferRenderAttachment>();
+    }
+
+    public FramebufferDescriptorBuilder Reset()
+    {
+        _framebufferDescriptor = new FramebufferDescriptor();
+        return this;
     }
 
     public FramebufferDescriptorBuilder WithViewport(int width, int height, float minDepthRange = -1.0f, float maxDepthRange = 1.0f)

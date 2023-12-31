@@ -791,7 +791,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         _gBufferDepthTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y, Format.D32UNorm, "Depth");
 
-        _gBufferFramebufferDescriptor = new FramebufferDescriptorBuilder()
+        _gBufferFramebufferDescriptor = GraphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_gBufferBaseColorTexture, true, MathHelper.GammaToLinear(Colors.DarkSlateBlue))
             .WithColorAttachment(_gBufferNormalTexture, true, Vector4.Zero)
             .WithDepthAttachment(_gBufferDepthTexture, true, 0.0f)
@@ -800,7 +800,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
 
         _finalTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "Final");
-        _finalFramebufferDescriptor = new FramebufferDescriptorBuilder()
+        _finalFramebufferDescriptor = GraphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_finalTexture, true, Colors.Transparent)
             .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
             .Build("Final");
@@ -810,7 +810,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             _applicationContext.FramebufferSize.Y,
             Format.R8G8B8Srgb,
             "SwapchainColor");
-        _swapchainDescriptor = new FramebufferDescriptorBuilder()
+        _swapchainDescriptor = GraphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_swapchainColorBuffer, false, Colors.Transparent)
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build("Swapchain");

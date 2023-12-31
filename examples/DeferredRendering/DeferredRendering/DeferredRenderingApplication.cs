@@ -444,7 +444,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         _gBufferDepthTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y, Format.D32UNorm, "Depth");
 
-        _gBufferFramebufferDescriptor = new FramebufferDescriptorBuilder()
+        _gBufferFramebufferDescriptor = GraphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_gBufferBaseColorTexture, true, Colors.DarkSlateBlue)
             .WithColorAttachment(_gBufferNormalTexture, true, Vector4.Zero)
             .WithDepthAttachment(_gBufferDepthTexture, true)
@@ -453,7 +453,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
         _finalTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "Final");
-        _finalFramebufferDescriptor = new FramebufferDescriptorBuilder()
+        _finalFramebufferDescriptor = GraphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_finalTexture, true, new Vector4(0.2f, 0.2f, 0.2f, 1.0f))
             .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
             .Build("Final");

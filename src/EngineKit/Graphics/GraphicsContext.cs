@@ -3,7 +3,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using EngineKit.Extensions;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Mathematics;
@@ -25,6 +24,7 @@ internal sealed class GraphicsContext : IGraphicsContext
     private readonly IDictionary<IPipeline, GraphicsPipelineDescriptor> _graphicsPipelineCache;
     private readonly IDictionary<IPipeline, ComputePipelineDescriptor> _computePipelineCache;
     private readonly IDictionary<int, IInputLayout> _inputLayoutCache;
+    private readonly IFramebufferDescriptorBuilder _framebufferDescriptorBuilder;
     private uint? _currentFramebuffer;
     private bool _srgbWasDisabled;
     private Viewport _currentViewport;
@@ -46,6 +46,7 @@ internal sealed class GraphicsContext : IGraphicsContext
         _graphicsPipelineCache = new Dictionary<IPipeline, GraphicsPipelineDescriptor>(16);
         _computePipelineCache = new Dictionary<IPipeline, ComputePipelineDescriptor>(16);
         _inputLayoutCache = new Dictionary<int, IInputLayout>(16);
+        _framebufferDescriptorBuilder = new FramebufferDescriptorBuilder();
     }
 
     public void Dispose()
@@ -371,6 +372,11 @@ internal sealed class GraphicsContext : IGraphicsContext
         textureCube?.GenerateMipmaps();
 
         return textureCube;
+    }
+
+    public IFramebufferDescriptorBuilder GetFramebufferDescriptorBuilder()
+    {
+        return _framebufferDescriptorBuilder.Reset();
     }
     
     public FramebufferDescriptor CreateSingleFramebufferDescriptorFromTexture(ITexture texture)

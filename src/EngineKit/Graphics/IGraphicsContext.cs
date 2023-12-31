@@ -105,6 +105,8 @@ public interface IGraphicsContext : IDisposable
         bool flipVertical = true,
         bool flipHorizontal = false);
 
+    IFramebufferDescriptorBuilder GetFramebufferDescriptorBuilder();
+
     void CopyTexture(
         ITexture sourceTexture,
         int sourceOffsetX,

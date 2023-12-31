@@ -310,7 +310,7 @@ internal class Renderer : IRenderer
             Format.D32Float, 
             "ForwardDepthAttachment");
         
-        _forwardRenderPass = new FramebufferDescriptorBuilder()
+        _forwardRenderPass = _graphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_forwardRenderPassColorAttachment, true, MathHelper.GammaToLinear(Colors.DarkSlateBlue))
             .WithDepthAttachment(_forwardRenderPassDepthAttachment, true, 0)
             .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
