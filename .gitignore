@@ -351,3 +351,5 @@ MigrationBackup/
 
 # Rider
 .idea/
+
+**/*[Aa]ssets/[Dd]ata/[Ss]cenes/
