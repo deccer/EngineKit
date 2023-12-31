@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using EngineKit.Graphics;
 using EngineKit.UnitTests.TestInfrastructure;
 using FluentAssertions;
@@ -41,7 +40,7 @@ public class IndexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
             100,
             200
         };
-        indexBuffer.UpdateElements(ref indices,  0);
+        indexBuffer.UpdateElements(in indices,  0);
 
         // Assert
         indexBuffer.SizeInBytes.Should().Be(400);

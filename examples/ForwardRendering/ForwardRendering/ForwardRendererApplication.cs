@@ -57,7 +57,6 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer,
-        IImageLoader imageLoader,
         IMeshLoader meshLoader,
         ICamera camera)
         : base(
@@ -153,7 +152,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _gpuMaterials.Add(new GpuMaterial
         {
             BaseColor = new Vector4(1.1f, 0.2f, 0.3f, 1.0f),
-            BaseColorTextureHandle = _skullBaseColorTexture.TextureHandle
+            BaseColorTextureHandle = _skullBaseColorTexture!.TextureHandle
         });
         _gpuMaterials.Add(new GpuMaterial
         {
@@ -189,7 +188,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
                 World = rotationMatrix * mm.World
             };
         }).ToList();
-        _gpuModelMeshInstanceBuffer.UpdateElements(_gpuModelMeshInstances.ToArray(), 0);
+        _gpuModelMeshInstanceBuffer!.UpdateElements(_gpuModelMeshInstances.ToArray(), 0);
 
         _gpuIndirectElements.Clear();
         foreach (var modelMeshInstance in _modelMeshInstances)
@@ -205,7 +204,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             _gpuIndirectElements.Add(gpuIndirectElement);
         }
 
-        _gpuIndirectElementDataBuffer.UpdateElements(_gpuIndirectElements.ToArray(), 0);
+        _gpuIndirectElementDataBuffer!.UpdateElements(_gpuIndirectElements.ToArray(), 0);
 
         _gpuConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
         _gpuConstantsBuffer!.UpdateElement(_gpuConstants, 0);
@@ -426,7 +425,11 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
     private bool LoadResources()
     {
-        _skullBaseColorTexture = GraphicsContext.CreateTextureFromFile("Data/Props/Skull/TD_Checker_Base_Color.png", Format.R8G8B8A8Srgb, true, false, false);
+        _skullBaseColorTexture = GraphicsContext.CreateTextureFromFile(
+            "Data/Props/Skull/TD_Checker_Base_Color.png",
+            Format.R8G8B8A8Srgb,
+            true,
+            false);
         if (_skullBaseColorTexture == null)
         {
             return false;

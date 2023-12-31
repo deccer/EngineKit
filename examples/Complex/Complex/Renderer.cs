@@ -1,25 +1,18 @@
 using System.Numerics;
-using System.Runtime.InteropServices;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Mathematics;
 using ImGuiNET;
 using Serilog;
-using Int4 = EngineKit.Mathematics.Int4;
 
 namespace Complex;
 
 internal class Renderer : IRenderer
 {
-    private const int FiveHundredMegabyte = 512 * 1024 * 1024;
-    private const int SevenHundredSixtyEightMegabyte = 768 * 1024 * 1024;
-    private const int OneGigaByte = 1024 * 1024 * 1024;
-    private const uint TwoGigaByte = 2u * OneGigaByte;
     private readonly ILogger _logger;
     private readonly IGraphicsContext _graphicsContext;
     private readonly ISamplerLibrary _samplerLibrary;
     private readonly IApplicationContext _applicationContext;
-    private readonly IUIRenderer _uiRenderer;
     private IMeshPool? _meshPool;
     private IMaterialPool? _materialPool;
 
@@ -59,7 +52,6 @@ internal class Renderer : IRenderer
         _graphicsContext = graphicsContext;
         _samplerLibrary = samplerLibrary;
         _applicationContext = applicationContext;
-        _uiRenderer = uiRenderer;
         _uColor = new Vector3(0.61f, 0.875f, 0.85f);
 
         _maxAabbCount = 20_000;

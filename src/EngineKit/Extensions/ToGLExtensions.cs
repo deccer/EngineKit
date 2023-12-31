@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Cryptography.X509Certificates;
 using EngineKit.Graphics;
 using EngineKit.Native.OpenGL;
 
@@ -166,7 +165,8 @@ public static class ToGLExtensions
         return clipControlDepth switch
         {
             ClipControlDepth.NegativeOneToOne => GL.ClipControlDepth.NegativeOneToOne,
-            ClipControlDepth.ZeroToOne => GL.ClipControlDepth.ZeroToOne
+            ClipControlDepth.ZeroToOne => GL.ClipControlDepth.ZeroToOne,
+            _ => throw new ArgumentOutOfRangeException(nameof(clipControlDepth), clipControlDepth, null)
         };
     }
 

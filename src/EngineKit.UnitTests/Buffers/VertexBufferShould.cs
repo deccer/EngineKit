@@ -42,7 +42,7 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
             new VertexPositionNormalUvTangent(),
             new VertexPositionNormalUvTangent()
         };
-        vertexBuffer.UpdateElements(ref vertexElements,  0);
+        vertexBuffer.UpdateElements(in vertexElements,  0);
 
         // Assert
         vertexBuffer.SizeInBytes.Should().Be(100 * (uint)Marshal.SizeOf<VertexPositionNormalUvTangent>());

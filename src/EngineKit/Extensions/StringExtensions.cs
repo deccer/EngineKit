@@ -14,7 +14,7 @@ namespace EngineKit.Extensions
         /// </summary>
         /// <param name="value">The string value. can be null</param>
         /// <returns>The string trimmed.May be null if string was null</returns>
-        public static string SafeTrim(this string value)
+        public static string? SafeTrim(this string value)
         {
             return value?.Trim();
         }

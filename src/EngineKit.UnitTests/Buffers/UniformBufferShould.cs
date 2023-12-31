@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using EngineKit.Graphics;
 using EngineKit.UnitTests.TestInfrastructure;
 using FluentAssertions;
@@ -47,11 +46,11 @@ public class UniformBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
         var uniformBuffer = new TypedBuffer<GpuMaterial>("Label", initialElementCount);
 
         // Act
-        var globalMatrices = new GpuMaterial
+        var gpuMaterial = new GpuMaterial
         {
             BaseColorFactor = Colors.Red.ToVector4()
         };
-        uniformBuffer.UpdateElement(ref globalMatrices,  0);
+        uniformBuffer.UpdateElement(in gpuMaterial,  0);
 
         // Assert
         uniformBuffer.SizeInBytes.Should().Be((nuint)(initialElementCount * sizeof(GpuMaterial)));

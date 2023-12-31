@@ -177,26 +177,26 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
     
     public void VertexUniform(int location, float value)
     {
-        GL.ProgramUniform(ShaderProgram.VertexShader.Id, location, value);
+        GL.ProgramUniform(ShaderProgram!.VertexShader!.Id, location, value);
     }
     
     public void VertexUniform(int location, int value)
     {
-        GL.ProgramUniform(ShaderProgram.VertexShader.Id, location, value);
+        GL.ProgramUniform(ShaderProgram!.VertexShader!.Id, location, value);
     }
     
     public void VertexUniform(int location, Vector3 value)
     {
-        GL.ProgramUniform(ShaderProgram.VertexShader.Id, location, value);
+        GL.ProgramUniform(ShaderProgram!.VertexShader!.Id, location, value);
     }
     
     public void FragmentUniform(int location, float value)
     {
-        GL.ProgramUniform(ShaderProgram.FragmentShader.Id, location, value);
+        GL.ProgramUniform(ShaderProgram!.FragmentShader!.Id, location, value);
     }
     
     public void FragmentUniform(int location, int value)
     {
-        GL.ProgramUniform(ShaderProgram.FragmentShader.Id, location, value);
+        GL.ProgramUniform(ShaderProgram!.FragmentShader!.Id, location, value);
     }
 }

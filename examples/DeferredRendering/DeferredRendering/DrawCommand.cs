@@ -4,7 +4,7 @@ namespace DeferredRendering;
 
 public class DrawCommand
 {
-    public string Name { get; init; }
+    public string? Name { get; init; }
 
     public Matrix4x4 WorldMatrix { get; init; }
 

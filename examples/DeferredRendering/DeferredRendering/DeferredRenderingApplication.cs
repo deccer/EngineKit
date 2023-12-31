@@ -8,10 +8,10 @@ using EngineKit.Graphics;
 using EngineKit.Input;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
-using ImGuiNET;
-using Microsoft.Extensions.Options;
 using EngineKit.Mathematics;
 using EngineKit.UI;
+using ImGuiNET;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace DeferredRendering;
@@ -49,15 +49,15 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     private GpuCameraConstants _gpuCameraConstants;
     private IBuffer? _gpuCameraConstantsBuffer;
 
-    private readonly IList<GpuModelMeshInstance> _gpuModelMeshInstances;
+    private readonly List<GpuModelMeshInstance> _gpuModelMeshInstances;
     private IBuffer? _gpuModelMeshInstanceBuffer;
-    private readonly IList<DrawCommand> _drawCommands;
+    private readonly List<DrawCommand> _drawCommands;
 
-    private readonly IList<GpuMaterial> _gpuMaterials;
-    private readonly IList<string> _gpuMaterialsInUse;
+    private readonly List<GpuMaterial> _gpuMaterials;
+    private readonly List<string> _gpuMaterialsInUse;
     private IBuffer _gpuMaterialBuffer;
 
-    private readonly IDictionary<string, ITexture> _textures;
+    private readonly Dictionary<string, ITexture> _textures;
     private bool _useVertexPulling;
 
     public DeferredRenderingApplication(

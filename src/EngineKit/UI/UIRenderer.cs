@@ -104,6 +104,7 @@ internal sealed class UIRenderer : IUIRenderer
         _logger = logger.ForContext<UIRenderer>();
         _graphicsContext = graphicsContext;
         _inputProvider = inputProvider;
+        _keyValues = Array.Empty<Glfw.Key>();
         _pressedChars = new List<char>();
         _fonts = new Dictionary<string, ImFontPtr>(16);
     }

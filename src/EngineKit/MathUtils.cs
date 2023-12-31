@@ -43,9 +43,9 @@ public static class MathUtils
         else return val;
     }
 
-    public static int ClampForEnum<T>(this int i) where T : Enum
+    public static int ClampForEnum<T>(this int i) where T : struct, Enum 
     {
-        return i.Clamp(0, Enum.GetValues(typeof(T)).Length - 1);
+        return i.Clamp(0, Enum.GetValues<T>().Length - 1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -163,15 +163,15 @@ public static class MathUtils
 
     public static float RoundValue(float i, float stepsPerUnit, float stepRatio)
     {
-        float u = 1 / stepsPerUnit;
-        float v = stepRatio / (2 * stepsPerUnit);
-        float m = i % u;
-        float r = m - (m < v
+        var u = 1 / stepsPerUnit;
+        var v = stepRatio / (2 * stepsPerUnit);
+        var m = i % u;
+        var r = m - (m < v
             ? 0
             : (m > (u - v))
                 ? u
                 : ((m - v) / (1 - 2 * stepsPerUnit * v)));
-        float y = i - r;
+        var y = i - r;
         return y;
     }
 
@@ -258,7 +258,7 @@ public static class MathUtils
     /// <returns>True if NaN or Infinity</returns>
     public static bool ApplyDefaultIfInvalid(ref double val, double defaultValue)
     {
-        bool isInvalid = double.IsNaN(val) || double.IsInfinity(val);
+        var isInvalid = double.IsNaN(val) || double.IsInfinity(val);
         val = isInvalid ? defaultValue : val;
         return isInvalid;
     }

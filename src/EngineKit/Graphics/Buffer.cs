@@ -107,7 +107,7 @@ internal class Buffer : IBuffer
             return;
         }
         
-        GL.NamedBufferSubData(Id, elementOffset * (uint)Unsafe.SizeOf<TElement>(), ref elements);
+        GL.NamedBufferSubData(Id, elementOffset * (uint)Unsafe.SizeOf<TElement>(), in elements);
     }
     
     public void UpdateElements<TElement>(Span<TElement> elements, nuint elementOffset) where TElement : unmanaged

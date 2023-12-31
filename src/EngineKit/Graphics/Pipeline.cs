@@ -7,18 +7,18 @@ namespace EngineKit.Graphics;
 
 public abstract class Pipeline : IPipeline
 {
-    protected ShaderProgram ShaderProgram;
+    protected ShaderProgram? ShaderProgram;
     
     public Label Label { get; protected set; }
 
     public virtual void Bind()
     {
-        ShaderProgram.Use();
+        ShaderProgram!.Use();
     }
 
     public virtual void Dispose()
     {
-        ShaderProgram.Dispose();
+        ShaderProgram?.Dispose();
         GC.SuppressFinalize(this);
     }
 

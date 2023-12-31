@@ -12,12 +12,16 @@ namespace EngineKit.Graphics.Shaders;
 
 public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
 {
-    private static readonly IDictionary<string, string> _typeNamespaceMap;
+    private static readonly Dictionary<string, string> _typeNamespaceMap;
 
     static VirtualFileShaderIncludeHandler()
     {
         var assemblies = new[]
-            { Assembly.GetEntryAssembly(), Assembly.GetCallingAssembly(), Assembly.GetExecutingAssembly(), };
+        {
+            Assembly.GetEntryAssembly(),
+            Assembly.GetCallingAssembly(),
+            Assembly.GetExecutingAssembly(),
+        };
         var glslTypes = assemblies
             .Where(asm => asm != null)
             .Distinct()
@@ -28,16 +32,13 @@ public class VirtualFileShaderIncludeHandler : IShaderIncludeHandler
         _typeNamespaceMap = glslTypes.ToDictionary(type => type.FullName!, type => type.Assembly.GetName().Name!);
     }
 
-    public VirtualFileShaderIncludeHandler(IDictionary<string, string>? additionalTypeNamespaceMappings = null)
+    public VirtualFileShaderIncludeHandler(Dictionary<string, string>? additionalTypeNamespaceMappings = null)
     {
         if (additionalTypeNamespaceMappings != null)
         {
             foreach (var (typeName, assemblyName) in additionalTypeNamespaceMappings)
             {
-                if (!_typeNamespaceMap.ContainsKey(typeName))
-                {
-                    _typeNamespaceMap.Add(typeName, assemblyName);
-                }
+                _typeNamespaceMap.TryAdd(typeName, assemblyName);
             }
         }
     }

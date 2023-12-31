@@ -96,14 +96,20 @@ internal sealed class GraphicsContext : IGraphicsContext
         GL.Viewport(viewport);
     }
 
-    public IMeshPool CreateMeshPool(Label label, uint vertexBufferCapacity, uint indexBufferCapacity)
+    public IMeshPool CreateMeshPool(
+        Label label,
+        uint maxVertexCount,
+        uint maxIndexCount)
     {
-        return new MeshPool(label, this, vertexBufferCapacity, indexBufferCapacity);
+        return new MeshPool(label, this, maxVertexCount, maxIndexCount);
     }
 
-    public IMaterialPool CreateMaterialPool(Label label, uint materialBufferCapacity, ISamplerLibrary samplerLibrary)
+    public IMaterialPool CreateMaterialPool(
+        Label label,
+        uint maxMaterialCount,
+        ISamplerLibrary samplerLibrary)
     {
-        return new MaterialPool(_logger, label, _capabilities, this, samplerLibrary, materialBufferCapacity);
+        return new MaterialPool(_logger, label, _capabilities, this, samplerLibrary, maxMaterialCount);
     }
 
     public IGraphicsPipelineBuilder CreateGraphicsPipelineBuilder()
@@ -201,7 +207,7 @@ internal sealed class GraphicsContext : IGraphicsContext
         var indices = meshPrimitives
             .SelectMany(meshPrimitive => meshPrimitive.Indices)
             .ToArray();
-        return new TypedBuffer<uint>(label, ref indices);
+        return new TypedBuffer<uint>(label, in indices);
     }
 
     public ISampler CreateSampler(SamplerDescriptor samplerDescriptor)

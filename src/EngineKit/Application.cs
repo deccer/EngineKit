@@ -41,11 +41,6 @@ public class Application : IApplication
 
     private readonly FrameTimeAverager _frameTimeAverager;
     private long _previousFrameTicks;
-
-    private int _windowPositionLeft;
-    private int _windowPositionTop;
-    private int _windowSizeWidth;
-    private int _windowSizeHeight;
     
     protected bool IsWindowMaximized;
 
@@ -147,7 +142,7 @@ public class Application : IApplication
 
     protected void CenterMouseCursor()
     {
-        Glfw.SetCursorPos(_windowHandle, _applicationContext.WindowSize.X / 2, _applicationContext.WindowSize.Y / 2);
+        Glfw.SetCursorPos(_windowHandle, _applicationContext.WindowSize.X / 2.0f, _applicationContext.WindowSize.Y / 2.0f);
     }
 
     protected bool IsCursorVisible()
@@ -443,14 +438,6 @@ public class Application : IApplication
 
     protected void MaximizeWindow()
     {
-        /*
-        Glfw.GetWindowPos(_windowHandle, out _windowPositionLeft, out _windowPositionTop);
-        Glfw.GetWindowSize(_windowHandle, out _windowSizeWidth, out _windowSizeHeight);
-        
-        Glfw.GetMonitorPos(Glfw.GetPrimaryMonitor(), out var monitorLeft, out var monitorTop);
-        Glfw.SetWindowPos(_windowHandle, monitorLeft, monitorTop);
-        Glfw.SetWindowSize(_windowHandle, _applicationContext.ScreenSize.X, _applicationContext.ScreenSize.Y);
-        */
         Glfw.MaximizeWindow(_windowHandle);
         
         IsWindowMaximized = true;
@@ -458,10 +445,6 @@ public class Application : IApplication
 
     protected void RestoreWindow()
     {
-        /*
-        Glfw.SetWindowPos(_windowHandle, _windowPositionLeft, _windowPositionTop);
-        Glfw.SetWindowSize(_windowHandle, _windowSizeWidth, _windowSizeHeight);
-        */
         Glfw.RestoreWindow(_windowHandle);
         
         IsWindowMaximized = false;

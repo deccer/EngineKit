@@ -123,12 +123,12 @@ public interface IGraphicsContext : IDisposable
     
     IMeshPool CreateMeshPool(
         Label label,
-        uint vertexBufferCapacity,
-        uint indexBufferCapacity);
+        uint maxVertexCount,
+        uint maxIndexCount);
     
     IMaterialPool CreateMaterialPool(
         Label label,
-        uint materialBufferCapacity,
+        uint maxMaterialCount,
         ISamplerLibrary samplerLibrary);
 
     void EndRenderPass();
