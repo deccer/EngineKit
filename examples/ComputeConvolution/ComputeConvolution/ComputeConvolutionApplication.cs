@@ -31,7 +31,6 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         IApplicationContext applicationContext,
         ICapabilities capabilities,
         IMetrics metrics,
-        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer)
@@ -42,7 +41,6 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             applicationContext,
             capabilities,
             metrics,
-            limits,
             inputProvider,
             graphicsContext,
             uiRenderer)

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
@@ -12,6 +11,7 @@ using EngineKit.Native.OpenGL;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
 using EngineKit.Mathematics;
+using EngineKit.UI;
 using Serilog;
 
 namespace DeferredRendering;
@@ -20,6 +20,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 {
     private readonly ILogger _logger;
     private readonly IApplicationContext _applicationContext;
+    private readonly ICapabilities _capabilities;
     private readonly IMetrics _metrics;
     private readonly ICamera _camera;
     private readonly IMeshLoader _meshLoader;
@@ -48,15 +49,15 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
     private GpuCameraConstants _gpuCameraConstants;
     private IBuffer? _gpuCameraConstantsBuffer;
 
-    private IList<GpuModelMeshInstance> _gpuModelMeshInstances;
+    private readonly IList<GpuModelMeshInstance> _gpuModelMeshInstances;
     private IBuffer? _gpuModelMeshInstanceBuffer;
-    private IList<DrawCommand> _drawCommands;
+    private readonly IList<DrawCommand> _drawCommands;
 
-    private IList<GpuMaterial> _gpuMaterials;
-    private IList<string> _gpuMaterialsInUse;
+    private readonly IList<GpuMaterial> _gpuMaterials;
+    private readonly IList<string> _gpuMaterialsInUse;
     private IBuffer _gpuMaterialBuffer;
 
-    private IDictionary<string, ITexture> _textures;
+    private readonly IDictionary<string, ITexture> _textures;
     private bool _useVertexPulling;
 
     public DeferredRenderingApplication(
@@ -66,7 +67,6 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         IApplicationContext applicationContext,
         ICapabilities capabilities,
         IMetrics metrics,
-        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer,
@@ -80,13 +80,13 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             applicationContext,
             capabilities,
             metrics,
-            limits,
             inputProvider,
             graphicsContext,
             uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;
+        _capabilities = capabilities;
         _metrics = metrics;
         _camera = camera;
         _meshLoader = meshLoader;
@@ -223,10 +223,39 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
-                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
-                ImGui.TextUnformatted($"Fps: {_metrics.AverageFrameTime}");
+                var isNvidia = _capabilities.SupportsNvx;
+                if (isNvidia)
+                {
+                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 416, 0));
+                    ImGui.TextUnformatted($"video memory: {_capabilities.GetCurrentAvailableGpuMemoryInMebiBytes()} MiB");
+                    ImGui.SameLine();
+                }
+                else
+                {
+                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 256, 0));
+                }
 
-                ImGui.EndMenuBar();
+                ImGui.TextUnformatted($"avg frame time: {_metrics.AverageFrameTime:F2} ms");
+                ImGui.SameLine();
+                ImGui.Button(MaterialDesignIcons.WindowMinimize);
+                ImGui.SameLine();
+                if (ImGui.Button(IsWindowMaximized ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
+                {
+                    if (IsWindowMaximized)
+                    {
+                        RestoreWindow();
+                    }
+                    else
+                    {
+                        MaximizeWindow();
+                    }
+                }
+                ImGui.SameLine();
+                if (ImGui.Button(MaterialDesignIcons.WindowClose))
+                {
+                    Close();
+                }
+                
                 ImGui.EndMainMenuBar();
             }
 

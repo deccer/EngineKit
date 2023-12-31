@@ -21,7 +21,6 @@ internal sealed class GraphicsContext : IGraphicsContext
     private readonly IShaderProgramFactory _shaderProgramFactory;
     private readonly IFramebufferCache _framebufferCache;
     private readonly ICapabilities _capabilities;
-    private readonly ILimits _limits;
     private readonly IImageLoader _imageLoader;
     private readonly IDictionary<IPipeline, GraphicsPipelineDescriptor> _graphicsPipelineCache;
     private readonly IDictionary<IPipeline, ComputePipelineDescriptor> _computePipelineCache;
@@ -37,14 +36,12 @@ internal sealed class GraphicsContext : IGraphicsContext
         IShaderProgramFactory shaderProgramFactory,
         IFramebufferCache framebufferCache,
         ICapabilities capabilities,
-        ILimits limits,
         IImageLoader imageLoader)
     {
         _logger = logger.ForContext<GraphicsContext>();
         _shaderProgramFactory = shaderProgramFactory;
         _framebufferCache = framebufferCache;
         _capabilities = capabilities;
-        _limits = limits;
         _imageLoader = imageLoader;
         _graphicsPipelineCache = new Dictionary<IPipeline, GraphicsPipelineDescriptor>(16);
         _computePipelineCache = new Dictionary<IPipeline, ComputePipelineDescriptor>(16);
@@ -788,22 +785,22 @@ internal sealed class GraphicsContext : IGraphicsContext
     
     public void ClearResourceBindings()
     {
-        for (var i = 0u; i < _limits.MaxImageUnits; i++)
+        for (var i = 0u; i < _capabilities.MaxImageUnits; i++)
         {
             GL.BindImageTexture(i, 0, 0, true, 0, GL.MemoryAccess.ReadWrite, GL.SizedInternalFormat.Rgba32f);
         }
 
-        for (var i = 0u; i < _limits.MaxShaderStorageBlocks; i++)
+        for (var i = 0u; i < _capabilities.MaxShaderStorageBlocks; i++)
         {
             GL.BindBufferRange(GL.BufferTarget.ShaderStorageBuffer, i, 0, 0, 0);
         }
 
-        for (var i = 0u; i < _limits.MaxUniformBlocks; i++)
+        for (var i = 0u; i < _capabilities.MaxUniformBlocks; i++)
         {
             GL.BindBufferRange(GL.BufferTarget.UniformBuffer, i, 0, 0, 0);
         }
 
-        for (var i = 0u; i < _limits.MaxCombinedTextureImageUnits; i++)
+        for (var i = 0u; i < _capabilities.MaxCombinedTextureImageUnits; i++)
         {
             GL.BindTextureUnit(i, 0);
             GL.BindSampler(i, 0);

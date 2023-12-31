@@ -13,4 +13,8 @@ public interface IApplicationContext
     Int2 ScaledFramebufferSize { get; set; }
 
     bool ShowResizeInLog { get; set; }
+    
+    bool IsLaunchedByNSightGraphicsOnLinux { get; }
+    
+    bool IsLaunchedByRenderDoc { get; }
 }

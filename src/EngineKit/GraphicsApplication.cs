@@ -22,11 +22,10 @@ public abstract class GraphicsApplication : Application
         IApplicationContext applicationContext,
         ICapabilities capabilities,
         IMetrics metrics,
-        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer)
-        : base(logger, windowSettings, contextSettings, applicationContext, capabilities, limits, metrics, inputProvider)
+        : base(logger, windowSettings, contextSettings, applicationContext, capabilities, metrics, inputProvider)
     {
         _logger = logger;
         _applicationContext = applicationContext;

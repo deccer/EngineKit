@@ -10,6 +10,7 @@ using EngineKit.Input;
 using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
+using EngineKit.UI;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -101,7 +102,6 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
         IApplicationContext applicationContext,
         ICapabilities capabilities,
         IMetrics metrics,
-        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer,
@@ -115,7 +115,6 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             applicationContext,
             capabilities,
             metrics,
-            limits,
             inputProvider,
             graphicsContext,
             uiRenderer)
@@ -301,10 +300,39 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
-                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
-                ImGui.TextUnformatted($"Fps: {_metrics.AverageFrameTime}");
+                var isNvidia = _capabilities.SupportsNvx;
+                if (isNvidia)
+                {
+                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 416, 0));
+                    ImGui.TextUnformatted($"video memory: {_capabilities.GetCurrentAvailableGpuMemoryInMebiBytes()} MiB");
+                    ImGui.SameLine();
+                }
+                else
+                {
+                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 256, 0));
+                }
 
-                ImGui.EndMenuBar();
+                ImGui.TextUnformatted($"avg frame time: {_metrics.AverageFrameTime:F2} ms");
+                ImGui.SameLine();
+                ImGui.Button(MaterialDesignIcons.WindowMinimize);
+                ImGui.SameLine();
+                if (ImGui.Button(IsWindowMaximized ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
+                {
+                    if (IsWindowMaximized)
+                    {
+                        RestoreWindow();
+                    }
+                    else
+                    {
+                        MaximizeWindow();
+                    }
+                }
+                ImGui.SameLine();
+                if (ImGui.Button(MaterialDesignIcons.WindowClose))
+                {
+                    Close();
+                }
+                
                 ImGui.EndMainMenuBar();
             }
 
@@ -338,7 +366,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
             _applicationContext.FramebufferSize.X,
             _applicationContext.FramebufferSize.Y);
         
-        if (_capabilities.IsLaunchedByNSightGraphicsOnLinux)
+        if (_applicationContext.IsLaunchedByNSightGraphicsOnLinux)
         {
             GL.Finish();
         }
@@ -649,7 +677,7 @@ internal sealed class CullOnGpuApplication : GraphicsApplication
                         : GraphicsContext.CreateTextureFromFile(material.BaseColorImage.FileName, Format.R8G8B8A8Srgb, true);
                     if (texture != null)
                     {
-                        if (!_capabilities.IsLaunchedByRenderDoc)
+                        if (!_applicationContext.IsLaunchedByRenderDoc)
                         {
                             texture.MakeResident();
                         }

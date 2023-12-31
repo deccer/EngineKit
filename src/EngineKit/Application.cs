@@ -22,7 +22,6 @@ public class Application : IApplication
     private readonly IOptions<ContextSettings> _contextSettings;
     private readonly IApplicationContext _applicationContext;
     private readonly ICapabilities _capabilities;
-    private readonly ILimits _limits;
     private readonly IMetrics _metrics;
     private readonly IInputProvider _inputProvider;
     private readonly ILogger _logger;
@@ -48,7 +47,7 @@ public class Application : IApplication
     private int _windowSizeWidth;
     private int _windowSizeHeight;
     
-    protected bool IsWindowFullscreen;
+    protected bool IsWindowMaximized;
 
     protected Application(
         ILogger logger,
@@ -56,7 +55,6 @@ public class Application : IApplication
         IOptions<ContextSettings> contextSettings,
         IApplicationContext applicationContext,
         ICapabilities capabilities,
-        ILimits limits,
         IMetrics metrics,
         IInputProvider inputProvider)
     {
@@ -65,7 +63,6 @@ public class Application : IApplication
         _contextSettings = contextSettings;
         _applicationContext = applicationContext;
         _capabilities = capabilities;
-        _limits = limits;
         _metrics = metrics;
         _inputProvider = inputProvider;
         _windowHandle = nint.Zero;
@@ -322,11 +319,6 @@ public class Application : IApplication
             return false;
         }
 
-        if (!_limits.Load())
-        {
-            return false;
-        }
-
         _logger.Information("{Category}: Vendor - {Vendor}", "GL", GL.GetString(GL.StringName.Vendor));
         _logger.Information("{Category}: Renderer - {Renderer}", "GL", GL.GetString(GL.StringName.Renderer));
         _logger.Information("{Category}: Version - {Version}", "GL", GL.GetString(GL.StringName.Version));
@@ -460,7 +452,7 @@ public class Application : IApplication
         */
         Glfw.MaximizeWindow(_windowHandle);
         
-        IsWindowFullscreen = true;
+        IsWindowMaximized = true;
     }
 
     protected void RestoreWindow()
@@ -471,7 +463,7 @@ public class Application : IApplication
         */
         Glfw.RestoreWindow(_windowHandle);
         
-        IsWindowFullscreen = false;
+        IsWindowMaximized = false;
     }
 
     private void BindCallbacks()

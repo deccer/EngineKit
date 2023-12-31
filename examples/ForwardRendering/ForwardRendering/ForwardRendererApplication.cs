@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
 using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
+using EngineKit.UI;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -19,6 +19,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 {
     private readonly ILogger _logger;
     private readonly IApplicationContext _applicationContext;
+    private readonly ICapabilities _capabilities;
     private readonly IMetrics _metrics;
     private readonly IImageLoader _imageLoader;
     private readonly IMeshLoader _meshLoader;
@@ -54,7 +55,6 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         IApplicationContext applicationContext,
         ICapabilities capabilities,
         IMetrics metrics,
-        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer,
@@ -68,13 +68,13 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             applicationContext,
             capabilities,
             metrics,
-            limits,
             inputProvider,
             graphicsContext,
             uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;
+        _capabilities = capabilities;
         _applicationContext.ShowResizeInLog = true;
         _metrics = metrics;
         _imageLoader = imageLoader;
@@ -292,11 +292,39 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
-                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 64, 0));
-                ImGui.TextUnformatted($"Fps: {_metrics.AverageFrameTime}");
+                var isNvidia = _capabilities.SupportsNvx;
+                if (isNvidia)
+                {
+                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 416, 0));
+                    ImGui.TextUnformatted($"video memory: {_capabilities.GetCurrentAvailableGpuMemoryInMebiBytes()} MiB");
+                    ImGui.SameLine();
+                }
+                else
+                {
+                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 256, 0));
+                }
 
-
-                ImGui.EndMenuBar();
+                ImGui.TextUnformatted($"avg frame time: {_metrics.AverageFrameTime:F2} ms");
+                ImGui.SameLine();
+                ImGui.Button(MaterialDesignIcons.WindowMinimize);
+                ImGui.SameLine();
+                if (ImGui.Button(IsWindowMaximized ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
+                {
+                    if (IsWindowMaximized)
+                    {
+                        RestoreWindow();
+                    }
+                    else
+                    {
+                        MaximizeWindow();
+                    }
+                }
+                ImGui.SameLine();
+                if (ImGui.Button(MaterialDesignIcons.WindowClose))
+                {
+                    Close();
+                }
+                
                 ImGui.EndMainMenuBar();
             }
 

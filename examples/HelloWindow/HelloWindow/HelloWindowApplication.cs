@@ -4,6 +4,7 @@ using EngineKit.Graphics;
 using EngineKit.Input;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
+using EngineKit.UI;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -13,6 +14,8 @@ namespace HelloWindow;
 internal sealed class HelloWindowApplication : GraphicsApplication
 {
     private readonly ILogger _logger;
+    private readonly IApplicationContext _applicationContext;
+    private readonly ICapabilities _capabilities;
     private readonly IMetrics _metrics;
 
     public HelloWindowApplication(
@@ -22,7 +25,6 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         IApplicationContext applicationContext,
         ICapabilities capabilities,
         IMetrics metrics,
-        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer)
@@ -33,12 +35,13 @@ internal sealed class HelloWindowApplication : GraphicsApplication
             applicationContext,
             capabilities,
             metrics,
-            limits,
             inputProvider,
             graphicsContext,
             uiRenderer)
     {
         _logger = logger;
+        _applicationContext = applicationContext;
+        _capabilities = capabilities;
         _metrics = metrics;
     }
     
@@ -84,8 +87,38 @@ internal sealed class HelloWindowApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
-                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 160, 0));
-                ImGui.TextUnformatted($"avg frametime: {_metrics.AverageFrameTime:F2} ms");
+                var isNvidia = _capabilities.SupportsNvx;
+                if (isNvidia)
+                {
+                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 416, 0));
+                    ImGui.TextUnformatted($"video memory: {_capabilities.GetCurrentAvailableGpuMemoryInMebiBytes()} MiB");
+                    ImGui.SameLine();
+                }
+                else
+                {
+                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 256, 0));
+                }
+
+                ImGui.TextUnformatted($"avg frame time: {_metrics.AverageFrameTime:F2} ms");
+                ImGui.SameLine();
+                ImGui.Button(MaterialDesignIcons.WindowMinimize);
+                ImGui.SameLine();
+                if (ImGui.Button(IsWindowMaximized ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
+                {
+                    if (IsWindowMaximized)
+                    {
+                        RestoreWindow();
+                    }
+                    else
+                    {
+                        MaximizeWindow();
+                    }
+                }
+                ImGui.SameLine();
+                if (ImGui.Button(MaterialDesignIcons.WindowClose))
+                {
+                    Close();
+                }
 
                 ImGui.EndMenuBar();
             }
@@ -95,7 +128,10 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         UIRenderer.ShowDemoWindow();
         UIRenderer.EndLayout();
 
-        GL.Finish();
+        if (_applicationContext.IsLaunchedByNSightGraphicsOnLinux)
+        {
+            GL.Finish();
+        }
     }
 
     protected override void Unload()

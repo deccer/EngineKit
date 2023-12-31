@@ -35,7 +35,6 @@ internal sealed class ComplexApplication : GraphicsApplication
         IApplicationContext applicationContext,
         ICapabilities capabilities,
         IMetrics metrics,
-        ILimits limits,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer,
@@ -53,7 +52,6 @@ internal sealed class ComplexApplication : GraphicsApplication
             applicationContext,
             capabilities,
             metrics,
-            limits,
             inputProvider,
             graphicsContext,
             uiRenderer)
@@ -128,7 +126,7 @@ internal sealed class ComplexApplication : GraphicsApplication
         GraphicsContext.BeginRenderPass(_swapchainDescriptor);
         RenderUI();
         GraphicsContext.EndRenderPass();
-        if (_capabilities.IsLaunchedByNSightGraphicsOnLinux)
+        if (_applicationContext.IsLaunchedByNSightGraphicsOnLinux)
         {
             GL.Finish();
         }
@@ -217,14 +215,25 @@ internal sealed class ComplexApplication : GraphicsApplication
                     ImGui.EndMenu();
                 }
 
-                ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 256, 0));
-                ImGui.TextUnformatted($"avg frametime: {_metrics.AverageFrameTime:F2} ms");
+                var isNvidia = _capabilities.SupportsNvx;
+                if (isNvidia)
+                {
+                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 416, 0));
+                    ImGui.TextUnformatted($"video memory: {_capabilities.GetCurrentAvailableGpuMemoryInMebiBytes()} MiB");
+                    ImGui.SameLine();
+                }
+                else
+                {
+                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 256, 0));
+                }
+
+                ImGui.TextUnformatted($"avg frame time: {_metrics.AverageFrameTime:F2} ms");
                 ImGui.SameLine();
                 ImGui.Button(MaterialDesignIcons.WindowMinimize);
                 ImGui.SameLine();
-                if (ImGui.Button(IsWindowFullscreen ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
+                if (ImGui.Button(IsWindowMaximized ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
                 {
-                    if (IsWindowFullscreen)
+                    if (IsWindowMaximized)
                     {
                         RestoreWindow();
                     }
