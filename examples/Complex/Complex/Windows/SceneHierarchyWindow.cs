@@ -5,17 +5,17 @@ using ImGuiNET;
 
 namespace Complex.Windows;
 
-public class SceneWindow : Window
+public class SceneHierarchyWindow : Window
 {
     private readonly IEntityWorld _world;
     private readonly IScene _scene;
     private readonly PropertyWindow _propertyWindow;
     private EntityId? _selectedEntityId;
 
-    private EntityId _rootEntityId;
-    private Entity? _rootEntity;
+    private readonly EntityId _rootEntityId;
+    private readonly Entity? _rootEntity;
 
-    public SceneWindow(IEntityWorld world, IScene scene, PropertyWindow propertyWindow)
+    public SceneHierarchyWindow(IEntityWorld world, IScene scene, PropertyWindow propertyWindow)
     {
         _world = world;
         _scene = scene;
@@ -92,31 +92,4 @@ public class SceneWindow : Window
         
         ImGui.PopID();
     }
-
-    /*
-    protected override void DrawInternal()
-    {
-        var rootEntities = _world.GetEntitiesWithComponents<RelationShipComponent>()
-            .Where(e => _world.GetComponent<RelationShipComponent>(e.Id)?.Parent == null)
-            .Select(e => e)
-            .ToList();
-        
-        
-        foreach (var rootEntity in rootEntities)
-        {
-            ImGui.PushID(rootEntity.GetHashCode());
-            
-            if (ImGui.Selectable(rootEntity.Name))
-            {
-                SelectedEntityId = rootEntity.Id;
-            }
-            else
-            {
-                SelectedEntityId = null;
-            }
-            
-            ImGui.PopID();
-        }
-    }
-    */
 }

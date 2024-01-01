@@ -7,7 +7,7 @@ using Serilog;
 
 namespace Complex;
 
-internal class Renderer : IRenderer
+internal class ForwardRenderer : IRenderer
 {
     private readonly ILogger _logger;
     private readonly IGraphicsContext _graphicsContext;
@@ -41,7 +41,7 @@ internal class Renderer : IRenderer
 
     public bool ShowAaBb = true;
 
-    public Renderer(
+    public ForwardRenderer(
         ILogger logger,
         IGraphicsContext graphicsContext,
         ISamplerLibrary samplerLibrary,
@@ -104,7 +104,7 @@ internal class Renderer : IRenderer
             .WithFaceWinding(FaceWinding.Clockwise)
             .WithClipControlDepth(ClipControlDepth.ZeroToOne)
             .WithDepthTestEnabled(CompareFunction.Greater)
-            .WithBlendingEnabled(ColorBlendAttachmentDescriptor.PreMultiplied)
+            .WithBlendingEnabled(ColorBlendAttachmentDescriptor.Additive)
             .ClearResourceBindingsOnBind()
             .Build("Debug-Lines");
 
@@ -173,24 +173,27 @@ internal class Renderer : IRenderer
         _forwardGraphicsPipeline.BindAsIndexBuffer(_indexBuffer!);
         _forwardGraphicsPipeline.BindAsUniformBuffer(_cameraInformationBuffer, 0, Offset.Zero, SizeInBytes.Whole);
         _forwardGraphicsPipeline.BindAsShaderStorageBuffer(_instanceBuffer!, 1, Offset.Zero, SizeInBytes.Whole);
-        _forwardGraphicsPipeline.BindAsShaderStorageBuffer(_materialBuffer!, 2, Offset.Zero, SizeInBytes.Whole);        
-        _forwardGraphicsPipeline.MultiDrawElementsIndirect(_indirectBuffer!, _meshInstanceCount);
+        _forwardGraphicsPipeline.BindAsShaderStorageBuffer(_materialBuffer!, 2, Offset.Zero, SizeInBytes.Whole);
+        if (_meshInstanceCount > 0)
+        {
+            _forwardGraphicsPipeline.MultiDrawElementsIndirect(_indirectBuffer!, _meshInstanceCount);
+        }
 
         if (ShowAaBb && _aabbCounter > 0)
         {
+            //TODO(deccer) refactor out into some sort of LineRenderer
             _graphicsContext.BindGraphicsPipeline(_lineRendererGraphicsPipeline!);
             _lineRendererGraphicsPipeline!.BindAsVertexBuffer(_lineVertexBuffer!, 0, VertexPositionColor.Stride, Offset.Zero);
             _lineRendererGraphicsPipeline.BindAsUniformBuffer(_cameraInformationBuffer, 0, Offset.Zero, SizeInBytes.Whole);
             _lineRendererGraphicsPipeline.DrawArrays(24 * _aabbCounter, Offset.Zero);
         }
         
-        _graphicsContext.EndRenderPass();
-
         _graphicsContext.BlitFramebufferToSwapchain(
             _applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y,
             _applicationContext.FramebufferSize.X,
             _applicationContext.FramebufferSize.Y);
+        _graphicsContext.EndRenderPass();        
     }
 
     public void RenderUI()
@@ -203,6 +206,8 @@ internal class Renderer : IRenderer
             }
 
             ImGui.Checkbox("Show AABBs", ref ShowAaBb);
+            
+            ImGui.TextUnformatted($"Mesh Instance Count {_meshInstanceCount}");
         }
         ImGui.End();
     }

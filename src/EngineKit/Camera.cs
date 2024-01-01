@@ -96,6 +96,11 @@ public sealed class Camera : ICamera
         UpdateCameraVectors();
     }
 
+    public BoundingFrustum GetViewFrustum()
+    {
+        return new BoundingFrustum(ViewMatrix * ProjectionMatrix);
+    }
+
     public void ProcessKeyboard(Vector3 movement, float deltaTime)
     {
         var velocity = Speed * deltaTime;

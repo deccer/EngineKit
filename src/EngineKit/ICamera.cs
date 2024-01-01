@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using EngineKit.Mathematics;
 
 namespace EngineKit;
 
@@ -29,4 +30,6 @@ public interface ICamera
     void ProcessMouseMovement();
 
     void Resize();
+
+    BoundingFrustum GetViewFrustum();
 }

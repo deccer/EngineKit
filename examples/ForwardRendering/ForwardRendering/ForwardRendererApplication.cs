@@ -23,8 +23,8 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private readonly IMetrics _metrics;
     private readonly IMeshLoader _meshLoader;
     private readonly ICamera _camera;
-    private readonly IList<ModelMeshInstance> _modelMeshInstances;
-    private readonly IList<GpuMaterial> _gpuMaterials;
+    private readonly List<ModelMeshInstance> _modelMeshInstances;
+    private readonly List<GpuMaterial> _gpuMaterials;
 
     private ITexture? _skullBaseColorTexture;
     private SwapchainDescriptor _swapchainDescriptor;
@@ -42,8 +42,8 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     private ISampler? _linearMipmapNearestSampler;
     private ISampler? _linearMipmapLinear;
 
-    private readonly IList<ModelMesh> _modelMeshes;
-    private IList<GpuModelMeshInstance> _gpuModelMeshInstances;
+    private readonly List<ModelMesh> _modelMeshes;
+    private List<GpuModelMeshInstance> _gpuModelMeshInstances;
     private readonly List<DrawElementIndirectCommand> _gpuIndirectElements;
     private IBuffer? _gpuIndirectElementDataBuffer;
 

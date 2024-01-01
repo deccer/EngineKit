@@ -44,7 +44,7 @@ internal class PreRenderSystem : IPreRenderSystem
         }
 
         var cameraFrustum = new BoundingFrustum(_camera.ViewMatrix * _camera.ProjectionMatrix);
-        
+
         for (var i = 0; i < meshEntities.Count; i++)
         {
             ref var meshEntity = ref meshEntitiesSpan[i];
@@ -56,11 +56,7 @@ internal class PreRenderSystem : IPreRenderSystem
                 : materialComponent.Material;
 
             var meshGlobalMatrix = meshEntity.GetGlobalMatrix();
-            var transformedMeshAabb = meshComponent!.MeshPrimitive.BoundingBox;
-            
-            transformedMeshAabb = new BoundingBox(
-                Vector3.Transform(transformedMeshAabb.Min, meshGlobalMatrix),
-                Vector3.Transform(transformedMeshAabb.Max, meshGlobalMatrix));
+            var transformedMeshAabb = meshComponent!.MeshPrimitive.BoundingBox.Transform(meshGlobalMatrix);
             
             if (cameraFrustum.Intersects(transformedMeshAabb))
             {

@@ -12,20 +12,20 @@ public class AssetWindow : Window
     private readonly IMaterialLibrary _materialLibrary;
     private readonly IScene _scene;
     private readonly ICamera _camera;
-    private readonly SceneWindow _sceneWindow;
+    private readonly SceneHierarchyWindow _sceneHierarchyWindow;
 
     public AssetWindow(
         IModelLibrary modelLibrary,
         IMaterialLibrary materialLibrary,
         IScene scene,
         ICamera camera,
-        SceneWindow sceneWindow)
+        SceneHierarchyWindow sceneHierarchyWindow)
     {
         _modelLibrary = modelLibrary;
         _materialLibrary = materialLibrary;
         _scene = scene;
         _camera = camera;
-        _sceneWindow = sceneWindow;
+        _sceneHierarchyWindow = sceneHierarchyWindow;
 
         Caption = $"{MaterialDesignIcons.ViewDashboard} Assets";
     }
@@ -55,7 +55,7 @@ public class AssetWindow : Window
                 ImGui.TableSetColumnIndex(2);
                 if (ImGui.Button($"{MaterialDesignIcons.Plus}"))
                 {
-                    _scene.AddEntityWithModelRenderer(model.Name, _sceneWindow.SelectedEntityId, model, Matrix4x4.Identity);
+                    _scene.AddEntityWithModelRenderer(model.Name, _sceneHierarchyWindow.SelectedEntityId, model, Matrix4x4.Identity);
                 }
                 
                 if (isExpanded)
@@ -70,7 +70,7 @@ public class AssetWindow : Window
                         ImGui.TableSetColumnIndex(2);
                         if (ImGui.Button($"{MaterialDesignIcons.Plus}"))
                         {
-                            _scene.AddEntityWithModelMeshRenderer(modelMesh.Name, _sceneWindow.SelectedEntityId, modelMesh, Matrix4x4.Identity);
+                            _scene.AddEntityWithModelMeshRenderer(modelMesh.Name, _sceneHierarchyWindow.SelectedEntityId, modelMesh, Matrix4x4.Identity);
                         }
                         ImGui.PopID();
                     }

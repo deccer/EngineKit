@@ -720,7 +720,7 @@ internal sealed class GraphicsContext : IGraphicsContext
         }
     }
     
-    public void BlitFramebufferToSwapchain(
+    public void BlitFramebuffer(
         FramebufferDescriptor sourceFramebufferDescriptor,
         FramebufferDescriptor targetFramebufferDescriptor,
         int sourceWidth,

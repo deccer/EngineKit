@@ -234,6 +234,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         const int ySize = 16;
         const int xGroups = (1024 + xSize - 1) / xSize;
         const int yGroups = (1024 + ySize - 1) / ySize;
+        const int zGroups = 6;
 
         using var convolutionComputePipeline = convolutionComputePipelineResult.Value;
         GraphicsContext.BindComputePipeline(convolutionComputePipeline);
@@ -250,7 +251,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             0,
             MemoryAccess.WriteOnly,
             _skyboxConvolvedTexture!.TextureCreateDescriptor.Format);
-        convolutionComputePipeline.Dispatch(xGroups, yGroups, 6);
+        convolutionComputePipeline.Dispatch(xGroups, yGroups, zGroups);
         GraphicsContext.InsertMemoryBarrier(BarrierMask.ShaderImageAccess);
 
         _skyboxConvolvedTexture!.GenerateMipmaps();

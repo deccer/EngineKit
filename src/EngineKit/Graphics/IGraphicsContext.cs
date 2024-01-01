@@ -19,7 +19,7 @@ public interface IGraphicsContext : IDisposable
         int targetWidth,
         int targetHeight);
 
-    void BlitFramebufferToSwapchain(
+    void BlitFramebuffer(
         FramebufferDescriptor sourceFramebufferDescriptor,
         FramebufferDescriptor targetFramebufferDescriptor,
         int sourceWidth,

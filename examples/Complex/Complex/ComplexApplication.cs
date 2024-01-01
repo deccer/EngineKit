@@ -23,7 +23,8 @@ internal sealed class ComplexApplication : GraphicsApplication
     private readonly IScene _scene;
     private readonly IRenderer _renderer;
     private readonly AssetWindow _assetWindow;
-    private readonly SceneWindow _sceneWindow;
+    private readonly SceneHierarchyWindow _sceneHierarchyWindow;
+    private readonly SceneViewWindow _sceneViewWindow;
     private readonly PropertyWindow _propertyWindow;
 
     private SwapchainDescriptor _swapchainDescriptor;
@@ -43,7 +44,8 @@ internal sealed class ComplexApplication : GraphicsApplication
         IScene scene,
         IRenderer renderer,
         AssetWindow assetWindow,
-        SceneWindow sceneWindow,
+        SceneHierarchyWindow sceneHierarchyWindow,
+        SceneViewWindow sceneViewWindow,
         PropertyWindow propertyWindow)
         : base(
             logger,
@@ -67,7 +69,8 @@ internal sealed class ComplexApplication : GraphicsApplication
         _scene = scene;
         _renderer = renderer;
         _assetWindow = assetWindow;
-        _sceneWindow = sceneWindow;
+        _sceneHierarchyWindow = sceneHierarchyWindow;
+        _sceneViewWindow = sceneViewWindow;
         _propertyWindow = propertyWindow;
     }
     
@@ -114,9 +117,7 @@ internal sealed class ComplexApplication : GraphicsApplication
             .EnableSrgb()
             .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
             .Build("Swapchain");
-
-        
-        
+       
         return true;
     }
 
@@ -255,7 +256,8 @@ internal sealed class ComplexApplication : GraphicsApplication
         }
         
         _assetWindow.Draw();
-        _sceneWindow.Draw();
+        _sceneHierarchyWindow.Draw();
+        _sceneViewWindow.Draw();
         _propertyWindow.Draw();
 
         _renderer.RenderUI();

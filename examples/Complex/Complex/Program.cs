@@ -42,14 +42,15 @@ internal static class Program
             provider.GetRequiredService<IInputProvider>(), new Vector3(0, 2, 10), Vector3.UnitY));
         services.AddSingleton<IPhysicsWorld, PhysicsWorld>();
         services.AddSingleton<IEntityWorld, EntityWorld>();
-        services.AddSingleton<IRenderer, Renderer>();
+        services.AddSingleton<IRenderer, ForwardRenderer>();
         services.AddSingleton<IUpdateCameraSystem, UpdateCameraSystem>();
         services.AddSingleton<IPreRenderSystem, PreRenderSystem>();
         services.AddSingleton<ITransformSystem, TransformSystem>();
         services.AddSingleton<ISystemsUpdater, SystemsUpdater>();
 
         services.AddSingleton<AssetWindow>();
-        services.AddSingleton<SceneWindow>();
+        services.AddSingleton<SceneHierarchyWindow>();
+        services.AddSingleton<SceneViewWindow>();
         services.AddSingleton<PropertyWindow>();
         
         services.AddSingleton<IAssetLoader, AssetLoader>();
