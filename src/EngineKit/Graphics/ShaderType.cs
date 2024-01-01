@@ -4,5 +4,7 @@ public enum ShaderType
 {
     VertexShader,
     FragmentShader,
-    ComputeShader
+    ComputeShader,
+    TaskShader,
+    MeshShader
 }

@@ -145,6 +145,8 @@ public static class ToGLExtensions
             ShaderType.VertexShader => GL.ShaderType.VertexShader,
             ShaderType.FragmentShader => GL.ShaderType.FragmentShader,
             ShaderType.ComputeShader => GL.ShaderType.ComputeShader,
+            ShaderType.TaskShader => GL.ShaderType.TaskShader,
+            ShaderType.MeshShader => GL.ShaderType.MeshShader,
             _ => throw new ArgumentOutOfRangeException(nameof(shaderType), shaderType, null)
         };
     }

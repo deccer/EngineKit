@@ -204,6 +204,8 @@ public static partial class GL
         VertexShader = 0x8B31,
         FragmentShader = 0x8B30,
         ComputeShader = 0x91B9,
+        MeshShader = 0x9559,
+        TaskShader = 0x955A
     }
 
     public enum UseProgramStageMask : uint
