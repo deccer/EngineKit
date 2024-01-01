@@ -11,4 +11,6 @@ public class WindowSettings
     public WindowMode WindowMode { get; set; }
 
     public bool IsVsyncEnabled { get; set; }
+
+    public string Title { get; set; } = "EngineKit";
 }
