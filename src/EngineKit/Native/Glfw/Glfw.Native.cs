@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace EngineKit.Native.Glfw;
 
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public static unsafe partial class Glfw
 {
     private static delegate* unmanaged<int> _glfwInitDelegate = &glfwInit;
@@ -58,7 +60,7 @@ public static unsafe partial class Glfw
 
     private static delegate* unmanaged<IntPtr, IntPtr, void> _glfwSetKeyCallbackDelegate = &glfwSetKeyCallback;
 
-    private static delegate* unmanaged<IntPtr, IntPtr, void> _glfwSetCharCallbackDelegate = &glfwSetCharCallback;
+    private static delegate* unmanaged<IntPtr, IntPtr, IntPtr> _glfwSetCharCallbackDelegate = &glfwSetCharCallback;
 
     private static delegate* unmanaged<IntPtr, IntPtr, void> _glfwSetCursorPosCallbackDelegate =
         &glfwSetCursorPosCallback;
@@ -343,14 +345,14 @@ public static unsafe partial class Glfw
     }
 
     [UnmanagedCallersOnly]
-    private static void glfwSetCharCallback(
+    private static IntPtr glfwSetCharCallback(
         IntPtr windowHandle,
         IntPtr charCallback)
     {
         _glfwSetCharCallbackDelegate =
-            (delegate* unmanaged<IntPtr, IntPtr, void>)NativeLibrary.GetExport(_glfwLibraryHandle,
+            (delegate* unmanaged<IntPtr, IntPtr, IntPtr>)NativeLibrary.GetExport(_glfwLibraryHandle,
                 nameof(glfwSetCharCallback));
-        _glfwSetCharCallbackDelegate(windowHandle, charCallback);
+        return _glfwSetCharCallbackDelegate(windowHandle, charCallback);
     }
 
     [UnmanagedCallersOnly]

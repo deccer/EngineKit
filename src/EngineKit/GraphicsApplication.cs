@@ -1,3 +1,4 @@
+using System.Numerics;
 using EngineKit.Graphics;
 using EngineKit.Input;
 using EngineKit.Native.OpenGL;
@@ -76,5 +77,15 @@ public abstract class GraphicsApplication : Application
     protected override void Update(float deltaTime, float elapsedMilliseconds)
     {
         UIRenderer.Update(deltaTime);
+    }
+
+    protected override void MouseScrolled(double scrollX, double scrollY)
+    {
+        UIRenderer.MouseScroll(new Vector2((float)scrollX, (float)scrollY));
+    }
+
+    protected override void CharacterInput(char codePoint)
+    {
+        UIRenderer.CharacterInput(codePoint);
     }
 }

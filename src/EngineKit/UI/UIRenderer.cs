@@ -189,7 +189,7 @@ internal sealed class UIRenderer : IUIRenderer
         style.WindowMenuButtonPosition = ImGuiDir.None;
 
         CreateDeviceResources();
-        SetKeyMappings();
+        SetKeyMapping();
         SetPerFrameImGuiData(1.0f / 60.0f);
 
         return true;
@@ -352,7 +352,6 @@ internal sealed class UIRenderer : IUIRenderer
         _imGuiIo.MouseDown[1] = currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonRight);
         _imGuiIo.MouseDown[2] = currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonMiddle);
         _imGuiIo.MousePos = new Vector2(currentMouseState.X, currentMouseState.Y);
-
         
         var scrollDelta = currentMouseState.Scroll.Y - _scrollWheelValue;
         _imGuiIo.MouseWheel = scrollDelta > 0
@@ -385,18 +384,18 @@ internal sealed class UIRenderer : IUIRenderer
         _imGuiIo.KeySuper = currentKeyboardState[Glfw.Key.KeyLeftCtrl] || currentKeyboardState[Glfw.Key.KeyRightCtrl];
     }
 
-    internal void PressChar(char keyChar)
+    public void CharacterInput(char keyChar)
     {
         _pressedChars.Add(keyChar);
     }
 
-    internal void MouseScroll(Vector2 offset)
+    public void MouseScroll(Vector2 offset)
     {
         _imGuiIo.MouseWheel = offset.Y;
         _imGuiIo.MouseWheelH = offset.X;
     }
 
-    private void SetKeyMappings()
+    private void SetKeyMapping()
     {
         _imGuiIo.KeyMap[(int)ImGuiKey.Tab] = (int)Glfw.Key.KeyTab;
         _imGuiIo.KeyMap[(int)ImGuiKey.LeftArrow] = (int)Glfw.Key.KeyArrowLeft;
@@ -407,12 +406,59 @@ internal sealed class UIRenderer : IUIRenderer
         _imGuiIo.KeyMap[(int)ImGuiKey.PageDown] = (int)Glfw.Key.KeyPageDown;
         _imGuiIo.KeyMap[(int)ImGuiKey.Home] = (int)Glfw.Key.KeyHome;
         _imGuiIo.KeyMap[(int)ImGuiKey.End] = (int)Glfw.Key.KeyEnd;
+        _imGuiIo.KeyMap[(int)ImGuiKey.Insert] = (int)Glfw.Key.KeyInsert;
         _imGuiIo.KeyMap[(int)ImGuiKey.Delete] = (int)Glfw.Key.KeyDelete;
         _imGuiIo.KeyMap[(int)ImGuiKey.Backspace] = (int)Glfw.Key.KeyBackspace;
         _imGuiIo.KeyMap[(int)ImGuiKey.Enter] = (int)Glfw.Key.KeyEnter;
-        _imGuiIo.KeyMap[(int)ImGuiKey.Escape] = (int)Glfw.Key.KeyEscape;
+        
+        _imGuiIo.KeyMap[(int)ImGuiKey.Apostrophe] = (int)Glfw.Key.KeyApostrophe;
+        _imGuiIo.KeyMap[(int)ImGuiKey.Backslash] = (int)Glfw.Key.KeyBackslash;
+        _imGuiIo.KeyMap[(int)ImGuiKey.GraveAccent] = (int)Glfw.Key.KeyBacktick;
+
+        _imGuiIo.KeyMap[(int)ImGuiKey.F1] = (int)Glfw.Key.KeyF1;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F2] = (int)Glfw.Key.KeyF2;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F3] = (int)Glfw.Key.KeyF3;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F4] = (int)Glfw.Key.KeyF4;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F5] = (int)Glfw.Key.KeyF5;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F6] = (int)Glfw.Key.KeyF6;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F7] = (int)Glfw.Key.KeyF7;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F8] = (int)Glfw.Key.KeyF8;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F9] = (int)Glfw.Key.KeyF9;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F10] = (int)Glfw.Key.KeyF10;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F11] = (int)Glfw.Key.KeyF11;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F12] = (int)Glfw.Key.KeyF12;
+        
+        _imGuiIo.KeyMap[(int)ImGuiKey._0] = (int)Glfw.Key.Key0;
+        _imGuiIo.KeyMap[(int)ImGuiKey._1] = (int)Glfw.Key.Key1;
+        _imGuiIo.KeyMap[(int)ImGuiKey._2] = (int)Glfw.Key.Key2;
+        _imGuiIo.KeyMap[(int)ImGuiKey._3] = (int)Glfw.Key.Key3;
+        _imGuiIo.KeyMap[(int)ImGuiKey._4] = (int)Glfw.Key.Key4;
+        _imGuiIo.KeyMap[(int)ImGuiKey._5] = (int)Glfw.Key.Key5;
+        _imGuiIo.KeyMap[(int)ImGuiKey._6] = (int)Glfw.Key.Key6;
+        _imGuiIo.KeyMap[(int)ImGuiKey._7] = (int)Glfw.Key.Key7;
+        _imGuiIo.KeyMap[(int)ImGuiKey._8] = (int)Glfw.Key.Key8;
+        _imGuiIo.KeyMap[(int)ImGuiKey._9] = (int)Glfw.Key.Key9;
         _imGuiIo.KeyMap[(int)ImGuiKey.A] = (int)Glfw.Key.KeyA;
+        _imGuiIo.KeyMap[(int)ImGuiKey.B] = (int)Glfw.Key.KeyB;
         _imGuiIo.KeyMap[(int)ImGuiKey.C] = (int)Glfw.Key.KeyC;
+        _imGuiIo.KeyMap[(int)ImGuiKey.D] = (int)Glfw.Key.KeyD;
+        _imGuiIo.KeyMap[(int)ImGuiKey.E] = (int)Glfw.Key.KeyE;
+        _imGuiIo.KeyMap[(int)ImGuiKey.F] = (int)Glfw.Key.KeyF;
+        _imGuiIo.KeyMap[(int)ImGuiKey.G] = (int)Glfw.Key.KeyG;
+        _imGuiIo.KeyMap[(int)ImGuiKey.H] = (int)Glfw.Key.KeyH;
+        _imGuiIo.KeyMap[(int)ImGuiKey.I] = (int)Glfw.Key.KeyI;
+        _imGuiIo.KeyMap[(int)ImGuiKey.J] = (int)Glfw.Key.KeyJ;
+        _imGuiIo.KeyMap[(int)ImGuiKey.K] = (int)Glfw.Key.KeyK;
+        _imGuiIo.KeyMap[(int)ImGuiKey.L] = (int)Glfw.Key.KeyL;
+        _imGuiIo.KeyMap[(int)ImGuiKey.M] = (int)Glfw.Key.KeyM;
+        _imGuiIo.KeyMap[(int)ImGuiKey.N] = (int)Glfw.Key.KeyN;
+        _imGuiIo.KeyMap[(int)ImGuiKey.O] = (int)Glfw.Key.KeyO;
+        _imGuiIo.KeyMap[(int)ImGuiKey.P] = (int)Glfw.Key.KeyP;
+        _imGuiIo.KeyMap[(int)ImGuiKey.Q] = (int)Glfw.Key.KeyQ;
+        _imGuiIo.KeyMap[(int)ImGuiKey.R] = (int)Glfw.Key.KeyR;
+        _imGuiIo.KeyMap[(int)ImGuiKey.S] = (int)Glfw.Key.KeyS;
+        _imGuiIo.KeyMap[(int)ImGuiKey.T] = (int)Glfw.Key.KeyT;
+        _imGuiIo.KeyMap[(int)ImGuiKey.U] = (int)Glfw.Key.KeyU;
         _imGuiIo.KeyMap[(int)ImGuiKey.V] = (int)Glfw.Key.KeyV;
         _imGuiIo.KeyMap[(int)ImGuiKey.X] = (int)Glfw.Key.KeyX;
         _imGuiIo.KeyMap[(int)ImGuiKey.Y] = (int)Glfw.Key.KeyY;

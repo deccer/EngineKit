@@ -35,6 +35,7 @@ public class Application : IApplication
     private Glfw.CursorEnterCallback? _cursorEnterLeaveCallback;
     private Glfw.CursorPositionCallback? _cursorPositionCallback;
     private Glfw.WindowSizeCallback? _windowSizeCallback;
+    private Glfw.CharCallback _windowCharCallback;
 
     private static bool _isFirstFrame = true;
     private bool _isCursorVisible;
@@ -450,6 +451,28 @@ public class Application : IApplication
         IsWindowMaximized = false;
     }
 
+    protected virtual void OnKeyPressed(
+        Glfw.Key key,
+        Glfw.Scancode scancode,
+        Glfw.KeyAction action,
+        Glfw.KeyModifiers modifiers)
+    {
+        _logger.Verbose("{Category} Key: {Key} Scancode: {ScanCode} Action: {Action} Modifiers: {Modifiers}",
+            "Glfw",
+            key,
+            scancode,
+            action,
+            modifiers);
+    }
+
+    protected virtual void MouseScrolled(double scrollX, double scrollY)
+    {
+    }
+
+    protected virtual void CharacterInput(char codePoint)
+    {
+    }
+
     private void BindCallbacks()
     {
         _debugProcCallback = DebugCallback;
@@ -460,6 +483,7 @@ public class Application : IApplication
         _mouseScrollCallback = OnMouseScroll;
         _framebufferSizeCallback = OnFramebufferSize;
         _windowSizeCallback = OnWindowSize;
+        _windowCharCallback = OnInputCharacter;
 
         Glfw.SetKeyCallback(_windowHandle, _keyCallback);
         Glfw.SetCursorPositionCallback(_windowHandle, _cursorPositionCallback);
@@ -468,6 +492,7 @@ public class Application : IApplication
         Glfw.SetScrollCallback(_windowHandle, _mouseScrollCallback);
         Glfw.SetWindowSizeCallback(_windowHandle, _windowSizeCallback);
         Glfw.SetFramebufferSizeCallback(_windowHandle, _framebufferSizeCallback);
+        Glfw.SetCharCallback(_windowHandle, _windowCharCallback);
     }
 
     private void UnbindCallbacks()
@@ -481,6 +506,7 @@ public class Application : IApplication
         Glfw.SetScrollCallback(_windowHandle, null);
         Glfw.SetFramebufferSizeCallback(_windowHandle, null);
         Glfw.SetWindowSizeCallback(_windowHandle, null);
+        Glfw.SetCharCallback(_windowHandle, null);
     }
 
     private void OnKey(
@@ -495,12 +521,7 @@ public class Application : IApplication
             _inputProvider.KeyboardState.SetKeyState(key, action is Glfw.KeyAction.Pressed or Glfw.KeyAction.Repeat);
         }
 
-        _logger.Verbose("{Category} Key: {Key} Scancode: {ScanCode} Action: {Action} Modifiers: {Modifiers}",
-            "Glfw",
-            key,
-            scancode,
-            action,
-            modifiers);
+        OnKeyPressed(key, scancode, action, modifiers);
     }
 
     private void OnMouseMove(
@@ -552,6 +573,7 @@ public class Application : IApplication
         double scrollY)
     {
         _inputProvider.MouseState.Scroll += new Vector2((float)scrollX, (float)scrollY);
+        MouseScrolled(scrollX, scrollY);
     }
 
     private void OnWindowSize(
@@ -584,6 +606,11 @@ public class Application : IApplication
             _logger.Debug("{Category}: ScaledFramebuffer resized from {OldWidth}x{OldHeight} to {Width}x{Height}", "App", oldScaledFramebufferSize.X, oldScaledFramebufferSize.Y, width, height);
         }
         FramebufferResized();
+    }
+
+    private void OnInputCharacter(nint windowHandle, uint codePoint)
+    {
+        CharacterInput((char)codePoint);
     }
 
     private void PrintSystemInformation()
