@@ -102,7 +102,10 @@ internal sealed class ComplexApplication : GraphicsApplication
         _modelLibrary.AddModelFromFile("SM_Scene", "Data/Props/Scene/Scene.glb");
         _modelLibrary.AddModelFromFile("SM_Hierarchy", "Data/Props/Scene/Hierarchy.gltf");
         _modelLibrary.AddModelFromFile("SM_Deccer_Cubes", "Data/Default/SM_Deccer_Cubes_Textured.gltf");
-        _modelLibrary.AddModelFromFile("SM_Complex", "Data/Default/SM_Deccer_Cubes_Textured_Complex.gltf");
+        _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_Complex", "Data/Default/SM_Deccer_Cubes_Textured_Complex.gltf");
+        _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_WR", "Data/Default/SM_Deccer_Cubes_With_Rotation.glb");
+        //_modelLibrary.AddModelFromFile("E1M1", "Data/Scenes/E1M1/E1M1.gltf");
+        //_modelLibrary.AddModelFromFile("SmallCity", "Data/Scenes/small_city/small_city.gltf");
         
         /*
         _modelLibrary.AddModelFromFile("SM_Bistor", "Data/Scenes/Bistro/scene.gltf");

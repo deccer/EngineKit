@@ -39,7 +39,7 @@ internal class ForwardRenderer : IRenderer
 
     private Vector3 _uColor;
 
-    public bool ShowAaBb = true;
+    public bool ShowAaBb = false;
 
     public ForwardRenderer(
         ILogger logger,
