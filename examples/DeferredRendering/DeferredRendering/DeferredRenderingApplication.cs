@@ -239,9 +239,9 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                 ImGui.SameLine();
                 ImGui.Button(MaterialDesignIcons.WindowMinimize);
                 ImGui.SameLine();
-                if (ImGui.Button(IsWindowMaximized ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
+                if (ImGui.Button(_applicationContext.IsWindowMaximized ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
                 {
-                    if (IsWindowMaximized)
+                    if (_applicationContext.IsWindowMaximized)
                     {
                         RestoreWindow();
                     }

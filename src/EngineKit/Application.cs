@@ -35,15 +35,13 @@ public class Application : IApplication
     private Glfw.CursorEnterCallback? _cursorEnterLeaveCallback;
     private Glfw.CursorPositionCallback? _cursorPositionCallback;
     private Glfw.WindowSizeCallback? _windowSizeCallback;
-    private Glfw.CharCallback _windowCharCallback;
+    private Glfw.CharCallback? _windowCharCallback;
 
     private static bool _isFirstFrame = true;
     private bool _isCursorVisible;
 
     private readonly FrameTimeAverager _frameTimeAverager;
     private long _previousFrameTicks;
-    
-    protected bool IsWindowMaximized;
 
     protected Application(
         ILogger logger,
@@ -217,7 +215,7 @@ public class Application : IApplication
         monitorHandle = windowResizable || windowSettings.WindowMode == WindowMode.WindowedFullscreen
             ? nint.Zero
             : monitorHandle;
-
+        
         var glVersion = new Version(4, 5);
         if (!string.IsNullOrEmpty(_contextSettings.Value.TargetGLVersion))
         {
@@ -304,6 +302,7 @@ public class Application : IApplication
         _applicationContext.ScaledFramebufferSize = new Int2(
             (int)(framebufferWidth * _windowSettings.Value.ResolutionScale),
             (int)(framebufferHeight * _windowSettings.Value.ResolutionScale));
+        _applicationContext.IsWindowMaximized = false;
 
         if (Glfw.IsRawMouseMotionSupported())
         {
@@ -442,14 +441,14 @@ public class Application : IApplication
     {
         Glfw.MaximizeWindow(_windowHandle);
         
-        IsWindowMaximized = true;
+        _applicationContext.IsWindowMaximized = true;
     }
 
     protected void RestoreWindow()
     {
         Glfw.RestoreWindow(_windowHandle);
         
-        IsWindowMaximized = false;
+        _applicationContext.IsWindowMaximized = false;
     }
 
     protected virtual void OnKeyPressed(

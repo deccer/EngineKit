@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using SharpGLTF.Schema2;
 
-namespace EngineKit.Graphics.MeshLoaders;
+namespace EngineKit.MeshLoaders;
 
 public static class AccessorExtensions
 {

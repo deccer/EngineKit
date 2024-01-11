@@ -353,3 +353,4 @@ MigrationBackup/
 .idea/
 
 **/*[Aa]ssets/[Dd]ata/[Ss]cenes/
+!**/*[Aa]ssets/[Ss]haders/[Dd]ebug/

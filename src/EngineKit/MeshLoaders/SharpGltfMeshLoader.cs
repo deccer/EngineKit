@@ -4,13 +4,15 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using EngineKit.Graphics;
 using EngineKit.Mathematics;
 using Serilog;
-using SharpGLTF.Runtime;
 using SharpGLTF.Schema2;
 using SharpGLTF.Validation;
+using Material = EngineKit.Graphics.Material;
+using MeshPrimitive = EngineKit.Graphics.MeshPrimitive;
 
-namespace EngineKit.Graphics.MeshLoaders;
+namespace EngineKit.MeshLoaders;
 
 internal sealed class SharpGltfMeshLoader : IMeshLoader
 {
@@ -39,7 +41,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
     public IReadOnlyCollection<MeshPrimitive> LoadMeshPrimitivesFromFile(string filePath)
     {
-        var runtimeOptions = new RuntimeOptions().GpuMeshInstancing = MeshInstancing.SingleMesh;
+        var runtimeOptions = new ReadSettings().Validation = ValidationMode.Skip;
         var readSettings = new ReadSettings
         {
             Validation = ValidationMode.Skip,
@@ -63,14 +65,31 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
         }
 
         var meshPrimitives = new List<MeshPrimitive>(model.LogicalNodes.Count);
-        foreach (var node in model.LogicalNodes)
+        
+        var nodeStack = new Stack<ValueTuple<Node, Matrix4x4>>();
+        foreach (var rootNode in model.DefaultScene.VisualChildren)
         {
-            if (node.Mesh == null)
-            {
-                continue;
-            }
+            nodeStack.Push((rootNode, Matrix4x4.Identity));
+        }
 
-            ProcessNode(meshPrimitives, node, materials);
+        while (nodeStack.Any())
+        {
+            var (node, globalParentTransform) = nodeStack.Pop();
+            var localModelMatrix = node.WorldMatrix;
+            var globalModelMatrix = localModelMatrix * globalParentTransform;
+
+            if (node.VisualChildren.Any())
+            {
+                foreach (var childNode in node.VisualChildren)
+                {
+                    nodeStack.Push((childNode, globalModelMatrix));
+                }
+            }
+            
+            if (node.Mesh != null)
+            {
+                ProcessNode(meshPrimitives, node, materials);
+            }
         }
 
         _logger.Debug("{Category}: Loaded {PrimitiveCount} primitives from {FilePath}", nameof(SharpGltfMeshLoader),
@@ -263,10 +282,12 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 Debugger.Break();
             }
 
+            var emptyNormal = Vector3.Zero;
+
             for (var i = 0; i < positions.Length; i++)
             {
                 ref var position = ref positions[i];
-                ref var normal = ref normals[i];
+                ref var normal = ref normals[normals.Length == 1 ? 0 : i];
                 
                 var realTangentXyz = new Vector3(realTangents[i].X, realTangents[i].Y, realTangents[i].Z);
                 var realTangent = new Vector4(realTangentXyz, realTangents[i].W);

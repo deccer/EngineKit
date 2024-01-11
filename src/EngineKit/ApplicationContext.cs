@@ -30,6 +30,8 @@ internal sealed class ApplicationContext : IApplicationContext
     public Int2 FramebufferSize { get; set; }
 
     public Int2 ScaledFramebufferSize { get; set; }
+    
+    public bool IsWindowMaximized { get; set; }
 
     public bool ShowResizeInLog { get; set; }
     

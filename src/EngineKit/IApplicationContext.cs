@@ -17,4 +17,6 @@ public interface IApplicationContext
     bool IsLaunchedByNSightGraphicsOnLinux { get; }
     
     bool IsLaunchedByRenderDoc { get; }
+    
+    bool IsWindowMaximized { get; set; }
 }

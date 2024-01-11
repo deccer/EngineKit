@@ -61,27 +61,6 @@ public sealed class MeshPrimitive
 
     public bool HasIndices { get; private set; }
 
-    public int Stride
-    {
-        get
-        {
-            return VertexType switch
-            {
-                VertexType.Default => 0,
-                VertexType.Unknown => 0,
-                VertexType.Position => 12,
-                VertexType.PositionColor => 24,
-                VertexType.PositionColorUv => 32,
-                VertexType.PositionNormal => 24,
-                VertexType.PositionNormalUv => 32,
-                VertexType.PositionNormalUvTangent => 48,
-                VertexType.PositionUv => 20,
-                VertexType.ImGui => 20,
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }
-    }
-
     public MeshPrimitive(string meshName)
     {
         MeshName = meshName;
@@ -98,27 +77,6 @@ public sealed class MeshPrimitive
         HasIndices = false;
     }
 
-    public static MeshPrimitive Combine(params MeshPrimitive[] meshPrimitives)
-    {
-        var combinedMeshPrimitive = new MeshPrimitive(Guid.NewGuid().ToString());
-        combinedMeshPrimitive.VertexType = meshPrimitives.First().VertexType;
-
-        foreach (var meshPrimitive in meshPrimitives)
-        {
-            combinedMeshPrimitive._positions.AddRange(meshPrimitive._positions);
-            combinedMeshPrimitive._normals.AddRange(meshPrimitive._normals);
-            combinedMeshPrimitive._colors.AddRange(meshPrimitive._colors);
-            combinedMeshPrimitive._uvs.AddRange(meshPrimitive._uvs);
-            combinedMeshPrimitive._tangents.AddRange(meshPrimitive._tangents);
-            combinedMeshPrimitive._biTangents.AddRange(meshPrimitive._biTangents);
-            combinedMeshPrimitive._realTangents.AddRange(meshPrimitive._realTangents);
-            combinedMeshPrimitive._indices.AddRange(meshPrimitive._indices.Select(i => i));
-        }
-
-        return combinedMeshPrimitive;
-    }
-
-    //public Span<VertexPositionNormalUvTangent> GetVertices()
     public VertexPositionNormalUvTangent[] GetVertices()
     {
         if (!RealTangents.Any())
