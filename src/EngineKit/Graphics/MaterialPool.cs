@@ -67,7 +67,7 @@ internal sealed class MaterialPool : IMaterialPool
 
         if (!material.TexturesLoaded)
         {
-            //material.LoadTextures(_logger, _graphicsContext, _samplerLibrary, _textures, _capabilities.SupportsBindlessTextures);
+            material.LoadTextures(_logger, _graphicsContext, _samplerLibrary, _textures, _capabilities.SupportsBindlessTextures);
         }
 
         var gpuMaterial = new GpuMaterial

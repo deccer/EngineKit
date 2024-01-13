@@ -1,12 +1,10 @@
-using System.Numerics;
-using Complex.Windows;
+using System.Threading.Tasks;
+using Complex.States;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
-using EngineKit.Native.Glfw;
+using EngineKit.Messages;
 using EngineKit.Native.OpenGL;
-using EngineKit.UI;
-using ImGuiNET;
 using Microsoft.Extensions.Options;
 using Serilog;
 
@@ -16,18 +14,11 @@ internal sealed class ComplexApplication : GraphicsApplication
 {
     private readonly ILogger _logger;
     private readonly IApplicationContext _applicationContext;
-    private readonly ICapabilities _capabilities;
-    private readonly IMetrics _metrics;
     private readonly IModelLibrary _modelLibrary;
     private readonly ICamera _camera;
     private readonly IScene _scene;
     private readonly IRenderer _renderer;
-    private readonly AssetWindow _assetWindow;
-    private readonly SceneHierarchyWindow _sceneHierarchyWindow;
-    private readonly SceneViewWindow _sceneViewWindow;
-    private readonly PropertyWindow _propertyWindow;
-
-    private SwapchainDescriptor _swapchainDescriptor;
+    private readonly ILayeredProgramStates _layeredProgramStates;
 
     public ComplexApplication(
         ILogger logger,
@@ -43,10 +34,8 @@ internal sealed class ComplexApplication : GraphicsApplication
         ICamera camera,
         IScene scene,
         IRenderer renderer,
-        AssetWindow assetWindow,
-        SceneHierarchyWindow sceneHierarchyWindow,
-        SceneViewWindow sceneViewWindow,
-        PropertyWindow propertyWindow)
+        IMessageBus messageBus,
+        ILayeredProgramStates layeredProgramStates)
         : base(
             logger,
             windowSettings,
@@ -56,22 +45,22 @@ internal sealed class ComplexApplication : GraphicsApplication
             metrics,
             inputProvider,
             graphicsContext,
-            uiRenderer)
+            uiRenderer,
+            messageBus)
     {
         _logger = logger;
         _applicationContext = applicationContext;
-        _capabilities = capabilities;
-        _metrics = metrics;
         _modelLibrary = modelLibrary;
         _camera = camera;
         _camera.Sensitivity = 0.125f;
         _camera.Mode = CameraMode.PerspectiveInfinity;
         _scene = scene;
         _renderer = renderer;
-        _assetWindow = assetWindow;
-        _sceneHierarchyWindow = sceneHierarchyWindow;
-        _sceneViewWindow = sceneViewWindow;
-        _propertyWindow = propertyWindow;
+        _layeredProgramStates = layeredProgramStates;
+        
+        messageBus.Subscribe<CloseWindowMessage>(OnCloseWindowMessage);
+        messageBus.Subscribe<MaximizeWindowMessage>(OnMaximizeWindowMessage);
+        messageBus.Subscribe<RestoreWindowMessage>(OnRestoreWindowMessage);        
     }
     
     protected override bool Initialize()
@@ -82,6 +71,9 @@ internal sealed class ComplexApplication : GraphicsApplication
         }
         
         SetWindowIcon("enginekit-icon.png");
+
+        _layeredProgramStates.ComposeLayeredState("Editor", [nameof(GameProgramState), nameof(EditorProgramState)]);
+        _layeredProgramStates.SwitchToState("Editor");
 
         return true;
     }
@@ -99,11 +91,26 @@ internal sealed class ComplexApplication : GraphicsApplication
             return false;
         }
 
+        /*
         _modelLibrary.AddModelFromFile("SM_Scene", "Data/Props/Scene/Scene.glb");
         _modelLibrary.AddModelFromFile("SM_Hierarchy", "Data/Props/Scene/Hierarchy.gltf");
         _modelLibrary.AddModelFromFile("SM_Deccer_Cubes", "Data/Default/SM_Deccer_Cubes_Textured.gltf");
-        _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_Complex", "Data/Default/SM_Deccer_Cubes_Textured_Complex.gltf");
         _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_WR", "Data/Default/SM_Deccer_Cubes_With_Rotation.glb");
+        */
+
+        _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_Complex", "Data/Default/SM_Deccer_Cubes_Textured_Complex.gltf");
+        _modelLibrary.AddModelFromFile("Blender_PositionNormal", "Data/Default/Blender_Cube_PositionNormal.glb");
+        _modelLibrary.AddModelFromFile("Blender_PositionNormalUv", "Data/Default/Blender_Cube_PositionNormalUv.glb");
+        _modelLibrary.AddModelFromFile("Blender_PositionNormalUvTangent", "Data/Default/Blender_Cube_PositionNormalUvTangent.glb");
+        
+        _modelLibrary.AddModelFromFile("Asteroid1", "Data/Props/Asteroids/asteroid1.glb");
+        _modelLibrary.AddModelFromFile("Asteroid2", "Data/Props/Asteroids/asteroid2.glb");
+        _modelLibrary.AddModelFromFile("Asteroid LP", "Data/Props/Asteroids/asteroid_low_poly_3d_model.glb");
+        _modelLibrary.AddModelFromFile("Nasa1", "Data/Props/Asteroids/nasa1.glb");
+        _modelLibrary.AddModelFromFile("Nasa2", "Data/Props/Asteroids/nasa2.glb");
+        _modelLibrary.AddModelFromFile("Nasa3", "Data/Props/Asteroids/nasa3.glb");
+        _modelLibrary.AddModelFromFile("Nasa4", "Data/Props/Asteroids/nasa4.glb");
+        _modelLibrary.AddModelFromFile("FromSpace", "Data/Props/Asteroids/rock_from_space.glb");
         //_modelLibrary.AddModelFromFile("E1M1", "Data/Scenes/E1M1/E1M1.gltf");
         //_modelLibrary.AddModelFromFile("SmallCity", "Data/Scenes/small_city/small_city.gltf");
         
@@ -114,22 +121,20 @@ internal sealed class ComplexApplication : GraphicsApplication
         _modelLibrary.AddModelFromFile("SM_IntelSponzaIvy", "Data/Scenes/IntelSponzaIvy/NewSponza_IvyGrowth_glTF.gltf");
         _modelLibrary.AddModelFromFile("SM_IntelSponzaTree", "Data/Scenes/IntelSponzaTree/NewSponza_CypressTree_glTF.gltf");
         _modelLibrary.AddModelFromFile("SM_IntelSponzaCandles", "Data/Scenes/IntelSponzaCandles/NewSponza_4_Combined_glTF.gltf");
-*/        
+*/
 
-        _swapchainDescriptor = new SwapchainDescriptorBuilder()
-            .EnableSrgb()
-            .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
-            .Build("Swapchain");
-       
+        if (!_layeredProgramStates.Load())
+        {
+            return false;
+        }
+        
         return true;
     }
 
-    protected override void Render(float deltaTime, float elapsedMilliseconds)
+    protected override void Render(float deltaTime, float elapsedSeconds)
     {
-        _renderer.Render(_camera);
-        GraphicsContext.BeginRenderPass(_swapchainDescriptor);
-        RenderUI();
-        GraphicsContext.EndRenderPass();
+        _layeredProgramStates.Render(deltaTime, elapsedSeconds);
+
         if (_applicationContext.IsLaunchedByNSightGraphicsOnLinux)
         {
             GL.Finish();
@@ -142,58 +147,16 @@ internal sealed class ComplexApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update(float deltaTime, float elapsedMilliseconds)
+    protected override void Update(float deltaTime, float elapsedSeconds)
     {
-        base.Update(deltaTime, elapsedMilliseconds);
-        if (IsKeyPressed(Glfw.Key.KeyEscape))
-        {
-            Close();
-        }
-        _scene.Update(deltaTime);
+        base.Update(deltaTime, elapsedSeconds);
 
-        if (IsMousePressed(Glfw.MouseButton.ButtonRight))
-        {
-            _camera.ProcessMouseMovement();
-        }
-
-        var movement = Vector3.Zero;
-        var speedFactor = 100.0f;
-        if (IsKeyPressed(Glfw.Key.KeyW))
-        {
-            movement += _camera.Direction;
-        }
-        if (IsKeyPressed(Glfw.Key.KeyS))
-        {
-            movement -= _camera.Direction;
-        }
-        if (IsKeyPressed(Glfw.Key.KeyA))
-        {
-            movement += -_camera.Right;
-        }
-        if (IsKeyPressed(Glfw.Key.KeyD))
-        {
-            movement += _camera.Right;
-        }
-
-        movement = Vector3.Normalize(movement);
-        if (IsKeyPressed(Glfw.Key.KeyLeftShift))
-        {
-            movement *= speedFactor;
-        }
-        if (movement.Length() > 0.0f)
-        {
-            _camera.ProcessKeyboard(movement, 1 / 60.0f);
-        }        
+        _layeredProgramStates.Update(deltaTime, elapsedSeconds);
     }
 
     protected override void FramebufferResized()
     {
         base.FramebufferResized();
-        
-        _swapchainDescriptor = new SwapchainDescriptorBuilder()
-            .EnableSrgb()
-            .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
-            .Build("Swapchain");
         
         _renderer.ResizeFramebufferDependentResources();
     }
@@ -203,69 +166,21 @@ internal sealed class ComplexApplication : GraphicsApplication
         breakOnError = true;
     }
 
-    private void RenderUI()
+    private Task OnCloseWindowMessage(CloseWindowMessage message)
     {
-        UIRenderer.BeginLayout();
-        if (ImGui.BeginMainMenuBar())
-        {
-            if (ImGui.BeginMenuBar())
-            {
-                if (ImGui.BeginMenu("File"))
-                {
-                    if (ImGui.MenuItem("Quit"))
-                    {
-                        Close();
-                    }
-                    ImGui.EndMenu();
-                }
+        Close();
+        return Task.CompletedTask;
+    }
 
-                var isNvidia = _capabilities.SupportsNvx;
-                if (isNvidia)
-                {
-                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 416, 0));
-                    ImGui.TextUnformatted($"video memory: {_capabilities.GetCurrentAvailableGpuMemoryInMebiBytes()} MiB");
-                    ImGui.SameLine();
-                }
-                else
-                {
-                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 256, 0));
-                }
+    private Task OnMaximizeWindowMessage(MaximizeWindowMessage message)
+    {
+        MaximizeWindow();
+        return Task.CompletedTask;
+    }
 
-                ImGui.TextUnformatted($"avg frame time: {_metrics.AverageFrameTime:F2} ms");
-                ImGui.SameLine();
-                ImGui.Button(MaterialDesignIcons.WindowMinimize);
-                ImGui.SameLine();
-                if (ImGui.Button(IsWindowMaximized ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
-                {
-                    if (IsWindowMaximized)
-                    {
-                        RestoreWindow();
-                    }
-                    else
-                    {
-                        MaximizeWindow();
-                    }
-                }
-                ImGui.SameLine();
-                if (ImGui.Button(MaterialDesignIcons.WindowClose))
-                {
-                    Close();
-                }
-
-                ImGui.EndMenuBar();
-            }
-
-            ImGui.EndMainMenuBar();
-        }
-        
-        _assetWindow.Draw();
-        _sceneHierarchyWindow.Draw();
-        _sceneViewWindow.Draw();
-        _propertyWindow.Draw();
-
-        _renderer.RenderUI();
-        
-        UIRenderer.ShowDemoWindow();
-        UIRenderer.EndLayout();
+    private Task OnRestoreWindowMessage(RestoreWindowMessage message)
+    {
+        RestoreWindow();
+        return Task.CompletedTask;
     }
 }

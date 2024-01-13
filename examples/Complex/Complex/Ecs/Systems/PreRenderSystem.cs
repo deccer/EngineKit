@@ -1,9 +1,7 @@
-using System.Numerics;
 using System.Runtime.InteropServices;
 using Complex.Ecs.Components;
 using EngineKit;
 using EngineKit.Graphics;
-using EngineKit.Mathematics;
 
 namespace Complex.Ecs.Systems;
 
@@ -43,7 +41,7 @@ internal class PreRenderSystem : IPreRenderSystem
             _renderer.Clear();
         }
 
-        var cameraFrustum = new BoundingFrustum(_camera.ViewMatrix * _camera.ProjectionMatrix);
+        var cameraFrustum = _camera.GetViewFrustum();
 
         for (var i = 0; i < meshEntities.Count; i++)
         {

@@ -117,9 +117,9 @@ public class Application : IApplication
             _frameTimeAverager.AddTime(deltaMilliseconds);
             _metrics.AverageFrameTime = _frameTimeAverager.CurrentAverageFrameTime;
 
-            var elapsedMilliseconds = (float)stopwatch.ElapsedMilliseconds;
-            Render(deltaSeconds, elapsedMilliseconds);
-            Update(deltaSeconds, elapsedMilliseconds);
+            var elapsedSeconds = (float)stopwatch.Elapsed.TotalSeconds;
+            Render(deltaSeconds, elapsedSeconds);
+            Update(deltaSeconds, elapsedSeconds);
 
             _inputProvider.MouseState.Center();
             Glfw.PollEvents();
@@ -357,7 +357,7 @@ public class Application : IApplication
         return true;
     }
 
-    protected virtual void Render(float deltaTime, float elapsedMilliseconds)
+    protected virtual void Render(float deltaTime, float elapsedSeconds)
     {
     }
 
@@ -366,7 +366,7 @@ public class Application : IApplication
         UnbindCallbacks();
     }
 
-    protected virtual void Update(float deltaTime, float elapsedMilliseconds)
+    protected virtual void Update(float deltaTime, float elapsedSeconds)
     {
     }
 

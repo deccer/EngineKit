@@ -39,6 +39,8 @@ internal class ForwardRenderer : IRenderer
 
     private Vector3 _uColor;
 
+    private bool _isLoaded;
+
     public bool ShowAaBb = false;
 
     public ForwardRenderer(
@@ -58,8 +60,18 @@ internal class ForwardRenderer : IRenderer
         _aabbCounter = 0;
     }
 
+    public FramebufferDescriptor GetMainFrameDescriptor()
+    {
+        return _forwardRenderPass;
+    }
+
     public bool Load()
     {
+        if (_isLoaded)
+        {
+            return _isLoaded;
+        }
+        
         _meshPool = _graphicsContext.CreateMeshPool("Vertices", 10_000_000, 7_500_000);
         _vertexBuffer = _meshPool.VertexBuffer;
         _indexBuffer = _meshPool.IndexBuffer;
@@ -117,6 +129,8 @@ internal class ForwardRenderer : IRenderer
         _lineRendererGraphicsPipeline = lineRendererGraphicsPipelineResult.Value;        
 
         CreateFramebufferDependentResources();
+        
+        _isLoaded = true;
 
         return true;
     }
@@ -152,7 +166,7 @@ internal class ForwardRenderer : IRenderer
 
         if (ShowAaBb && _aabbCounter <= _maxAabbCount)
         {
-            AddAabbLines(transformedMeshAabb);
+            AddDebugLinesForBoundingBox(transformedMeshAabb);
         }
 
         _meshInstanceCount++;
@@ -188,11 +202,13 @@ internal class ForwardRenderer : IRenderer
             _lineRendererGraphicsPipeline.DrawArrays(24 * _aabbCounter, Offset.Zero);
         }
         
+        /*
         _graphicsContext.BlitFramebufferToSwapchain(
             _applicationContext.ScaledFramebufferSize.X,
             _applicationContext.ScaledFramebufferSize.Y,
             _applicationContext.FramebufferSize.X,
             _applicationContext.FramebufferSize.Y);
+            */
         _graphicsContext.EndRenderPass();        
     }
 
@@ -232,7 +248,7 @@ internal class ForwardRenderer : IRenderer
         CreateFramebufferDependentResources();
     }
 
-    private void AddAabbLines(BoundingBox boundingBox)
+    private void AddDebugLinesForBoundingBox(BoundingBox boundingBox)
     {
         var nearColor = Colors.Orange.ToVector3();
         var farColor = Colors.DarkOrange.ToVector3();
@@ -248,8 +264,8 @@ internal class ForwardRenderer : IRenderer
         var farTopLeft = bbCorners[6];
         var farBottomLeft = bbCorners[7];
 
-        var vertices = new[]
-        {
+        VertexPositionColor[] vertices =
+        [
             new VertexPositionColor(nearBottomRight, nearColor),
             new VertexPositionColor(nearTopRight, nearColor),
 
@@ -262,7 +278,7 @@ internal class ForwardRenderer : IRenderer
             new VertexPositionColor(nearBottomLeft, nearColor),
             new VertexPositionColor(nearBottomRight, nearColor),
 
-            
+
             new VertexPositionColor(nearBottomRight, nearColor),
             new VertexPositionColor(farBottomRight, farColor),
 
@@ -288,7 +304,7 @@ internal class ForwardRenderer : IRenderer
 
             new VertexPositionColor(farBottomLeft, farColor),
             new VertexPositionColor(farBottomRight, farColor)
-        };
+        ];
         
         _lineVertexBuffer!.UpdateElements(vertices, _aabbCounter * 24);
         _aabbCounter++;
@@ -308,7 +324,7 @@ internal class ForwardRenderer : IRenderer
             "ForwardDepthAttachment");
         
         _forwardRenderPass = _graphicsContext.GetFramebufferDescriptorBuilder()
-            .WithColorAttachment(_forwardRenderPassColorAttachment, true, MathHelper.GammaToLinear(Colors.DarkSlateBlue))
+            .WithColorAttachment(_forwardRenderPassColorAttachment, true, Colors.DarkSlateBlue)//MathHelper.GammaToLinear(Colors.DarkSlateBlue))
             .WithDepthAttachment(_forwardRenderPassDepthAttachment, true, 0)
             .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
             .Build("ForwardRenderPass");

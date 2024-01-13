@@ -58,7 +58,8 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer,
         IMeshLoader meshLoader,
-        ICamera camera)
+        ICamera camera,
+        IMessageBus messageBus)
         : base(
             logger,
             windowSettings,
@@ -68,7 +69,8 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             metrics,
             inputProvider,
             graphicsContext,
-            uiRenderer)
+            uiRenderer,
+            messageBus)
     {
         _logger = logger;
         _applicationContext = applicationContext;
@@ -167,19 +169,21 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
         _gpuMaterialBuffer = GraphicsContext.CreateTypedBuffer<GpuMaterial>("Materials", (uint)_gpuMaterials.Count, BufferStorageFlags.DynamicStorage);
         _gpuMaterialBuffer.UpdateElements(_gpuMaterials.ToArray(), 0);
+        
+        _camera.AdvanceSimulation(0.0f);
 
         return true;
     }
 
-    protected override void Render(float deltaTime, float elapsedMilliseconds)
+    protected override void Render(float deltaTime, float elapsedSeconds)
     {
         _gpuModelMeshInstances = _modelMeshInstances.Select((mm, index) =>
         {
             var rotationMatrix = index switch 
             {
-                0 => Matrix4x4.CreateRotationX(0.0010f * elapsedMilliseconds),
-                1 => Matrix4x4.CreateRotationZ(0.0005f * elapsedMilliseconds),
-                2 => Matrix4x4.CreateRotationY(0.0020f * elapsedMilliseconds),                
+                0 => Matrix4x4.CreateRotationX(1.0f * elapsedSeconds),
+                1 => Matrix4x4.CreateRotationZ(0.5f * elapsedSeconds),
+                2 => Matrix4x4.CreateRotationY(2.0f * elapsedSeconds),                
                 _ => Matrix4x4.Identity
             };
             
@@ -229,10 +233,10 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
     protected override void FramebufferResized()
     {
         base.FramebufferResized();
-        _swapchainDescriptor = new SwapchainDescriptorBuilder()
+        _swapchainDescriptor = GraphicsContext.GetSwapchainDescriptorBuilder()
             .ClearColor(MathHelper.GammaToLinear(Colors.DarkSlateBlue))
-            .ClearDepth()
-            .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
+            .ClearDepth(1.0f)
+            .WithFramebufferSizeAsViewport()
             .Build("Swapchain");
     }
 
@@ -256,15 +260,15 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         breakOnError = true;
     }
 
-    protected override void Update(float deltaTime, float elapsedMilliseconds)
+    protected override void Update(float deltaTime, float elapsedSeconds)
     {
-        base.Update(deltaTime, elapsedMilliseconds);
+        base.Update(deltaTime, elapsedSeconds);
 
         if (IsMousePressed(Glfw.MouseButton.ButtonRight))
         {
             _camera.ProcessMouseMovement();
         }
-        _camera.ProcessKeyboard(Vector3.Zero, deltaTime);
+        _camera.ProcessKeyboard();
 
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
@@ -354,10 +358,10 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
     private bool LoadRenderDescriptors()
     {
-        _swapchainDescriptor = new SwapchainDescriptorBuilder()
+        _swapchainDescriptor = GraphicsContext.GetSwapchainDescriptorBuilder()
             .ClearColor(MathHelper.GammaToLinear(Colors.DarkSlateBlue))
-            .ClearDepth()
-            .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
+            .ClearDepth(1.0f)
+            .WithFramebufferSizeAsViewport()
             .Build("Swapchain");
 
         return true;

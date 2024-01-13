@@ -4,7 +4,7 @@ using BepuPhysics;
 using BepuUtilities;
 using BepuUtilities.Memory;
 
-namespace Complex;
+namespace Complex.Physics;
 
 internal class PhysicsWorld : IPhysicsWorld
 {

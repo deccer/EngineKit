@@ -29,7 +29,8 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         IMetrics metrics,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
-        IUIRenderer uiRenderer)
+        IUIRenderer uiRenderer,
+        IMessageBus messageBus)
         : base(
             logger,
             windowSettings,
@@ -39,7 +40,8 @@ internal sealed class HelloWindowApplication : GraphicsApplication
             metrics,
             inputProvider,
             graphicsContext,
-            uiRenderer)
+            uiRenderer,
+            messageBus)
     {
         _logger = logger;
         _applicationContext = applicationContext;
@@ -72,7 +74,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render(float deltaTime, float elapsedMilliseconds)
+    protected override void Render(float deltaTime, float elapsedSeconds)
     {
         GL.Clear(GL.FramebufferBit.ColorBufferBit | GL.FramebufferBit.DepthBufferBit);
 
@@ -142,9 +144,9 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update(float deltaTime, float elapsedMilliseconds)
+    protected override void Update(float deltaTime, float elapsedSeconds)
     {
-        base.Update(deltaTime, elapsedMilliseconds);
+        base.Update(deltaTime, elapsedSeconds);
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();

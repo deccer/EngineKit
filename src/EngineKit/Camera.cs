@@ -2,20 +2,16 @@
 using System.Numerics;
 using EngineKit.Input;
 using EngineKit.Mathematics;
+using EngineKit.Native.Glfw;
 
 namespace EngineKit;
 
 public sealed class Camera : ICamera
 {
-    public float Speed { get; set; } = 1.2f;
-
-    public float Sensitivity { get; set; } = 0.5f;
-
-    public float Zoom { get; set; } = 45.0f;
-
     private readonly IApplicationContext _applicationContext;
     private readonly IInputProvider _inputProvider;
     private readonly Vector3 _worldUp;
+
     private Vector3 _position = Vector3.Zero;
     private Vector3 _front;
     private Vector3 _up;
@@ -26,6 +22,14 @@ public sealed class Camera : ICamera
 
     private CameraMode _cameraMode;
 
+    public float Zoom { get; set; } = 45.0f;
+    
+    public float Sensitivity { get; set; } = 0.5f;
+    
+    public float KeyboardAccelerationBoost { get; set; } = 30.0f;
+
+    public float OptionalBoost { get; set; } = 6.0f;
+    
     public Matrix4x4 ViewMatrix { get; private set; }
 
     public Matrix4x4 ProjectionMatrix { get; private set; }
@@ -35,6 +39,8 @@ public sealed class Camera : ICamera
     public float NearPlane { get; set; }
 
     public float FarPlane { get; set; }
+    
+    public Vector3 Velocity { get; set; }
 
     public Vector3 Position
     {
@@ -101,13 +107,43 @@ public sealed class Camera : ICamera
         return new BoundingFrustum(ViewMatrix * ProjectionMatrix);
     }
 
-    public void ProcessKeyboard(Vector3 movement, float deltaTime)
-    {
-        var velocity = Speed * deltaTime;
-        _position += movement * velocity;
-        UpdateCameraVectors();
-    }
+    private Vector3 _acceleration;
 
+    public void ProcessKeyboard()
+    {
+        if (_inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyW))
+        {
+            _acceleration += Direction * KeyboardAccelerationBoost;
+        }
+
+        if (_inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyS))
+        {
+            _acceleration -= Direction * KeyboardAccelerationBoost;
+        }
+
+        if (_inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyA))
+        {
+            _acceleration -= Right * KeyboardAccelerationBoost;
+        }
+
+        if (_inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyD))
+        {
+            _acceleration += Right * KeyboardAccelerationBoost;
+        }
+
+        if (_inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyLeftShift) ||
+            _inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyRightShift))
+        {
+            _acceleration *= OptionalBoost;
+        }
+        
+        if (_inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyLeftCtrl) ||
+            _inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyRightCtrl))
+        {
+            _acceleration *= 1.0f / OptionalBoost;
+        }
+    }
+    
     public void ProcessMouseMovement()
     {
         _yaw -= -_inputProvider.MouseState.DeltaX * Sensitivity;
@@ -115,6 +151,23 @@ public sealed class Camera : ICamera
         _pitch = _pitch.Clamp(-89.0f, 89.0f);
 
         UpdateCameraVectors();
+    }
+    
+    public void AdvanceSimulation(float deltaTime)
+    {
+        Position += deltaTime * Velocity + 0.5f * _acceleration * deltaTime * deltaTime;
+        Velocity += _acceleration * deltaTime;
+
+        if (Velocity.Length() < 9.0f * deltaTime)
+        {
+            Velocity = new Vector3(0.0f);
+        }
+
+        const float dragConstant = 0.95f;
+        var drag = MathF.Log10(dragConstant) * 144.0f;
+        Velocity *= MathF.Exp(drag * deltaTime);
+
+        _acceleration = Vector3.Zero;
     }
 
     public void Resize()

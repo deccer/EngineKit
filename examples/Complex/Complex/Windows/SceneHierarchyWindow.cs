@@ -1,3 +1,4 @@
+using System.Numerics;
 using Complex.Ecs;
 using Complex.Ecs.Components;
 using EngineKit.UI;
@@ -15,13 +16,17 @@ public class SceneHierarchyWindow : Window
     private readonly EntityId _rootEntityId;
     private readonly Entity? _rootEntity;
 
-    public SceneHierarchyWindow(IEntityWorld world, IScene scene, PropertyWindow propertyWindow)
+    public SceneHierarchyWindow(
+        IEntityWorld world,
+        IScene scene,
+        PropertyWindow propertyWindow)
     {
         _world = world;
         _scene = scene;
         _propertyWindow = propertyWindow;
 
-        Caption = $"{MaterialDesignIcons.Tree} Scene";
+        Caption = $"{MaterialDesignIcons.Tree} Hierarchy";
+        OverwriteStyle = true;
 
         _rootEntityId = _scene.GetRoot();
         _rootEntity = _world.GetEntity(_rootEntityId);
@@ -63,6 +68,16 @@ public class SceneHierarchyWindow : Window
             
             ImGui.TreePop();
         }
+    }
+    
+    protected override void SetStyleInternal()
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+    }
+
+    protected override void UnsetStyleInternal()
+    {
+        ImGui.PopStyleVar();
     }
 
     private void DrawChild(Entity child)

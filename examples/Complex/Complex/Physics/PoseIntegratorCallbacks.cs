@@ -2,7 +2,7 @@ using System.Numerics;
 using BepuPhysics;
 using BepuUtilities;
 
-namespace Complex;
+namespace Complex.Physics;
 
 public struct PoseIntegratorCallbacks : IPoseIntegratorCallbacks
 {

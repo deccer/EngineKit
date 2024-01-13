@@ -21,10 +21,11 @@ internal sealed class GraphicsContext : IGraphicsContext
     private readonly IFramebufferCache _framebufferCache;
     private readonly ICapabilities _capabilities;
     private readonly IImageLoader _imageLoader;
-    private readonly IDictionary<IPipeline, GraphicsPipelineDescriptor> _graphicsPipelineCache;
-    private readonly IDictionary<IPipeline, ComputePipelineDescriptor> _computePipelineCache;
-    private readonly IDictionary<int, IInputLayout> _inputLayoutCache;
-    private readonly IFramebufferDescriptorBuilder _framebufferDescriptorBuilder;
+    private readonly Dictionary<IPipeline, GraphicsPipelineDescriptor> _graphicsPipelineCache;
+    private readonly Dictionary<IPipeline, ComputePipelineDescriptor> _computePipelineCache;
+    private readonly Dictionary<int, IInputLayout> _inputLayoutCache;
+    private readonly FramebufferDescriptorBuilder _framebufferDescriptorBuilder;
+    private readonly SwapchainDescriptorBuilder _swapchainDescriptorBuilder;
     private uint? _currentFramebuffer;
     private bool _srgbWasDisabled;
     private Viewport _currentViewport;
@@ -36,7 +37,8 @@ internal sealed class GraphicsContext : IGraphicsContext
         IShaderProgramFactory shaderProgramFactory,
         IFramebufferCache framebufferCache,
         ICapabilities capabilities,
-        IImageLoader imageLoader)
+        IImageLoader imageLoader,
+        IApplicationContext applicationContext)
     {
         _logger = logger.ForContext<GraphicsContext>();
         _shaderProgramFactory = shaderProgramFactory;
@@ -47,6 +49,7 @@ internal sealed class GraphicsContext : IGraphicsContext
         _computePipelineCache = new Dictionary<IPipeline, ComputePipelineDescriptor>(16);
         _inputLayoutCache = new Dictionary<int, IInputLayout>(16);
         _framebufferDescriptorBuilder = new FramebufferDescriptorBuilder();
+        _swapchainDescriptorBuilder = new SwapchainDescriptorBuilder(applicationContext);
     }
 
     public void Dispose()
@@ -387,6 +390,11 @@ internal sealed class GraphicsContext : IGraphicsContext
     public IFramebufferDescriptorBuilder GetFramebufferDescriptorBuilder()
     {
         return _framebufferDescriptorBuilder.Reset();
+    }
+
+    public ISwapchainDescriptorBuilder GetSwapchainDescriptorBuilder()
+    {
+        return _swapchainDescriptorBuilder.Reset();
     }
     
     public FramebufferDescriptor CreateSingleFramebufferDescriptorFromTexture(ITexture texture)

@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
 using Complex.Ecs;
 using Complex.Ecs.Systems;
+using Complex.Physics;
+using Complex.States;
 using Complex.Windows;
 using EngineKit;
 using EngineKit.Extensions;
@@ -53,8 +55,13 @@ internal static class Program
         services.AddSingleton<SceneViewWindow>();
         services.AddSingleton<PropertyWindow>();
         
-        services.AddSingleton<IAssetLoader, AssetLoader>();
         services.AddSingleton<IScene, Scene>();
+
+        services.AddSingleton<IProgramState, GameProgramState>();
+        services.AddSingleton<IProgramState, MenuProgramState>();
+        services.AddSingleton<IProgramState, EditorProgramState>();
+        services.AddSingleton<ILayeredProgramStates, LayeredProgramStates>();
+        
         return services.BuildServiceProvider();
     }
 }

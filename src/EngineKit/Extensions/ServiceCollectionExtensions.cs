@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IApplicationContext, ApplicationContext>();
         services.AddSingleton<ICapabilities, Capabilities>();
         services.AddSingleton<IMetrics, Metrics>();
+        services.AddSingleton<IMessageBus, MessageBus>();
 
         services.AddSingleton<IFramebufferCache, FramebufferCache>();
         services.AddSingleton<IShaderProgramFactory, ShaderProgramFactory>();

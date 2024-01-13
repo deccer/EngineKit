@@ -72,7 +72,8 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         IUIRenderer uiRenderer,
         ICamera camera,
         IMeshLoader meshLoader,
-        IMaterialLibrary materialLibrary)
+        IMaterialLibrary materialLibrary,
+        IMessageBus messageBus)
         : base(
             logger,
             windowSettings,
@@ -82,7 +83,8 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             metrics,
             inputProvider,
             graphicsContext,
-            uiRenderer)
+            uiRenderer,
+            messageBus)
     {
         _logger = logger;
         _applicationContext = applicationContext;
@@ -147,7 +149,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render(float deltaTime, float elapsedMilliseconds)
+    protected override void Render(float deltaTime, float elapsedSeconds)
     {
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
         _gpuCameraConstantsBuffer!.UpdateElement(_gpuCameraConstants, Offset.Zero);
@@ -288,9 +290,9 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update(float deltaTime, float elapsedMilliseconds)
+    protected override void Update(float deltaTime, float elapsedSeconds)
     {
-        base.Update(deltaTime, elapsedMilliseconds);
+        base.Update(deltaTime, elapsedSeconds);
 
         if (IsMousePressed(Glfw.MouseButton.ButtonRight))
         {
@@ -328,7 +330,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         }
         if (movement.Length() > 0.0f)
         {
-            _camera.ProcessKeyboard(movement, 1 / 60.0f);
+            _camera.ProcessKeyboard();
         }
     }
 
@@ -461,9 +463,9 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     private void CreateSwapchainDescriptor()
     {
-        _swapchainDescriptor = new SwapchainDescriptorBuilder()
-            .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
+        _swapchainDescriptor = GraphicsContext.GetSwapchainDescriptorBuilder()
             .ClearColor(MathHelper.GammaToLinear(Colors.DarkSlateBlue))
+            .WithFramebufferSizeAsViewport()
             .Build("Swapchain");
     }
 

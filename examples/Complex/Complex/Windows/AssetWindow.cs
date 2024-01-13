@@ -28,17 +28,18 @@ public class AssetWindow : Window
         _sceneHierarchyWindow = sceneHierarchyWindow;
 
         Caption = $"{MaterialDesignIcons.ViewDashboard} Assets";
+        OverwriteStyle = true;
     }
 
     protected override void DrawInternal()
     {
         var modelNames = _modelLibrary.GetModelNames();
 
-        if (ImGui.BeginTable("Assets", 3, ImGuiTableFlags.RowBg))
+        if (ImGui.BeginTable("Assets", 2, ImGuiTableFlags.RowBg))
         {
             ImGui.TableSetupColumn("Model", ImGuiTableColumnFlags.NoSort);
-            ImGui.TableSetupColumn("Mesh", ImGuiTableColumnFlags.NoSort);
-            ImGui.TableSetupColumn("Instantiate", ImGuiTableColumnFlags.NoSort | ImGuiTableColumnFlags.WidthFixed, 32);
+            //ImGui.TableSetupColumn("Mesh", ImGuiTableColumnFlags.NoSort);
+            ImGui.TableSetupColumn("Instantiate",  ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.NoSort | ImGuiTableColumnFlags.WidthFixed, 32);
             ImGui.TableHeadersRow();
 
             foreach (var modelName in modelNames)
@@ -52,7 +53,7 @@ public class AssetWindow : Window
                 ImGui.TableSetColumnIndex(0);
                 var isExpanded = ImGui.TreeNodeEx(model!.Name);
                 
-                ImGui.TableSetColumnIndex(2);
+                ImGui.TableSetColumnIndex(1);
                 if (ImGui.Button($"{MaterialDesignIcons.Plus}"))
                 {
                     _scene.AddEntityWithModelRenderer(model.Name, _sceneHierarchyWindow.SelectedEntityId, model, Matrix4x4.Identity);
@@ -67,7 +68,7 @@ public class AssetWindow : Window
                         ImGui.PushID(modelMesh.Name);
                         ImGui.TableSetColumnIndex(0);
                         ImGui.TextUnformatted(modelMesh.Name);
-                        ImGui.TableSetColumnIndex(2);
+                        ImGui.TableSetColumnIndex(1);
                         if (ImGui.Button($"{MaterialDesignIcons.Plus}"))
                         {
                             _scene.AddEntityWithModelMeshRenderer(modelMesh.Name, _sceneHierarchyWindow.SelectedEntityId, modelMesh, Matrix4x4.Identity);
@@ -83,5 +84,15 @@ public class AssetWindow : Window
             
             ImGui.EndTable();
         }
+    }
+
+    protected override void SetStyleInternal()
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+    }
+
+    protected override void UnsetStyleInternal()
+    {
+        ImGui.PopStyleVar();
     }
 }

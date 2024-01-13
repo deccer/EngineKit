@@ -1,6 +1,7 @@
 using System.Numerics;
 using EngineKit.Graphics;
 using EngineKit.Input;
+using EngineKit.Messages;
 using EngineKit.Native.OpenGL;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -12,6 +13,7 @@ public abstract class GraphicsApplication : Application
     private readonly ILogger _logger;
 
     private readonly IApplicationContext _applicationContext;
+    private readonly IMessageBus _messageBus;
 
     protected IGraphicsContext GraphicsContext { get; }
     protected IUIRenderer UIRenderer { get; }
@@ -25,11 +27,13 @@ public abstract class GraphicsApplication : Application
         IMetrics metrics,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
-        IUIRenderer uiRenderer)
+        IUIRenderer uiRenderer,
+        IMessageBus messageBus)
         : base(logger, windowSettings, contextSettings, applicationContext, capabilities, metrics, inputProvider)
     {
         _logger = logger;
         _applicationContext = applicationContext;
+        _messageBus = messageBus;
         GraphicsContext = graphicsContext;
         UIRenderer = uiRenderer;
     }
@@ -37,6 +41,7 @@ public abstract class GraphicsApplication : Application
     protected override void FramebufferResized()
     {
         base.FramebufferResized();
+        _messageBus.PublishWait(new FramebufferResizedMessage());
         UIRenderer.WindowResized(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y);
     }
 
@@ -74,7 +79,7 @@ public abstract class GraphicsApplication : Application
         base.Unload();
     }
 
-    protected override void Update(float deltaTime, float elapsedMilliseconds)
+    protected override void Update(float deltaTime, float elapsedSeconds)
     {
         UIRenderer.Update(deltaTime);
     }

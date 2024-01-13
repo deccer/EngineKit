@@ -2,7 +2,7 @@ using System;
 using System.Numerics;
 using BepuPhysics;
 
-namespace Complex;
+namespace Complex.Physics;
 
 public interface IPhysicsWorld : IDisposable
 {

@@ -45,7 +45,6 @@ void main()
     v_position = (instance.world_matrix * vec4(i_position, 1.0)).xyz;
 
     const float GOLDEN_CONJ = 0.6180339887498948482045868343656;
-    //vec3 color = vec4(2.0 * hsv_to_rgb(vec3(float(gl_DrawID) * GOLDEN_CONJ, 0.875, 0.85)), 1.0).xyz;
     vec3 color = vec4(2.0 * hsv_to_rgb(vec3(float(gl_DrawID) * u_color.x, u_color.y, u_color.z)), 1.0).xyz;
     
     v_normal = normalize(inverse(transpose(mat3(instance.world_matrix))) * i_normal);

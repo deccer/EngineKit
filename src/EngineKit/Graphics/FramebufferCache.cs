@@ -8,7 +8,7 @@ namespace EngineKit.Graphics;
 internal sealed class FramebufferCache : IFramebufferCache
 {
     private readonly ILogger _logger;
-    private readonly IDictionary<FramebufferDescriptor, uint> _framebufferCache;
+    private readonly Dictionary<FramebufferDescriptor, uint> _framebufferCache;
 
     public FramebufferCache(ILogger logger)
     {

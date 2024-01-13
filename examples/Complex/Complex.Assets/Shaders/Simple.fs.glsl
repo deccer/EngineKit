@@ -42,12 +42,12 @@ void main()
     vec3 albedo;
     if (material.BaseColorTexture.x != 0)
     {
-        albedo = texture(sampler2D(material.BaseColorTexture), v_uv).rgb;
+        albedo = pow(texture(sampler2D(material.BaseColorTexture), v_uv).rgb, vec3(1.0f / 2.2f));
     }
     else
     {
         albedo = v_normal * 0.5 + 0.5;
     }
     
-    o_color = vec4(albedo, 1.0f);
+    o_color = vec4(albedo,1.0f);
 }

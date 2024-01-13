@@ -33,7 +33,8 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         IMetrics metrics,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
-        IUIRenderer uiRenderer)
+        IUIRenderer uiRenderer,
+        IMessageBus messageBus)
         : base(
             logger,
             windowSettings,
@@ -43,7 +44,8 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             metrics,
             inputProvider,
             graphicsContext,
-            uiRenderer)
+            uiRenderer,
+            messageBus)
     {
         _logger = logger;
         _applicationContext = applicationContext;
@@ -88,7 +90,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render(float deltaTime, float elapsedMilliseconds)
+    protected override void Render(float deltaTime, float elapsedSeconds)
     {
         if (_metrics.FrameCounter == 0)
         {
@@ -118,9 +120,9 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update(float deltaTime, float elapsedMilliseconds)
+    protected override void Update(float deltaTime, float elapsedSeconds)
     {
-        base.Update(deltaTime, elapsedMilliseconds);
+        base.Update(deltaTime, elapsedSeconds);
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();
@@ -156,10 +158,10 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
     private bool LoadRenderDescriptors()
     {
         //TODO(deccer) hide SwapchainDescriptor in Application/also make sure to resize when window resize
-        _swapchainDescriptor = new SwapchainDescriptorBuilder()
+        _swapchainDescriptor = GraphicsContext.GetSwapchainDescriptorBuilder()
             .ClearColor(Colors.DimGray)
-            .ClearDepth()
-            .WithViewport(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y)
+            .ClearDepth(1.0f)
+            .WithFramebufferSizeAsViewport()
             .Build("Swapchain");
 
         return true;

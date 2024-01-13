@@ -2,40 +2,80 @@ using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
-public sealed class SwapchainDescriptorBuilder
+internal sealed class SwapchainDescriptorBuilder : ISwapchainDescriptorBuilder
 {
+    private readonly IApplicationContext _applicationContext;
     private SwapchainDescriptor _swapchainDescriptor;
 
-    public SwapchainDescriptorBuilder()
+    public SwapchainDescriptorBuilder(IApplicationContext applicationContext)
     {
-        _swapchainDescriptor = new SwapchainDescriptor();
-        _swapchainDescriptor.ClearColor = false;
-        _swapchainDescriptor.ClearDepth = false;
-        _swapchainDescriptor.ClearStencil = false;
-        _swapchainDescriptor.ClearColorValue.ColorFloat = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f };
-        _swapchainDescriptor.ClearColorValue.ColorSignedInteger = new int[4] { 0, 0, 0, 0 };
-        _swapchainDescriptor.ClearColorValue.ColorUnsignedInteger = new uint[4] { 0, 0, 0, 0 };
+        _applicationContext = applicationContext;
+        Reset();
     }
 
-    public SwapchainDescriptorBuilder EnableSrgb()
+    public ISwapchainDescriptorBuilder Reset()
+    {
+        _swapchainDescriptor = new SwapchainDescriptor
+        {
+            ClearColor = false,
+            ClearDepth = false,
+            ClearStencil = false
+        };
+        _swapchainDescriptor.ClearColorValue.ColorFloat = [0.0f, 0.0f, 0.0f, 0.0f];
+        _swapchainDescriptor.ClearColorValue.ColorSignedInteger = [0, 0, 0, 0];
+        _swapchainDescriptor.ClearColorValue.ColorUnsignedInteger = [0, 0, 0, 0];
+        return this;
+    }
+
+    public ISwapchainDescriptorBuilder EnableSrgb()
     {
         _swapchainDescriptor.EnableSrgb = true;
         return this;
     }
 
-    public SwapchainDescriptorBuilder WithViewport(int width, int height)
+    public ISwapchainDescriptorBuilder WithViewport(int width, int height)
     {
         _swapchainDescriptor.Viewport = new Viewport(0, 0, width, height);
         return this;
     }
 
-    public SwapchainDescriptorBuilder WithScissorRectangle(int left, int top, int width, int height)
+    public ISwapchainDescriptorBuilder WithFramebufferSizeAsViewport()
+    {
+        _swapchainDescriptor.Viewport = new Viewport(
+            0, 
+            0, 
+            _applicationContext.FramebufferSize.X,
+            _applicationContext.FramebufferSize.Y);
+        return this;
+    }
+
+    public ISwapchainDescriptorBuilder WithScaledFramebufferSizeAsViewport()
+    {
+        _swapchainDescriptor.Viewport = new Viewport(
+            0, 
+            0, 
+            _applicationContext.ScaledFramebufferSize.X,
+            _applicationContext.ScaledFramebufferSize.Y);
+        return this;
+    }
+    
+    public ISwapchainDescriptorBuilder WithWindowSizeAsViewport()
+    {
+        _swapchainDescriptor.Viewport = new Viewport(
+            0, 
+            0, 
+            _applicationContext.WindowSize.X,
+            _applicationContext.WindowSize.Y);
+        return this;
+    }
+
+    public ISwapchainDescriptorBuilder WithScissorRectangle(int left, int top, int width, int height)
     {
         _swapchainDescriptor.ScissorRect = new Viewport(left, top, width, height);
         return this;
     }
 
-    public SwapchainDescriptorBuilder ClearColor(Color4 clearValue)
+    public ISwapchainDescriptorBuilder ClearColor(Color4 clearValue)
     {
         _swapchainDescriptor.ClearColor = true;
         _swapchainDescriptor.ClearColorValue = new ClearColorValue();
@@ -47,14 +87,14 @@ public sealed class SwapchainDescriptorBuilder
         return this;
     }
 
-    public SwapchainDescriptorBuilder ClearDepth(float clearValue = 1.0f)
+    public ISwapchainDescriptorBuilder ClearDepth(float clearValue)
     {
         _swapchainDescriptor.ClearDepth = true;
         _swapchainDescriptor.ClearDepthValue = clearValue;
         return this;
     }
 
-    public SwapchainDescriptorBuilder ClearStencil(int clearValue = 0)
+    public ISwapchainDescriptorBuilder ClearStencil(int clearValue)
     {
         _swapchainDescriptor.ClearStencil = true;
         _swapchainDescriptor.ClearStencilValue = clearValue;

@@ -107,6 +107,8 @@ public interface IGraphicsContext : IDisposable
 
     IFramebufferDescriptorBuilder GetFramebufferDescriptorBuilder();
 
+    ISwapchainDescriptorBuilder GetSwapchainDescriptorBuilder();
+
     void CopyTexture(
         ITexture sourceTexture,
         int sourceOffsetX,

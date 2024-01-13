@@ -4,7 +4,7 @@ using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using BepuPhysics.Constraints;
 
-namespace Complex;
+namespace Complex.Physics;
 
 struct NarrowPhaseCallbacks : INarrowPhaseCallbacks
 {
