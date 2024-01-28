@@ -590,7 +590,9 @@ public class Application : IApplication
     {
         var oldFramebufferSize = _applicationContext.FramebufferSize;
         var oldScaledFramebufferSize = _applicationContext.ScaledFramebufferSize;
-        _applicationContext.FramebufferSize = new Int2(width, height);
+        _applicationContext.FramebufferSize = _applicationContext.IsEditorEnabled
+            ? _applicationContext.EditorFramebufferSize
+            : new Int2(width, height);
 
         _applicationContext.ScaledFramebufferSize = new Int2(
             (int)(width * _windowSettings.Value.ResolutionScale),

@@ -16,8 +16,9 @@ internal class GameProgramState : IProgramState
     private readonly IScene _scene;
     private readonly IInputProvider _inputProvider;
     private readonly IMessageBus _messageBus;
+    private readonly IApplicationContext _applicationContext;
     private readonly ILogger _logger;
-    
+
     public GameProgramState(
         ILogger logger,
         IGraphicsContext graphicsContext,
@@ -25,7 +26,8 @@ internal class GameProgramState : IProgramState
         ICamera camera,
         IScene scene,
         IInputProvider inputProvider,
-        IMessageBus messageBus)
+        IMessageBus messageBus,
+        IApplicationContext applicationContext)
     {
         _logger = logger.ForContext<GameProgramState>();
         _graphicsContext = graphicsContext;
@@ -34,22 +36,28 @@ internal class GameProgramState : IProgramState
         _scene = scene;
         _inputProvider = inputProvider;
         _messageBus = messageBus;
+        _applicationContext = applicationContext;
 
         _messageBus.Subscribe<FramebufferResizedMessage>(OnFramebufferResized);
     }
-    
+
+    public void Activate()
+    {
+        _applicationContext.IsEditorEnabled = false;
+    }
+
     public bool Load()
     {
         if (!_renderer.Load())
         {
             return false;
         }
-        
+
         _logger.Debug("{Category}: Loaded {ProgramStateName}", "ProgramState", GetType().Name);
-        
+
         return true;
     }
-    
+
     public void Render(float deltaTime, float elapsedSeconds)
     {
         _renderer.Render(_camera);

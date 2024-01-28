@@ -23,4 +23,8 @@ public interface IApplicationContext
     bool IsLaunchedByRenderDoc { get; }
 
     bool IsWindowMaximized { get; set; }
+
+    bool IsEditorEnabled { get; set; }
+
+    Int2 EditorFramebufferSize { get; set; }
 }

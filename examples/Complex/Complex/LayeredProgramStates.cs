@@ -12,15 +12,15 @@ internal sealed class LayeredProgramStates : ILayeredProgramStates
     private readonly Dictionary<string, IEnumerable<string>> _programStatesLayers;
 
     private IEnumerable<IProgramState>? _currentProgramStateLayer;
-    
+
     public LayeredProgramStates(
-        ILogger logger, 
+        ILogger logger,
         IEnumerable<IProgramState> programStates)
     {
         _logger = logger.ForContext<LayeredProgramStates>();
         _programStates = new Dictionary<string, IProgramState>();
         _programStatesLayers = new Dictionary<string, IEnumerable<string>>();
-        
+
         foreach (var programState in programStates)
         {
             AddProgramState(programState.GetType().Name, programState);
@@ -50,12 +50,18 @@ internal sealed class LayeredProgramStates : ILayeredProgramStates
 
     public void SwitchToState(string stateName)
     {
-        IEnumerable<string>? stateNames;
-        if (_programStatesLayers.TryGetValue(stateName, out stateNames))
+        if (_programStatesLayers.TryGetValue(stateName, out IEnumerable<string>? stateNames))
         {
             _currentProgramStateLayer = _programStates
                 .Where(programState => stateNames.Contains(programState.Key))
                 .Select(programState => programState.Value);
+            if (_currentProgramStateLayer != null)
+            {
+                foreach (var programState in _currentProgramStateLayer)
+                {
+                    programState.Activate();
+                }
+            }
         }
     }
 
@@ -78,7 +84,7 @@ internal sealed class LayeredProgramStates : ILayeredProgramStates
         {
             return;
         }
-        
+
         foreach (var currentProgramState in _currentProgramStateLayer)
         {
             currentProgramState.Update(deltaTime, elapsedSeconds);

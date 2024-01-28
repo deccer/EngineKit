@@ -24,7 +24,7 @@ internal sealed class EditorProgramState : IProgramState
     private readonly SceneHierarchyWindow _sceneHierarchyWindow;
     private readonly SceneViewWindow _sceneViewWindow;
     private readonly PropertyWindow _propertyWindow;
-    
+
     private SwapchainDescriptor _swapchainDescriptor;
 
     public EditorProgramState(
@@ -53,14 +53,19 @@ internal sealed class EditorProgramState : IProgramState
         _sceneHierarchyWindow = sceneHierarchyWindow;
         _sceneViewWindow = sceneViewWindow;
         _propertyWindow = propertyWindow;
-        
+
         _messageBus.Subscribe<FramebufferResizedMessage>(OnFramebufferResized);
+    }
+
+    public void Activate()
+    {
+        _applicationContext.IsEditorEnabled = true;
     }
 
     public bool Load()
     {
         _swapchainDescriptor = CreateSwapchainDescriptor();
-        
+
         _logger.Debug("{Category}: Loaded {ProgramStateName}", "ProgramState", GetType().Name);
 
         return true;
@@ -121,29 +126,29 @@ internal sealed class EditorProgramState : IProgramState
 
             ImGui.EndMainMenuBar();
         }
-        
+
         _assetWindow.Draw();
         _sceneHierarchyWindow.Draw();
         _sceneViewWindow.Draw();
         _propertyWindow.Draw();
 
         _renderer.RenderUI();
-        
+
         _uiRenderer.ShowDemoWindow();
         _uiRenderer.EndLayout();
-        
+
         _graphicsContext.EndRenderPass();
     }
 
     public void Update(float deltaTime, float elapsedSeconds)
     {
-        
+
     }
-    
+
     private Task OnFramebufferResized(FramebufferResizedMessage message)
     {
         _swapchainDescriptor = CreateSwapchainDescriptor();
-        
+
         return Task.CompletedTask;
     }
 

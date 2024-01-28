@@ -86,10 +86,10 @@ internal sealed class GraphicsContext : IGraphicsContext
             targetOffsetX,
             targetOffsetY,
             targetWidth,
-            targetHeight, 
+            targetHeight,
             framebufferBit.ToGL(),
             interpolationFilter.ToGL());
-        
+
         RemoveFramebuffer(sourceFramebufferDescriptor);
         RemoveFramebuffer(targetFramebufferDescriptor);
     }
@@ -132,7 +132,7 @@ internal sealed class GraphicsContext : IGraphicsContext
     {
         return new Buffer(label, sizeInBytes, bufferStorageFlags);
     }
-    
+
     public IBuffer CreateUntypedBuffer(
         Label label,
         nuint sizeInBytes,
@@ -167,7 +167,7 @@ internal sealed class GraphicsContext : IGraphicsContext
     {
         return new TypedBuffer<TElement>(label, elements, bufferStorageFlags);
     }
-    
+
     public IBuffer CreateTypedBuffer<TElement>(
         Label label,
         uint elementCount,
@@ -201,10 +201,10 @@ internal sealed class GraphicsContext : IGraphicsContext
                     meshPrimitive.RealTangents[i]);
             }
         }
-        
+
         return new TypedBuffer<VertexPositionNormalUvTangent>(label, in bufferData);
     }
-    
+
     public IBuffer CreateIndexBuffer(Label label, MeshPrimitive[] meshPrimitives)
     {
         var indices = meshPrimitives
@@ -226,6 +226,14 @@ internal sealed class GraphicsContext : IGraphicsContext
     public ITexture CreateTexture(TextureCreateDescriptor textureCreateDescriptor)
     {
         return new Texture(textureCreateDescriptor);
+    }
+
+    public ITexture CreateTexture2D(
+        Int2 extent,
+        Format format,
+        Label? label)
+    {
+        return CreateTexture2D(extent.X, extent.Y, format, label);
     }
 
     public ITexture CreateTexture2D(
@@ -284,7 +292,7 @@ internal sealed class GraphicsContext : IGraphicsContext
         }
 
         if (imageInformation.MimeType == "image/ktx2")
-        { 
+        {
             unsafe
             {
                 var ktxTexture = Ktx.LoadFromMemory(imageInformation.ImageData.Value);
@@ -396,7 +404,7 @@ internal sealed class GraphicsContext : IGraphicsContext
     {
         return _swapchainDescriptorBuilder.Reset();
     }
-    
+
     public FramebufferDescriptor CreateSingleFramebufferDescriptorFromTexture(ITexture texture)
     {
         var framebufferDescriptor = new FramebufferDescriptor();
@@ -481,7 +489,7 @@ internal sealed class GraphicsContext : IGraphicsContext
         GL.EnableWhen(GL.EnableType.PolygonOffsetFill, rasterizationDescriptor.IsDepthBiasEnabled);
         GL.EnableWhen(GL.EnableType.PolygonOffsetLine, rasterizationDescriptor.IsDepthBiasEnabled);
         GL.EnableWhen(GL.EnableType.PolygonOffsetPoint, rasterizationDescriptor.IsDepthBiasEnabled);
-        
+
         if (Math.Abs(rasterizationDescriptor.LineWidth - 1.0f) > float.Epsilon)
         {
             GL.LineWidth(rasterizationDescriptor.LineWidth);
@@ -544,13 +552,13 @@ internal sealed class GraphicsContext : IGraphicsContext
             GL.PopDebugGroup();
             _isComputePipelineDebugGroupActive = false;
         }
-        
+
         if (!string.IsNullOrEmpty(swapchainDescriptor.Label))
         {
             GL.PushDebugGroup(swapchainDescriptor.Label);
             _isGraphicsPipelineDebugGroupActive = true;
         }
-        
+
         GL.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
         GL.FramebufferBit framebufferBit = 0;
         if (swapchainDescriptor.ClearColor)
@@ -606,13 +614,13 @@ internal sealed class GraphicsContext : IGraphicsContext
             GL.PopDebugGroup();
             _isComputePipelineDebugGroupActive = false;
         }
-        
+
         if (!string.IsNullOrEmpty(framebufferDescriptor.Label))
         {
             GL.PushDebugGroup(framebufferDescriptor.Label);
             _isGraphicsPipelineDebugGroupActive = true;
         }
-        
+
         _currentFramebuffer = _framebufferCache.GetOrCreateFramebuffer(framebufferDescriptor);
         GL.BindFramebuffer(GL.FramebufferTarget.Framebuffer, _currentFramebuffer.Value);
         if (!framebufferDescriptor.HasSrgbEnabledAttachment())
@@ -692,7 +700,7 @@ internal sealed class GraphicsContext : IGraphicsContext
             GL.Viewport(framebufferDescriptor.Viewport);
             _currentViewport = framebufferDescriptor.Viewport;
         }
-        
+
         if (MathF.Abs(_currentViewport.MinDepth - framebufferDescriptor.Viewport.MinDepth) > 0.0001f ||
             MathF.Abs(_currentViewport.MaxDepth - framebufferDescriptor.Viewport.MaxDepth) > 0.0001f)
         {
@@ -700,7 +708,7 @@ internal sealed class GraphicsContext : IGraphicsContext
                 framebufferDescriptor.Viewport.MinDepth,
                 framebufferDescriptor.Viewport.MaxDepth);
         }
-        
+
         if (!framebufferDescriptor.HasSrgbEnabledAttachment())
         {
             GL.Disable(GL.EnableType.FramebufferSrgb);
@@ -714,7 +722,7 @@ internal sealed class GraphicsContext : IGraphicsContext
         {
             GL.Enable(GL.EnableType.FramebufferSrgb);
         }
-        
+
         if (_isComputePipelineDebugGroupActive)
         {
             GL.PopDebugGroup();
@@ -727,7 +735,7 @@ internal sealed class GraphicsContext : IGraphicsContext
             _isGraphicsPipelineDebugGroupActive = false;
         }
     }
-    
+
     public void BlitFramebuffer(
         FramebufferDescriptor sourceFramebufferDescriptor,
         FramebufferDescriptor targetFramebufferDescriptor,
@@ -806,7 +814,7 @@ internal sealed class GraphicsContext : IGraphicsContext
         GL.DepthMask(true);
         GL.StencilMask(true);
     }
-    
+
     public void ClearResourceBindings()
     {
         for (var i = 0u; i < _capabilities.MaxImageUnits; i++)
@@ -848,9 +856,9 @@ internal sealed class GraphicsContext : IGraphicsContext
         {
             var mipMapWidth = (int)MathF.Max(ktxTexture->BaseWidth >> mipLevel, 1u);
             var mipMapHeight = (int)MathF.Max(ktxTexture->BaseHeight >> mipLevel, 1u);
-           
+
             var imageSize = Ktx.GetImageSize(ktxTexture, (uint)mipLevel);
-            
+
             var textureUpdateDescriptor = new TextureUpdateDescriptor
             {
                 Offset = new Int3(0, 0, (int)imageSize),

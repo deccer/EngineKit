@@ -23,13 +23,13 @@ public sealed class Camera : ICamera
     private CameraMode _cameraMode;
 
     public float Zoom { get; set; } = 45.0f;
-    
+
     public float Sensitivity { get; set; } = 0.5f;
-    
+
     public float KeyboardAccelerationBoost { get; set; } = 30.0f;
 
     public float OptionalBoost { get; set; } = 6.0f;
-    
+
     public Matrix4x4 ViewMatrix { get; private set; }
 
     public Matrix4x4 ProjectionMatrix { get; private set; }
@@ -39,7 +39,7 @@ public sealed class Camera : ICamera
     public float NearPlane { get; set; }
 
     public float FarPlane { get; set; }
-    
+
     public Vector3 Velocity { get; set; }
 
     public Vector3 Position
@@ -136,14 +136,14 @@ public sealed class Camera : ICamera
         {
             _acceleration *= OptionalBoost;
         }
-        
+
         if (_inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyLeftCtrl) ||
             _inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyRightCtrl))
         {
             _acceleration *= 1.0f / OptionalBoost;
         }
     }
-    
+
     public void ProcessMouseMovement()
     {
         _yaw -= -_inputProvider.MouseState.DeltaX * Sensitivity;
@@ -152,7 +152,7 @@ public sealed class Camera : ICamera
 
         UpdateCameraVectors();
     }
-    
+
     public void AdvanceSimulation(float deltaTime)
     {
         Position += deltaTime * Velocity + 0.5f * _acceleration * deltaTime * deltaTime;
@@ -209,19 +209,23 @@ public sealed class Camera : ICamera
         _right = Vector3.Normalize(Vector3.Cross(_front, _worldUp));
         _up = Vector3.Normalize(Vector3.Cross(_right, _front));
 
+        var aspectRatio = _applicationContext.IsEditorEnabled
+            ? _applicationContext.EditorFramebufferSize.X / (float)_applicationContext.EditorFramebufferSize.Y
+            : _applicationContext.ScaledFramebufferSize.X / (float)_applicationContext.ScaledFramebufferSize.Y;
+
         ViewMatrix = Matrix4x4.CreateLookAt(_position, _position + _front, _up);
         if (_cameraMode == CameraMode.Perspective)
         {
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
                 MathHelper.ToRadians(FieldOfView),
-                _applicationContext.ScaledFramebufferSize.X / (float)_applicationContext.ScaledFramebufferSize.Y,
+                aspectRatio,
                 NearPlane,
                 FarPlane);
         }
         else if (_cameraMode == CameraMode.PerspectiveInfinity)
         {
             ProjectionMatrix = CreateInfiniteReverseZPerspectiveRh(MathHelper.ToRadians(FieldOfView),
-                _applicationContext.ScaledFramebufferSize.X / (float)_applicationContext.ScaledFramebufferSize.Y,
+                aspectRatio,
                 NearPlane);
         }
     }

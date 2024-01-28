@@ -42,13 +42,13 @@ public interface IGraphicsContext : IDisposable
         Label label,
         BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
         where TElement : unmanaged;
-    
+
     IBuffer CreateTypedBuffer<TElement>(
         Label label,
         TElement element,
         BufferStorageFlags bufferStorageFlags = BufferStorageFlags.None)
         where TElement : unmanaged;
-    
+
     IBuffer CreateTypedBuffer<TElement>(
         Label label,
         TElement[] elements,
@@ -78,6 +78,11 @@ public interface IGraphicsContext : IDisposable
     IGraphicsPipelineBuilder CreateGraphicsPipelineBuilder();
 
     ITexture CreateTexture(TextureCreateDescriptor textureCreateDescriptor);
+
+    ITexture CreateTexture2D(
+        Int2 extent,
+        Format format,
+        Label? label = null);
 
     ITexture CreateTexture2D(
         int width,
@@ -122,12 +127,12 @@ public interface IGraphicsContext : IDisposable
         int targetHeight,
         FramebufferBit framebufferBit,
         BlitFramebufferFilter interpolationFilter);
-    
+
     IMeshPool CreateMeshPool(
         Label label,
         uint maxVertexCount,
         uint maxIndexCount);
-    
+
     IMaterialPool CreateMaterialPool(
         Label label,
         uint maxMaterialCount,
@@ -142,10 +147,10 @@ public interface IGraphicsContext : IDisposable
     void RemoveFramebuffer(FramebufferDescriptor framebufferDescriptor);
 
     void Finish();
-    
+
     FramebufferDescriptor CreateSingleFramebufferDescriptorFromTexture(ITexture texture);
-    
+
     void ClearResourceBindings();
-    
+
     void UseViewport(Viewport viewport);
 }

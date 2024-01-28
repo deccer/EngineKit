@@ -42,4 +42,8 @@ internal sealed class ApplicationContext : IApplicationContext
     public bool IsLaunchedByNSightGraphicsOnLinux { get; }
 
     public bool IsLaunchedByRenderDoc { get; }
+
+    public bool IsEditorEnabled { get; set; }
+
+    public Int2 EditorFramebufferSize { get; set; }
 }
