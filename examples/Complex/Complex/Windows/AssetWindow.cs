@@ -45,26 +45,26 @@ public class AssetWindow : Window
             foreach (var modelName in modelNames)
             {
                 ImGui.TableNextRow();
-                
+
                 ImGui.PushID(modelName);
 
                 var model = _modelLibrary.GetModelByName(modelName);
-                
+
                 ImGui.TableSetColumnIndex(0);
                 var isExpanded = ImGui.TreeNodeEx(model!.Name);
-                
+
                 ImGui.TableSetColumnIndex(1);
                 if (ImGui.Button($"{MaterialDesignIcons.Plus}"))
                 {
                     _scene.AddEntityWithModelRenderer(model.Name, _sceneHierarchyWindow.SelectedEntityId, model, Matrix4x4.Identity);
                 }
-                
+
                 if (isExpanded)
                 {
                     foreach (var modelMesh in model.ModelMeshes)
                     {
                         ImGui.TableNextRow();
-                        
+
                         ImGui.PushID(modelMesh.Name);
                         ImGui.TableSetColumnIndex(0);
                         ImGui.TextUnformatted(modelMesh.Name);
@@ -81,7 +81,7 @@ public class AssetWindow : Window
 
                 ImGui.PopID();
             }
-            
+
             ImGui.EndTable();
         }
     }

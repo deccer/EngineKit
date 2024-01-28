@@ -27,7 +27,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
         public const string Uv1 = "TEXCOORD_1";
         public const string Tangent = "TANGENT";
     }
-    
+
     private readonly ILogger _logger;
     private readonly IMaterialLibrary _materialLibrary;
 
@@ -41,7 +41,6 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
     public IReadOnlyCollection<MeshPrimitive> LoadMeshPrimitivesFromFile(string filePath)
     {
-        var runtimeOptions = new ReadSettings().Validation = ValidationMode.Skip;
         var readSettings = new ReadSettings
         {
             Validation = ValidationMode.Skip,
@@ -65,14 +64,14 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
         }
 
         var meshPrimitives = new List<MeshPrimitive>(model.LogicalNodes.Count);
-        
+
         var nodeStack = new Stack<ValueTuple<Node, Matrix4x4>>();
         foreach (var rootNode in model.DefaultScene.VisualChildren)
         {
             nodeStack.Push((rootNode, Matrix4x4.Identity));
         }
 
-        while (nodeStack.Any())
+        while (nodeStack.Count != 0)
         {
             var (node, globalParentTransform) = nodeStack.Pop();
             var localModelMatrix = node.WorldMatrix;
@@ -85,7 +84,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                     nodeStack.Push((childNode, globalModelMatrix));
                 }
             }
-            
+
             if (node.Mesh != null)
             {
                 ProcessNode(meshPrimitives, node, materials);
@@ -102,7 +101,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
     {
         var name =
             Path.GetFileNameWithoutExtension(materialChannel.Texture?.PrimaryImage?.Content.SourcePath) ??
-            Guid.NewGuid().ToString();
+            $"{materialChannel.Key}-{Guid.NewGuid()}";
         return new ImageInformation(
             name,
             materialChannel.Texture?.PrimaryImage?.Content.MimeType,
@@ -112,7 +111,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
     private Material? ProcessMaterial(SharpGLTF.Schema2.Material gltfMaterial)
     {
-        var materialName = gltfMaterial.Name ?? Guid.NewGuid().ToString();
+        var materialName = gltfMaterial.Name ?? $"Material-{Guid.NewGuid()}";
 
         if (_materialLibrary.Exists(materialName))
         {
@@ -238,14 +237,14 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 : meshPrimitives.Any(md => md.MeshName == node.Name)
                     ? node.Name + "_" + Guid.NewGuid()
                     : node.Name;
-            
+
             var positions = primitive.VertexAccessors.GetValueOrDefault(VertexAccessorName.Position).AsSpan<Vector3>();
             if (positions.Length == 0)
             {
                 _logger.Error("{Category}: Primitive {MeshName} has no valid vertex data", nameof(SharpGltfMeshLoader), meshName);
                 continue;
-            }      
-            
+            }
+
             var meshPrimitive = new MeshPrimitive(meshName);
             meshPrimitive.Transform = node.WorldMatrix;// .LocalTransform.Matrix;
             meshPrimitive.MaterialName = primitive.Material?.Name ?? (primitive.Material == null ? Material.MaterialNotFoundName : materials.ElementAt(primitive.Material.LogicalIndex).Name) ?? Material.MaterialNotFoundName;
@@ -254,7 +253,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             //boundingBox.Min = Vector3.Transform(boundingBox.Min, meshPrimitive.Transform);
             //boundingBox.Max = Vector3.Transform(boundingBox.Max, meshPrimitive.Transform);
             meshPrimitive.BoundingBox = boundingBox;
-            
+
             var vertexType = GetVertexTypeFromVertexAccessorNames(primitive!.VertexAccessors!.Keys.ToList());
             var normalsAccessor = primitive.VertexAccessors.GetValueOrDefault(VertexAccessorName.Normal);
             var normals = normalsAccessor.AsSpan<Vector3>();
@@ -288,7 +287,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             {
                 ref var position = ref positions[i];
                 ref var normal = ref normals[normals.Length == 1 ? 0 : i];
-                
+
                 var realTangentXyz = new Vector3(realTangents[i].X, realTangents[i].Y, realTangents[i].Z);
                 var realTangent = new Vector4(realTangentXyz, realTangents[i].W);
 

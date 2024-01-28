@@ -10,7 +10,7 @@ namespace EngineKit.Graphics;
 public record Material(string Name) : IDisposable
 {
     public const string MaterialNotFoundName = "M_NotFound";
-    
+
     private float _metallicFactor;
     private float _roughnessFactor;
     private Vector3 _specularFactor;
@@ -140,7 +140,7 @@ public record Material(string Name) : IDisposable
             _isDirty = true;
         }
     }
-    
+
     public ImageInformation? EmissiveImage
     {
         get => _emissiveImage;
@@ -179,7 +179,7 @@ public record Material(string Name) : IDisposable
             }
         }
     }
-    
+
     public ImageInformation? SpecularImage
     {
         get => _specularImage;
@@ -202,7 +202,7 @@ public record Material(string Name) : IDisposable
             _isDirty = true;
         }
     }
-    
+
     public ImageInformation? OcclusionImage
     {
         get => _occlusionImage;
@@ -212,12 +212,17 @@ public record Material(string Name) : IDisposable
             _isDirty = true;
         }
     }
-    
+
     public ITexture? BaseColorTexture { get; private set; }
+
     public ITexture? NormalTexture { get; private set; }
+
     public ITexture? SpecularTexture { get; private set; }
+
     public ITexture? MetalnessRoughnessTexture { get; private set; }
+
     public ITexture? OcclusionTexture { get; private set; }
+
     public ITexture? EmissiveTexture { get; private set; }
 
     public void Dispose()
@@ -314,21 +319,21 @@ public record Material(string Name) : IDisposable
         {
             return null;
         }
-        
+
         var sw = Stopwatch.StartNew();
         texture = image.ImageData.HasValue
             ? graphicsContext.CreateTextureFromMemory(image, format, image.Name, generateMipmaps: true, flipVertical: false, flipHorizontal: false)
-            : string.IsNullOrEmpty(image.FileName)
+            : string.IsNullOrEmpty(image.FilePath)
                 ? null
-                : graphicsContext.CreateTextureFromFile(image.FileName, format, true, false, false);
-                    
+                : graphicsContext.CreateTextureFromFile(image.FilePath, format, true, false, false);
+
         sw.Stop();
-        
+
         if (texture == null)
         {
             return texture;
         }
-        
+
         textures.Add(image.Name, texture);
         logger.Debug("{Category}: Loading texture {TextureName} took {LoadingTime}ms", "Material", image.Name, sw.ElapsedMilliseconds);
 

@@ -6,4 +6,4 @@ public record ImageInformation(
     string Name,
     string? MimeType,
     ReadOnlyMemory<byte>? ImageData,
-    string? FileName);
+    string? FilePath);

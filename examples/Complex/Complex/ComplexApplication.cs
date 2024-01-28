@@ -57,19 +57,19 @@ internal sealed class ComplexApplication : GraphicsApplication
         _scene = scene;
         _renderer = renderer;
         _layeredProgramStates = layeredProgramStates;
-        
+
         messageBus.Subscribe<CloseWindowMessage>(OnCloseWindowMessage);
         messageBus.Subscribe<MaximizeWindowMessage>(OnMaximizeWindowMessage);
-        messageBus.Subscribe<RestoreWindowMessage>(OnRestoreWindowMessage);        
+        messageBus.Subscribe<RestoreWindowMessage>(OnRestoreWindowMessage);
     }
-    
+
     protected override bool Initialize()
     {
         if (!base.Initialize())
         {
             return false;
         }
-        
+
         SetWindowIcon("enginekit-icon.png");
 
         _layeredProgramStates.ComposeLayeredState("Editor", [nameof(GameProgramState), nameof(EditorProgramState)]);
@@ -99,21 +99,21 @@ internal sealed class ComplexApplication : GraphicsApplication
         */
 
         _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_Complex", "Data/Default/SM_Deccer_Cubes_Textured_Complex.gltf");
-        _modelLibrary.AddModelFromFile("Blender_PositionNormal", "Data/Default/Blender_Cube_PositionNormal.glb");
-        _modelLibrary.AddModelFromFile("Blender_PositionNormalUv", "Data/Default/Blender_Cube_PositionNormalUv.glb");
-        _modelLibrary.AddModelFromFile("Blender_PositionNormalUvTangent", "Data/Default/Blender_Cube_PositionNormalUvTangent.glb");
-        
-        _modelLibrary.AddModelFromFile("Asteroid1", "Data/Props/Asteroids/asteroid1.glb");
-        _modelLibrary.AddModelFromFile("Asteroid2", "Data/Props/Asteroids/asteroid2.glb");
-        _modelLibrary.AddModelFromFile("Asteroid LP", "Data/Props/Asteroids/asteroid_low_poly_3d_model.glb");
+        //_modelLibrary.AddModelFromFile("Blender_PositionNormal", "Data/Default/Blender_Cube_PositionNormal.glb");
+        //_modelLibrary.AddModelFromFile("Blender_PositionNormalUv", "Data/Default/Blender_Cube_PositionNormalUv.glb");
+        //_modelLibrary.AddModelFromFile("Blender_PositionNormalUvTangent", "Data/Default/Blender_Cube_PositionNormalUvTangent.glb");
+
+        //_modelLibrary.AddModelFromFile("Asteroid1", "Data/Props/Asteroids/asteroid1.glb");
+        //_modelLibrary.AddModelFromFile("Asteroid2", "Data/Props/Asteroids/asteroid2.glb");
+        //_modelLibrary.AddModelFromFile("Asteroid LP", "Data/Props/Asteroids/asteroid_low_poly_3d_model.glb");
         _modelLibrary.AddModelFromFile("Nasa1", "Data/Props/Asteroids/nasa1.glb");
         _modelLibrary.AddModelFromFile("Nasa2", "Data/Props/Asteroids/nasa2.glb");
         _modelLibrary.AddModelFromFile("Nasa3", "Data/Props/Asteroids/nasa3.glb");
         _modelLibrary.AddModelFromFile("Nasa4", "Data/Props/Asteroids/nasa4.glb");
-        _modelLibrary.AddModelFromFile("FromSpace", "Data/Props/Asteroids/rock_from_space.glb");
+        //_modelLibrary.AddModelFromFile("FromSpace", "Data/Props/Asteroids/rock_from_space.glb");
         //_modelLibrary.AddModelFromFile("E1M1", "Data/Scenes/E1M1/E1M1.gltf");
         //_modelLibrary.AddModelFromFile("SmallCity", "Data/Scenes/small_city/small_city.gltf");
-        
+
         /*
         _modelLibrary.AddModelFromFile("SM_Bistor", "Data/Scenes/Bistro/scene.gltf");
         _modelLibrary.AddModelFromFile("SM_IntelSponza", "Data/Scenes/IntelSponza/NewSponza_Main_glTF_002.gltf");
@@ -127,7 +127,7 @@ internal sealed class ComplexApplication : GraphicsApplication
         {
             return false;
         }
-        
+
         return true;
     }
 
@@ -157,7 +157,7 @@ internal sealed class ComplexApplication : GraphicsApplication
     protected override void FramebufferResized()
     {
         base.FramebufferResized();
-        
+
         _renderer.ResizeFramebufferDependentResources();
     }
 

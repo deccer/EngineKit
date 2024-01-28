@@ -361,7 +361,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                         ? GraphicsContext.CreateTextureFromMemory(material.BaseColorImage,
                             Format.R8G8B8A8Srgb,
                             material.BaseColorImage.Name, true, true, false)
-                        : GraphicsContext.CreateTextureFromFile(material.BaseColorImage.FileName!, Format.R8G8B8A8Srgb, true, true, false);
+                        : GraphicsContext.CreateTextureFromFile(material.BaseColorImage.FilePath!, Format.R8G8B8A8Srgb, true, true, false);
                     if (texture != null)
                     {
                         texture.MakeResident();
