@@ -22,7 +22,11 @@ internal sealed class ApplicationContext : IApplicationContext
         IsLaunchedByRenderDoc = renderdocEnvironmentVariables
             .Any(renderdocEnvironmentVariable => System.Environment.GetEnvironmentVariable(renderdocEnvironmentVariable) != null);
     }
-    
+
+    public double DesiredFramerate { get; set; } = 120.0;
+
+    public bool IsFrameRateLimited { get; set; } = true;
+
     public Int2 ScreenSize { get; set; }
 
     public Int2 WindowSize { get; set; }
@@ -30,12 +34,12 @@ internal sealed class ApplicationContext : IApplicationContext
     public Int2 FramebufferSize { get; set; }
 
     public Int2 ScaledFramebufferSize { get; set; }
-    
+
     public bool IsWindowMaximized { get; set; }
 
     public bool ShowResizeInLog { get; set; }
-    
+
     public bool IsLaunchedByNSightGraphicsOnLinux { get; }
-    
+
     public bool IsLaunchedByRenderDoc { get; }
 }

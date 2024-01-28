@@ -62,16 +62,12 @@ public class Application : IApplication
         _windowHandle = nint.Zero;
         _frameTimeAverager = new FrameTimeAverager(50);
     }
-    
-    public double DesiredFramerate { get; set; } = 120.0;
-    
-    public bool LimitFrameRate { get; set; } = true;
 
     public void Dispose()
     {
         Ktx.Terminate();
     }
-    
+
     public void Run()
     {
         if (!Initialize())
@@ -93,20 +89,20 @@ public class Application : IApplication
         }
 
         _logger.Debug("{Category}: Loaded", "App");
-        
+
         if (Glfw.IsRawMouseMotionSupported())
         {
             Glfw.SetInputMode(_windowHandle, Glfw.InputMode.RawMouseMotion, Glfw.True);
         }
-        
-        var stopwatch = Stopwatch.StartNew();        
+
+        var stopwatch = Stopwatch.StartNew();
         while (!Glfw.ShouldWindowClose(_windowHandle))
         {
-            var desiredFrameTime = 1000.0 / DesiredFramerate;
+            var desiredFrameTime = 1000.0 / _applicationContext.DesiredFramerate;
             var currentFrameTicks = stopwatch.ElapsedTicks;
             var deltaMilliseconds = (currentFrameTicks - _previousFrameTicks) * (1000.0 / Stopwatch.Frequency);
 
-            while (LimitFrameRate && deltaMilliseconds < desiredFrameTime)
+            while (_applicationContext.IsFrameRateLimited && deltaMilliseconds < desiredFrameTime)
             {
                 Thread.Sleep(0);
                 currentFrameTicks = stopwatch.ElapsedTicks;
@@ -123,7 +119,7 @@ public class Application : IApplication
 
             _inputProvider.MouseState.Center();
             Glfw.PollEvents();
-            Glfw.SwapBuffers(_windowHandle);            
+            Glfw.SwapBuffers(_windowHandle);
 
             _metrics.FrameCounter++;
         }
@@ -196,7 +192,7 @@ public class Application : IApplication
         var videoMode = Glfw.GetVideoMode(monitorHandle);
         var screenWidth = videoMode.Width;
         var screenHeight = videoMode.Height;
-        DesiredFramerate = videoMode.RefreshRate;
+        _applicationContext.DesiredFramerate = videoMode.RefreshRate;
 
         Glfw.GetMonitorPos(
             monitorHandle,
@@ -215,7 +211,7 @@ public class Application : IApplication
         monitorHandle = windowResizable || windowSettings.WindowMode == WindowMode.WindowedFullscreen
             ? nint.Zero
             : monitorHandle;
-        
+
         var glVersion = new Version(4, 5);
         if (!string.IsNullOrEmpty(_contextSettings.Value.TargetGLVersion))
         {
@@ -263,7 +259,7 @@ public class Application : IApplication
             _logger.Error("{Category}: Unable to create window", "Glfw");
             return false;
         }
-        
+
         Glfw.SwapBuffers(_windowHandle);
 
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -321,7 +317,7 @@ public class Application : IApplication
         _logger.Information("{Category}: Version - {Version}", "GL", GL.GetString(GL.StringName.Version));
         _logger.Information("{Category}: Shading Language Version - {ShadingLanguageVersion}", "GL", GL.GetString(GL.StringName.ShadingLanguageVersion));
 
-        
+
         if (_capabilities.SupportsSwapControl)
         {
             Glfw.SwapInterval(_windowSettings.Value.IsVsyncEnabled ? 1 : -1);
@@ -331,7 +327,7 @@ public class Application : IApplication
             Glfw.SwapInterval(_windowSettings.Value.IsVsyncEnabled ? 1 : 0);
         }
 
-        LimitFrameRate = _windowSettings.Value.IsVsyncEnabled;
+        _applicationContext.IsFrameRateLimited = _windowSettings.Value.IsVsyncEnabled;
 
         BindCallbacks();
 
@@ -346,7 +342,7 @@ public class Application : IApplication
         {
             _logger.Debug("{Category}: Debug callback disabled", "GL");
         }
-        
+
         GL.Enable(GL.EnableType.FramebufferSrgb);
 
         return true;
@@ -393,7 +389,7 @@ public class Application : IApplication
             _logger.Error("{Category}: Window icon file {FilePath} not found", "App", fileName);
             return;
         }
-        
+
         unsafe
         {
             using var image = Image.Load<Rgba32>(fileName);
@@ -440,14 +436,14 @@ public class Application : IApplication
     protected void MaximizeWindow()
     {
         Glfw.MaximizeWindow(_windowHandle);
-        
+
         _applicationContext.IsWindowMaximized = true;
     }
 
     protected void RestoreWindow()
     {
         Glfw.RestoreWindow(_windowHandle);
-        
+
         _applicationContext.IsWindowMaximized = false;
     }
 
