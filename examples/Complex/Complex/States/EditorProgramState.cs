@@ -12,34 +12,44 @@ namespace Complex.States;
 
 internal sealed class EditorProgramState : IProgramState
 {
-    private readonly ILogger _logger;
     private readonly IApplicationContext _applicationContext;
-    private readonly ICapabilities _capabilities;
-    private readonly IMetrics _metrics;
-    private readonly IGraphicsContext _graphicsContext;
-    private readonly IRenderer _renderer;
-    private readonly IUIRenderer _uiRenderer;
-    private readonly IMessageBus _messageBus;
+
     private readonly AssetWindow _assetWindow;
-    private readonly SceneHierarchyWindow _sceneHierarchyWindow;
-    private readonly SceneViewWindow _sceneViewWindow;
+
+    private readonly ICapabilities _capabilities;
+
+    private readonly IGraphicsContext _graphicsContext;
+
+    private readonly ILogger _logger;
+
+    private readonly IMessageBus _messageBus;
+
+    private readonly IMetrics _metrics;
+
     private readonly PropertyWindow _propertyWindow;
+
+    private readonly IRenderer _renderer;
+
+    private readonly SceneHierarchyWindow _sceneHierarchyWindow;
+
+    private readonly SceneViewWindow _sceneViewWindow;
+
+    private readonly IUIRenderer _uiRenderer;
 
     private SwapchainDescriptor _swapchainDescriptor;
 
-    public EditorProgramState(
-        ILogger logger,
-        IApplicationContext applicationContext,
-        ICapabilities capabilities,
-        IMetrics metrics,
-        IGraphicsContext graphicsContext,
-        IRenderer renderer,
-        IUIRenderer uiRenderer,
-        IMessageBus messageBus,
-        AssetWindow assetWindow,
-        SceneHierarchyWindow sceneHierarchyWindow,
-        SceneViewWindow sceneViewWindow,
-        PropertyWindow propertyWindow)
+    public EditorProgramState(ILogger logger,
+                              IApplicationContext applicationContext,
+                              ICapabilities capabilities,
+                              IMetrics metrics,
+                              IGraphicsContext graphicsContext,
+                              IRenderer renderer,
+                              IUIRenderer uiRenderer,
+                              IMessageBus messageBus,
+                              AssetWindow assetWindow,
+                              SceneHierarchyWindow sceneHierarchyWindow,
+                              SceneViewWindow sceneViewWindow,
+                              PropertyWindow propertyWindow)
     {
         _logger = logger;
         _applicationContext = applicationContext;
@@ -66,12 +76,15 @@ internal sealed class EditorProgramState : IProgramState
     {
         _swapchainDescriptor = CreateSwapchainDescriptor();
 
-        _logger.Debug("{Category}: Loaded {ProgramStateName}", "ProgramState", GetType().Name);
+        _logger.Debug("{Category}: Loaded {ProgramStateName}",
+                "ProgramState",
+                GetType().Name);
 
         return true;
     }
 
-    public void Render(float deltaTime, float elapsedSeconds)
+    public void Render(float deltaTime,
+                       float elapsedSeconds)
     {
         _graphicsContext.BeginRenderPass(_swapchainDescriptor);
         _uiRenderer.BeginLayout();
@@ -81,10 +94,7 @@ internal sealed class EditorProgramState : IProgramState
             {
                 if (ImGui.BeginMenu("File"))
                 {
-                    if (ImGui.MenuItem("Quit"))
-                    {
-                        _messageBus.PublishWait(new CloseWindowMessage());
-                    }
+                    if (ImGui.MenuItem("Quit")) _messageBus.PublishWait(new CloseWindowMessage());
                     ImGui.EndMenu();
                 }
 
@@ -104,7 +114,9 @@ internal sealed class EditorProgramState : IProgramState
                 ImGui.SameLine();
                 ImGui.Button(MaterialDesignIcons.WindowMinimize);
                 ImGui.SameLine();
-                if (ImGui.Button(_applicationContext.IsWindowMaximized ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
+                if (ImGui.Button(_applicationContext.IsWindowMaximized
+                            ? MaterialDesignIcons.WindowRestore
+                            : MaterialDesignIcons.WindowMaximize))
                 {
                     if (_applicationContext.IsWindowMaximized)
                     {
@@ -115,6 +127,7 @@ internal sealed class EditorProgramState : IProgramState
                         _messageBus.PublishWait(new MaximizeWindowMessage());
                     }
                 }
+
                 ImGui.SameLine();
                 if (ImGui.Button(MaterialDesignIcons.WindowClose))
                 {
@@ -140,9 +153,9 @@ internal sealed class EditorProgramState : IProgramState
         _graphicsContext.EndRenderPass();
     }
 
-    public void Update(float deltaTime, float elapsedSeconds)
+    public void Update(float deltaTime,
+                       float elapsedSeconds)
     {
-
     }
 
     private Task OnFramebufferResized(FramebufferResizedMessage message)

@@ -6,38 +6,36 @@ using BepuPhysics.Constraints;
 
 namespace Complex.Physics;
 
-struct NarrowPhaseCallbacks : INarrowPhaseCallbacks
+internal struct NarrowPhaseCallbacks : INarrowPhaseCallbacks
 {
     public void Initialize(Simulation simulation)
     {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowContactGeneration(
-        int workerIndex,
-        CollidableReference a,
-        CollidableReference b,
-        ref float speculativeMargin)
+    public bool AllowContactGeneration(int workerIndex,
+                                       CollidableReference a,
+                                       CollidableReference b,
+                                       ref float speculativeMargin)
     {
         return a.Mobility == CollidableMobility.Dynamic || b.Mobility == CollidableMobility.Dynamic;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowContactGeneration(
-        int workerIndex,
-        CollidablePair pair,
-        int childIndexA,
-        int childIndexB)
+    public bool AllowContactGeneration(int workerIndex,
+                                       CollidablePair pair,
+                                       int childIndexA,
+                                       int childIndexB)
     {
         return true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool ConfigureContactManifold<TManifold>(
-        int workerIndex,
-        CollidablePair pair,
-        ref TManifold manifold,
-        out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
+    public bool ConfigureContactManifold<TManifold>(int workerIndex,
+                                                    CollidablePair pair,
+                                                    ref TManifold manifold,
+                                                    out PairMaterialProperties pairMaterial)
+            where TManifold : unmanaged, IContactManifold<TManifold>
     {
         pairMaterial.FrictionCoefficient = 1f;
         pairMaterial.MaximumRecoveryVelocity = 2f;
@@ -47,12 +45,11 @@ struct NarrowPhaseCallbacks : INarrowPhaseCallbacks
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool ConfigureContactManifold(
-        int workerIndex,
-        CollidablePair pair,
-        int childIndexA,
-        int childIndexB,
-        ref ConvexContactManifold manifold)
+    public bool ConfigureContactManifold(int workerIndex,
+                                         CollidablePair pair,
+                                         int childIndexA,
+                                         int childIndexB,
+                                         ref ConvexContactManifold manifold)
     {
         return true;
     }

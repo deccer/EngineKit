@@ -13,41 +13,45 @@ namespace Complex;
 
 internal sealed class ComplexApplication : GraphicsApplication
 {
-    private readonly ILogger _logger;
     private readonly IApplicationContext _applicationContext;
-    private readonly IModelLibrary _modelLibrary;
+
     private readonly ICamera _camera;
-    private readonly IScene _scene;
-    private readonly IRenderer _renderer;
+
     private readonly ILayeredProgramStates _layeredProgramStates;
 
-    public ComplexApplication(
-        ILogger logger,
-        IOptions<WindowSettings> windowSettings,
-        IOptions<ContextSettings> contextSettings,
-        IApplicationContext applicationContext,
-        ICapabilities capabilities,
-        IMetrics metrics,
-        IInputProvider inputProvider,
-        IGraphicsContext graphicsContext,
-        IUIRenderer uiRenderer,
-        IModelLibrary modelLibrary,
-        ICamera camera,
-        IScene scene,
-        IRenderer renderer,
-        IMessageBus messageBus,
-        ILayeredProgramStates layeredProgramStates)
-        : base(
-            logger,
-            windowSettings,
-            contextSettings,
-            applicationContext,
-            capabilities,
-            metrics,
-            inputProvider,
-            graphicsContext,
-            uiRenderer,
-            messageBus)
+    private readonly ILogger _logger;
+
+    private readonly IModelLibrary _modelLibrary;
+
+    private readonly IRenderer _renderer;
+
+    private readonly IScene _scene;
+
+    public ComplexApplication(ILogger logger,
+                              IOptions<WindowSettings> windowSettings,
+                              IOptions<ContextSettings> contextSettings,
+                              IApplicationContext applicationContext,
+                              ICapabilities capabilities,
+                              IMetrics metrics,
+                              IInputProvider inputProvider,
+                              IGraphicsContext graphicsContext,
+                              IUIRenderer uiRenderer,
+                              IModelLibrary modelLibrary,
+                              ICamera camera,
+                              IScene scene,
+                              IRenderer renderer,
+                              IMessageBus messageBus,
+                              ILayeredProgramStates layeredProgramStates)
+            : base(logger,
+                   windowSettings,
+                   contextSettings,
+                   applicationContext,
+                   capabilities,
+                   metrics,
+                   inputProvider,
+                   graphicsContext,
+                   uiRenderer,
+                   messageBus)
     {
         _logger = logger;
         _applicationContext = applicationContext;
@@ -127,7 +131,8 @@ internal sealed class ComplexApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render(float deltaTime, float elapsedSeconds)
+    protected override void Render(float deltaTime,
+                                   float elapsedSeconds)
     {
         _layeredProgramStates.Render(deltaTime, elapsedSeconds);
 
@@ -143,7 +148,8 @@ internal sealed class ComplexApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update(float deltaTime, float elapsedSeconds)
+    protected override void Update(float deltaTime,
+                                   float elapsedSeconds)
     {
         base.Update(deltaTime, elapsedSeconds);
 

@@ -5,7 +5,7 @@ namespace Complex.Ecs;
 public readonly struct EntityId : IEquatable<EntityId>
 {
     private readonly int _entityId;
-    
+
     public EntityId(int entityId)
     {
         _entityId = entityId;

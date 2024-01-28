@@ -9,8 +9,10 @@ namespace Complex.Physics;
 internal class PhysicsWorld : IPhysicsWorld
 {
     private readonly BufferPool _bufferPool;
-    private readonly ThreadDispatcher _threadDispatcher;
+
     private readonly Simulation _simulation;
+
+    private readonly ThreadDispatcher _threadDispatcher;
 
     public PhysicsWorld()
     {
@@ -25,14 +27,14 @@ internal class PhysicsWorld : IPhysicsWorld
 
     public void Update()
     {
-        _simulation.Timestep(1.0f / 60.0f, _threadDispatcher);    
+        _simulation.Timestep(1.0f / 60.0f, _threadDispatcher);
     }
 
     public Matrix4x4 GetBodyPoseByBodyHandle(BodyHandle handle)
     {
         var bodyReference = _simulation.Bodies.GetBodyReference(handle);
-        return Matrix4x4.CreateScale(1.0f) * 
-               Matrix4x4.CreateFromQuaternion(bodyReference.Pose.Orientation) * 
+        return Matrix4x4.CreateScale(1.0f) *
+               Matrix4x4.CreateFromQuaternion(bodyReference.Pose.Orientation) *
                Matrix4x4.CreateTranslation(bodyReference.Pose.Position);
     }
 

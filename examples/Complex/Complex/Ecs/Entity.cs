@@ -7,14 +7,37 @@ namespace Complex.Ecs;
 
 public class Entity
 {
-    private Entity? _parent;
+    public readonly Dictionary<Type, Component> Components;
+
+    private Matrix4x4 _globalMatrix;
 
     private Vector3 _localPosition;
+
     private Vector3 _localRotation;
+
     private Vector3 _localScale;
 
-    private Matrix4x4 _localMatrix;
-    private Matrix4x4 _globalMatrix;
+    private Entity? _parent;
+
+    public EntityId Id;
+
+    public string Name;
+
+    public Entity(string name,
+                  Entity? parent)
+    {
+        Name = name;
+        Components = new Dictionary<Type, Component>();
+        Parent = parent;
+        Children = new List<Entity>();
+
+        _localPosition = Vector3.Zero;
+        _localRotation = Vector3.Zero;
+        _localScale = Vector3.One;
+
+        LocalMatrix = Matrix4x4.Identity;
+        _globalMatrix = Matrix4x4.Identity;
+    }
 
     public Vector3 Position
     {
@@ -55,26 +78,7 @@ public class Entity
         }
     }
 
-    public Matrix4x4 LocalMatrix
-    {
-        get => _localMatrix;
-        set => _localMatrix = value;
-    }
-
-    public Entity(string name, Entity? parent)
-    {
-        Name = name;
-        Components = new Dictionary<Type, Component>();
-        Parent = parent;
-        Children = new List<Entity>();
-
-        _localPosition = Vector3.Zero;
-        _localRotation = Vector3.Zero;
-        _localScale = Vector3.One;
-        
-        _localMatrix = Matrix4x4.Identity;
-        _globalMatrix = Matrix4x4.Identity;
-    }
+    public Matrix4x4 LocalMatrix { get; set; }
 
     public Entity? Parent
     {
@@ -88,12 +92,6 @@ public class Entity
     }
 
     public List<Entity> Children { get; }
-
-    public EntityId Id;
-
-    public string Name;
-
-    public readonly Dictionary<Type, Component> Components;
 
     public T GetComponent<T>() where T : Component
     {
@@ -119,19 +117,17 @@ public class Entity
     private void UpdateGlobalMatrix()
     {
         if (_parent != null)
-        {
-            _globalMatrix = _localMatrix * _parent.GetGlobalMatrix();
-        }
+            _globalMatrix = LocalMatrix * _parent.GetGlobalMatrix();
         else
-        {
-            _globalMatrix = _localMatrix;
-        }
+            _globalMatrix = LocalMatrix;
     }
 
     private void UpdateLocalMatrix()
     {
-        _localMatrix = Matrix4x4.CreateScale(_localScale) *
-                       Matrix4x4.CreateFromYawPitchRoll(_localRotation.X, _localRotation.Y, _localRotation.Z) *
-                       Matrix4x4.CreateTranslation(_localPosition);
+        LocalMatrix = Matrix4x4.CreateScale(_localScale) *
+                      Matrix4x4.CreateFromYawPitchRoll(_localRotation.X,
+                          _localRotation.Y,
+                          _localRotation.Z) *
+                      Matrix4x4.CreateTranslation(_localPosition);
     }
 }

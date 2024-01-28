@@ -8,7 +8,9 @@ namespace Complex.Ecs;
 public class EntityWorld : IEntityWorld
 {
     private readonly IDictionary<Type, List<Component>> _componentsByType;
+
     private readonly IDictionary<EntityId, Entity> _entities;
+
     private int _nextEntityId;
 
     public EntityWorld()
@@ -17,14 +19,15 @@ public class EntityWorld : IEntityWorld
         _entities = new Dictionary<EntityId, Entity>();
         _nextEntityId = 0;
     }
-    
+
     public event Action<Component>? ComponentAdded;
-    
+
     public event Action<Component>? ComponentRemoved;
-    
+
     public event Action<Component>? ComponentChanged;
 
-    public EntityId CreateEntity(string name, EntityId? parent = null)
+    public EntityId CreateEntity(string name,
+                                 EntityId? parent = null)
     {
         Entity? parentEntity = null;
         if (parent != null)
@@ -46,7 +49,8 @@ public class EntityWorld : IEntityWorld
         return _entities.TryGetValue(entityId, out var entity) ? entity : null;
     }
 
-    public void AddComponent<T>(EntityId entityId, T component) where T : Component
+    public void AddComponent<T>(EntityId entityId,
+                                T component) where T : Component
     {
         var componentType = typeof(T);
         var entity = _entities[entityId];
@@ -87,38 +91,37 @@ public class EntityWorld : IEntityWorld
     }
 
     public List<Entity> GetEntitiesWithComponents<TComponent>()
-        where TComponent : Component
+            where TComponent : Component
     {
         if (!_componentsByType.TryGetValue(typeof(TComponent), out var components))
         {
             return Enumerable.Empty<Entity>().ToList();
         }
-        
+
         var entities = new List<Entity>(256);
 
         foreach (var component in components)
         {
-            if (component.Entity != null && !entities.Contains(component.Entity))
-            {
-                entities.Add(component.Entity);
-            }
+            if (component.Entity != null && !entities.Contains(component.Entity)) entities.Add(component.Entity);
         }
 
         return entities;
     }
 
     public List<Entity> GetEntitiesWithComponents<TComponent1, TComponent2>()
-        where TComponent1 : Component
-        where TComponent2 : Component
+            where TComponent1 : Component
+            where TComponent2 : Component
     {
         if (!_componentsByType.TryGetValue(typeof(TComponent1), out var components1))
         {
-            return Enumerable.Empty<Entity>().ToList();;
+            return Enumerable.Empty<Entity>().ToList();
+            ;
         }
 
         if (!_componentsByType.TryGetValue(typeof(TComponent2), out var components2))
         {
-            return Enumerable.Empty<Entity>().ToList();;
+            return Enumerable.Empty<Entity>().ToList();
+            ;
         }
 
         var entities = new List<Entity>(256);

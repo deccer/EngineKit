@@ -14,18 +14,18 @@ struct GpuMaterial
 {
     vec4 BaseColorFactor;
     vec4 EmissiveFactor;
-    
+
     float MetallicFactor;
     float RoughnessFactor;
     float AlphaCutOff;
     int AlphaMode;
-    
+
     uvec2 BaseColorTexture;
     uvec2 NormalTexture;
-    
+
     uvec2 MetalnessRoughnessTexture;
     uvec2 SpecularTexture;
-    
+
     uvec2 OcclusionTexture;
     uvec2 EmissiveTexture;
 };
@@ -38,7 +38,7 @@ layout(std430, binding = 2) readonly buffer MaterialBuffer
 void main()
 {
     GpuMaterial material = Materials[v_material_index];
-    
+
     vec3 albedo;
     if (material.BaseColorTexture.x != 0)
     {
@@ -48,6 +48,6 @@ void main()
     {
         albedo = v_normal * 0.5 + 0.5;
     }
-    
-    o_color = vec4(albedo,1.0f);
+
+    o_color = vec4(albedo, 1.0f);
 }

@@ -7,7 +7,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\src\EngineKit\EngineKit.csproj"/>
-        <ProjectReference Include="..\HelloWindow.Assets\HelloWindow.Assets.csproj" />
+        <ProjectReference Include="..\HelloWindow.Assets\HelloWindow.Assets.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

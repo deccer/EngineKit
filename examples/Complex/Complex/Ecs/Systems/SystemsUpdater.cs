@@ -2,20 +2,21 @@ namespace Complex.Ecs.Systems;
 
 internal class SystemsUpdater : ISystemsUpdater
 {
-    private readonly IUpdateCameraSystem _updateCameraSystem;
-    private readonly ITransformSystem _transformSystem;
     private readonly IPreRenderSystem _preRenderSystem;
 
-    public SystemsUpdater(
-        IUpdateCameraSystem updateCameraSystem,
-        ITransformSystem transformSystem,
-        IPreRenderSystem preRenderSystem)
+    private readonly ITransformSystem _transformSystem;
+
+    private readonly IUpdateCameraSystem _updateCameraSystem;
+
+    public SystemsUpdater(IUpdateCameraSystem updateCameraSystem,
+                          ITransformSystem transformSystem,
+                          IPreRenderSystem preRenderSystem)
     {
         _updateCameraSystem = updateCameraSystem;
         _transformSystem = transformSystem;
         _preRenderSystem = preRenderSystem;
     }
-    
+
     public void Update(float deltaTime)
     {
         _updateCameraSystem.Update(deltaTime);

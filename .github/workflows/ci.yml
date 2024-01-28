@@ -3,51 +3,51 @@ name: CI
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
     branches:
-    - main
+      - main
 
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ ubuntu-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Install Mesa
-      run: |
-        sudo add-apt-repository ppa:oibaf/graphics-drivers
-        sudo apt update
-        sudo apt upgrade
-      if: matrix.os == 'ubuntu-latest'
+      - name: Install Mesa
+        run: |
+          sudo add-apt-repository ppa:oibaf/graphics-drivers
+          sudo apt update
+          sudo apt upgrade
+        if: matrix.os == 'ubuntu-latest'
 
-    - name: Build and install GLFW
-      run: |
-        sudo apt install xorg-dev cmake
-        git clone --recursive https://github.com/glfw/glfw.git
-        cd glfw
-        mkdir build
-        cmake -S . -B ./build -D GLFW_BUILD_EXAMPLES=OFF -D GLFW_BUILD_TESTS=OFF -D GLFW_BUILD_DOCS=OFF -D BUILD_SHARED_LIBS=ON
-        cd build
-        make
-        sudo make install
-      if: matrix.os == 'ubuntu-latest'
+      - name: Build and install GLFW
+        run: |
+          sudo apt install xorg-dev cmake
+          git clone --recursive https://github.com/glfw/glfw.git
+          cd glfw
+          mkdir build
+          cmake -S . -B ./build -D GLFW_BUILD_EXAMPLES=OFF -D GLFW_BUILD_TESTS=OFF -D GLFW_BUILD_DOCS=OFF -D BUILD_SHARED_LIBS=ON
+          cd build
+          make
+          sudo make install
+        if: matrix.os == 'ubuntu-latest'
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2.1.0
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2.1.0
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.0.5
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1.0.5
 
-    - name: Restore dependencies
-      run: dotnet restore EngineKit.sln
+      - name: Restore dependencies
+        run: dotnet restore EngineKit.sln
 
-    - name: Build
-      run: dotnet build EngineKit.sln --configuration Release --no-restore
+      - name: Build
+        run: dotnet build EngineKit.sln --configuration Release --no-restore

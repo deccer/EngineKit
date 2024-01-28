@@ -6,5 +6,6 @@ namespace Complex;
 public struct InstanceInformation
 {
     public Matrix4x4 WorldMatrix;
+
     public UInt4 MaterialIndex;
 }

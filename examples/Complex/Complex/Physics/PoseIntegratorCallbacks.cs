@@ -7,11 +7,11 @@ namespace Complex.Physics;
 public struct PoseIntegratorCallbacks : IPoseIntegratorCallbacks
 {
     public AngularIntegrationMode AngularIntegrationMode { get; }
-    
+
     public bool AllowSubstepsForUnconstrainedBodies { get; }
-    
+
     public bool IntegrateVelocityForKinematics { get; }
-    
+
     public void Initialize(Simulation simulation)
     {
     }
@@ -20,15 +20,14 @@ public struct PoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {
     }
 
-    public void IntegrateVelocity(
-        Vector<int> bodyIndices,
-        Vector3Wide position,
-        QuaternionWide orientation,
-        BodyInertiaWide localInertia,
-        Vector<int> integrationMask,
-        int workerIndex,
-        Vector<float> dt,
-        ref BodyVelocityWide velocity)
+    public void IntegrateVelocity(Vector<int> bodyIndices,
+                                  Vector3Wide position,
+                                  QuaternionWide orientation,
+                                  BodyInertiaWide localInertia,
+                                  Vector<int> integrationMask,
+                                  int workerIndex,
+                                  Vector<float> dt,
+                                  ref BodyVelocityWide velocity)
     {
     }
 }

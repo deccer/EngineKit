@@ -21,7 +21,7 @@ layout(std430, binding = 3) restrict readonly buffer VertexBuffer
 void main()
 {
     Vertex vertex = Vertices[gl_VertexID];
-    
+
     GpuModelMeshInstance modelMeshInstance = ModelMeshInstances[gl_BaseInstance];
     v_position = (modelMeshInstance.World * vec4(PackedToVec3(vertex.position), 1.0)).xyz;
     v_normal = normalize(inverse(transpose(mat3(modelMeshInstance.World))) * PackedToVec3(vertex.normal));

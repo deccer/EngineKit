@@ -9,15 +9,15 @@ const float PI = 3.14159265359;
 vec3 cubeCoordToWorld(ivec3 cubeCoord, vec2 cubemapSize)
 {
     vec2 uv = vec2(cubeCoord.xy) / cubemapSize;
-    uv = uv  * 2.0 - 1.0; // -1..1
-    switch(cubeCoord.z)
+    uv = uv  * 2.0 - 1.0;// -1..1
+    switch (cubeCoord.z)
     {
-        case 0: return vec3(1.0, -uv.yx); // posx
-        case 1: return vec3(-1.0, -uv.y, uv.x); //negx
-        case 2: return vec3(uv.x, 1.0, uv.y); // posy
-        case 3: return vec3(uv.x, -1.0, -uv.y); //negy
-        case 4: return vec3(uv.x, -uv.y, 1.0); // posz
-        case 5: return vec3(-uv.xy, -1.0); // negz
+        case 0: return vec3(1.0, -uv.yx);// posx
+        case 1: return vec3(-1.0, -uv.y, uv.x);//negx
+        case 2: return vec3(uv.x, 1.0, uv.y);// posy
+        case 3: return vec3(uv.x, -1.0, -uv.y);//negy
+        case 4: return vec3(uv.x, -uv.y, 1.0);// posz
+        case 5: return vec3(-uv.xy, -1.0);// negz
     }
     return vec3(0.0);
 }
@@ -55,7 +55,7 @@ ivec3 texCoordToCube(vec3 texCoord, vec2 cubemapSize)
         uvCoord = mix(vec2(texCoord.x, -texCoord.y), -texCoord.xy, negz);
         cubeFace = 4.0 + negz;
     }
-    uvCoord = (uvCoord + 1.0) * 0.5; // 0..1
+    uvCoord = (uvCoord + 1.0) * 0.5;// 0..1
     uvCoord = uvCoord * cubemapSize;
     uvCoord = clamp(uvCoord, vec2(0.0), cubemapSize - vec2(1.0));
 
@@ -89,7 +89,7 @@ void main()
     {
         for (float theta = 0.0; theta < 0.5 * PI; theta += sampleDelta)
         {
-            vec3 tangentSample = vec3(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
+            vec3 tangentSample = vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
             vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * normal;
             ivec3 sampleCoord = texCoordToCube(sampleVec, cubeSize);
             irradiance += imageLoad(u_environment, sampleCoord).rgb * cos(theta) * sin(theta);

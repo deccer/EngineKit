@@ -8,5 +8,5 @@ layout(location = 0) out vec4 o_color;
 
 void main()
 {
-  o_color = texture(s_texture, v_uv);
+    o_color = texture(s_texture, v_uv);
 }

@@ -54,14 +54,14 @@ internal static class Program
         services.AddSingleton<SceneHierarchyWindow>();
         services.AddSingleton<SceneViewWindow>();
         services.AddSingleton<PropertyWindow>();
-        
+
         services.AddSingleton<IScene, Scene>();
 
         services.AddSingleton<IProgramState, GameProgramState>();
         services.AddSingleton<IProgramState, MenuProgramState>();
         services.AddSingleton<IProgramState, EditorProgramState>();
         services.AddSingleton<ILayeredProgramStates, LayeredProgramStates>();
-        
+
         return services.BuildServiceProvider();
     }
 }

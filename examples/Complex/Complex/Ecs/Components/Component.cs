@@ -10,12 +10,11 @@ public abstract class Component
 
     public event Action<Component>? ComponentChanged;
 
-    protected void SetValue<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    protected void SetValue<T>(ref T field,
+                               T value,
+                               [CallerMemberName] string? propertyName = null)
     {
-        if (EqualityComparer<T>.Default.Equals(field, value))
-        {
-            return;
-        }
+        if (EqualityComparer<T>.Default.Equals(field, value)) return;
 
         field = value;
         NotifyPropertyChanged(propertyName);

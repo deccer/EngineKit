@@ -8,14 +8,17 @@ namespace Complex.Windows;
 
 public class SceneViewWindow : Window
 {
-    private readonly IRenderer _renderer;
     private readonly IApplicationContext _applicationContext;
+
     private readonly IMessageBus _messageBus;
+
+    private readonly IRenderer _renderer;
+
     private Vector2 _oldAvailableSize;
 
     public SceneViewWindow(IRenderer renderer,
-        IApplicationContext applicationContext,
-        IMessageBus messageBus)
+                           IApplicationContext applicationContext,
+                           IMessageBus messageBus)
     {
         _renderer = renderer;
         _applicationContext = applicationContext;
@@ -34,10 +37,10 @@ public class SceneViewWindow : Window
             _oldAvailableSize = availableSize;
         }
 
-        ImGui.Image(
-            (nint)_renderer.GetMainFrameDescriptor().ColorAttachments[0].Texture.Id, availableSize,
-            Vector2.UnitY,
-            Vector2.UnitX);
+        ImGui.Image((nint)_renderer.GetMainFrameDescriptor().ColorAttachments[0].Texture.Id,
+                availableSize,
+                Vector2.UnitY,
+                Vector2.UnitX);
     }
 
     protected override void SetStyleInternal()

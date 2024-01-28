@@ -7,9 +7,11 @@ namespace Complex.Ecs.Systems;
 internal class TransformSystem : ITransformSystem
 {
     private readonly IEntityWorld _entityWorld;
+
     private readonly IPhysicsWorld _physicsWorld;
 
-    public TransformSystem(IEntityWorld entityWorld, IPhysicsWorld physicsWorld)
+    public TransformSystem(IEntityWorld entityWorld,
+                           IPhysicsWorld physicsWorld)
     {
         _entityWorld = entityWorld;
         _physicsWorld = physicsWorld;

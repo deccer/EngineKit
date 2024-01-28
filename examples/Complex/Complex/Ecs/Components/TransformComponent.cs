@@ -4,6 +4,18 @@ namespace Complex.Ecs.Components;
 
 public class XTransformComponent : Component
 {
+    public Matrix4x4 GlobalWorldMatrix;
+
+    public bool IsSrt;
+
+    public Vector3 LocalPosition = Vector3.Zero;
+
+    public Quaternion LocalRotation = Quaternion.Identity;
+
+    public Vector3 LocalScale = Vector3.One;
+
+    public Matrix4x4 LocalWorldMatrix;
+
     public static XTransformComponent CreateFromMatrix(Matrix4x4 worldMatrix)
     {
         /*
@@ -11,13 +23,16 @@ public class XTransformComponent : Component
         scale.Y = 1.0f / scale.Y;
         scale.Z = 1.0f / scale.Z;
         */
-        Matrix4x4.Decompose(worldMatrix, out var scale, out var rotation, out var translation);
+        Matrix4x4.Decompose(worldMatrix,
+                out var scale,
+                out var rotation,
+                out var translation);
         return new XTransformComponent
         {
             LocalPosition = translation,
             LocalRotation = rotation,
             LocalScale = scale,
-            LocalWorldMatrix = worldMatrix 
+            LocalWorldMatrix = worldMatrix
         };
     }
 
@@ -27,7 +42,7 @@ public class XTransformComponent : Component
         {
             LocalPosition = position,
             LocalRotation = Quaternion.Identity,
-            LocalScale = Vector3.One,
+            LocalScale = Vector3.One
         };
     }
 
@@ -39,16 +54,4 @@ public class XTransformComponent : Component
 
         LocalWorldMatrix = scaleMatrix * rotationMatrix * translationMatrix;
     }
-
-    public Vector3 LocalPosition = Vector3.Zero;
-
-    public Quaternion LocalRotation = Quaternion.Identity;
-
-    public Vector3 LocalScale = Vector3.One;
-
-    public Matrix4x4 LocalWorldMatrix;
-
-    public Matrix4x4 GlobalWorldMatrix;
-
-    public bool IsSrt;
 }

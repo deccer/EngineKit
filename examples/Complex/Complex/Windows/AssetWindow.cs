@@ -8,18 +8,21 @@ namespace Complex.Windows;
 
 public class AssetWindow : Window
 {
-    private readonly IModelLibrary _modelLibrary;
-    private readonly IMaterialLibrary _materialLibrary;
-    private readonly IScene _scene;
     private readonly ICamera _camera;
+
+    private readonly IMaterialLibrary _materialLibrary;
+
+    private readonly IModelLibrary _modelLibrary;
+
+    private readonly IScene _scene;
+
     private readonly SceneHierarchyWindow _sceneHierarchyWindow;
 
-    public AssetWindow(
-        IModelLibrary modelLibrary,
-        IMaterialLibrary materialLibrary,
-        IScene scene,
-        ICamera camera,
-        SceneHierarchyWindow sceneHierarchyWindow)
+    public AssetWindow(IModelLibrary modelLibrary,
+                       IMaterialLibrary materialLibrary,
+                       IScene scene,
+                       ICamera camera,
+                       SceneHierarchyWindow sceneHierarchyWindow)
     {
         _modelLibrary = modelLibrary;
         _materialLibrary = materialLibrary;
@@ -39,7 +42,7 @@ public class AssetWindow : Window
         {
             ImGui.TableSetupColumn("Model", ImGuiTableColumnFlags.NoSort);
             //ImGui.TableSetupColumn("Mesh", ImGuiTableColumnFlags.NoSort);
-            ImGui.TableSetupColumn("Instantiate",  ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.NoSort | ImGuiTableColumnFlags.WidthFixed, 32);
+            ImGui.TableSetupColumn("Instantiate", ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.NoSort | ImGuiTableColumnFlags.WidthFixed, 32);
             ImGui.TableHeadersRow();
 
             foreach (var modelName in modelNames)
@@ -56,7 +59,10 @@ public class AssetWindow : Window
                 ImGui.TableSetColumnIndex(1);
                 if (ImGui.Button($"{MaterialDesignIcons.Plus}"))
                 {
-                    _scene.AddEntityWithModelRenderer(model.Name, _sceneHierarchyWindow.SelectedEntityId, model, Matrix4x4.Identity);
+                    _scene.AddEntityWithModelRenderer(model.Name,
+                        _sceneHierarchyWindow.SelectedEntityId,
+                        model,
+                        Matrix4x4.Identity);
                 }
 
                 if (isExpanded)
@@ -71,8 +77,12 @@ public class AssetWindow : Window
                         ImGui.TableSetColumnIndex(1);
                         if (ImGui.Button($"{MaterialDesignIcons.Plus}"))
                         {
-                            _scene.AddEntityWithModelMeshRenderer(modelMesh.Name, _sceneHierarchyWindow.SelectedEntityId, modelMesh, Matrix4x4.Identity);
+                            _scene.AddEntityWithModelMeshRenderer(modelMesh.Name,
+                                _sceneHierarchyWindow.SelectedEntityId,
+                                modelMesh,
+                                Matrix4x4.Identity);
                         }
+
                         ImGui.PopID();
                     }
 

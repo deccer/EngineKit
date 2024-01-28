@@ -5,9 +5,9 @@ namespace Complex.Windows;
 public class Window
 {
     protected string? Caption { get; init; }
-    
+
     protected bool OverwriteStyle { get; init; }
-    
+
     public void Draw()
     {
         var windowFlags = GetWindowFlags();

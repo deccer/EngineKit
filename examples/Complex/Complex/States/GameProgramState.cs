@@ -10,24 +10,30 @@ namespace Complex.States;
 
 internal class GameProgramState : IProgramState
 {
-    private readonly IGraphicsContext _graphicsContext;
-    private readonly IRenderer _renderer;
-    private readonly ICamera _camera;
-    private readonly IScene _scene;
-    private readonly IInputProvider _inputProvider;
-    private readonly IMessageBus _messageBus;
     private readonly IApplicationContext _applicationContext;
+
+    private readonly ICamera _camera;
+
+    private readonly IGraphicsContext _graphicsContext;
+
+    private readonly IInputProvider _inputProvider;
+
     private readonly ILogger _logger;
 
-    public GameProgramState(
-        ILogger logger,
-        IGraphicsContext graphicsContext,
-        IRenderer renderer,
-        ICamera camera,
-        IScene scene,
-        IInputProvider inputProvider,
-        IMessageBus messageBus,
-        IApplicationContext applicationContext)
+    private readonly IMessageBus _messageBus;
+
+    private readonly IRenderer _renderer;
+
+    private readonly IScene _scene;
+
+    public GameProgramState(ILogger logger,
+                            IGraphicsContext graphicsContext,
+                            IRenderer renderer,
+                            ICamera camera,
+                            IScene scene,
+                            IInputProvider inputProvider,
+                            IMessageBus messageBus,
+                            IApplicationContext applicationContext)
     {
         _logger = logger.ForContext<GameProgramState>();
         _graphicsContext = graphicsContext;
@@ -53,17 +59,21 @@ internal class GameProgramState : IProgramState
             return false;
         }
 
-        _logger.Debug("{Category}: Loaded {ProgramStateName}", "ProgramState", GetType().Name);
+        _logger.Debug("{Category}: Loaded {ProgramStateName}",
+                "ProgramState",
+                GetType().Name);
 
         return true;
     }
 
-    public void Render(float deltaTime, float elapsedSeconds)
+    public void Render(float deltaTime,
+                       float elapsedSeconds)
     {
         _renderer.Render(_camera);
     }
 
-    public void Update(float deltaTime, float elapsedSeconds)
+    public void Update(float deltaTime,
+                       float elapsedSeconds)
     {
         if (_inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyEscape))
         {
@@ -71,10 +81,7 @@ internal class GameProgramState : IProgramState
         }
         _scene.Update(deltaTime);
 
-        if (_inputProvider.MouseState.IsButtonDown(Glfw.MouseButton.ButtonRight))
-        {
-            _camera.ProcessMouseMovement();
-        }
+        if (_inputProvider.MouseState.IsButtonDown(Glfw.MouseButton.ButtonRight)) _camera.ProcessMouseMovement();
 
         _camera.ProcessKeyboard();
         _camera.AdvanceSimulation(deltaTime);

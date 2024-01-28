@@ -14,34 +14,36 @@ namespace HelloWindow;
 
 internal sealed class HelloWindowApplication : GraphicsApplication
 {
-    private readonly ILogger _logger;
     private readonly IApplicationContext _applicationContext;
+
     private readonly ICapabilities _capabilities;
-    private readonly IMetrics _metrics;
+
     private readonly Color4 _clearColor;
 
-    public HelloWindowApplication(
-        ILogger logger,
-        IOptions<WindowSettings> windowSettings,
-        IOptions<ContextSettings> contextSettings,
-        IApplicationContext applicationContext,
-        ICapabilities capabilities,
-        IMetrics metrics,
-        IInputProvider inputProvider,
-        IGraphicsContext graphicsContext,
-        IUIRenderer uiRenderer,
-        IMessageBus messageBus)
-        : base(
-            logger,
-            windowSettings,
-            contextSettings,
-            applicationContext,
-            capabilities,
-            metrics,
-            inputProvider,
-            graphicsContext,
-            uiRenderer,
-            messageBus)
+    private readonly ILogger _logger;
+
+    private readonly IMetrics _metrics;
+
+    public HelloWindowApplication(ILogger logger,
+                                  IOptions<WindowSettings> windowSettings,
+                                  IOptions<ContextSettings> contextSettings,
+                                  IApplicationContext applicationContext,
+                                  ICapabilities capabilities,
+                                  IMetrics metrics,
+                                  IInputProvider inputProvider,
+                                  IGraphicsContext graphicsContext,
+                                  IUIRenderer uiRenderer,
+                                  IMessageBus messageBus)
+            : base(logger,
+                   windowSettings,
+                   contextSettings,
+                   applicationContext,
+                   capabilities,
+                   metrics,
+                   inputProvider,
+                   graphicsContext,
+                   uiRenderer,
+                   messageBus)
     {
         _logger = logger;
         _applicationContext = applicationContext;
@@ -49,14 +51,14 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         _metrics = metrics;
         _clearColor = MathHelper.GammaToLinear(Colors.DarkSlateBlue);
     }
-    
+
     protected override bool Initialize()
     {
         if (!base.Initialize())
         {
             return false;
         }
-        
+
         SetWindowIcon("enginekit-icon.png");
 
         return true;
@@ -70,11 +72,15 @@ internal sealed class HelloWindowApplication : GraphicsApplication
             return false;
         }
 
-        GL.ClearColor(_clearColor.R, _clearColor.G, _clearColor.B, 1.0f);
+        GL.ClearColor(_clearColor.R,
+                _clearColor.G,
+                _clearColor.B,
+                1.0f);
         return true;
     }
 
-    protected override void Render(float deltaTime, float elapsedSeconds)
+    protected override void Render(float deltaTime,
+                                   float elapsedSeconds)
     {
         GL.Clear(GL.FramebufferBit.ColorBufferBit | GL.FramebufferBit.DepthBufferBit);
 
@@ -108,7 +114,9 @@ internal sealed class HelloWindowApplication : GraphicsApplication
                 ImGui.SameLine();
                 ImGui.Button(MaterialDesignIcons.WindowMinimize);
                 ImGui.SameLine();
-                if (ImGui.Button(_applicationContext.IsWindowMaximized ? MaterialDesignIcons.WindowRestore : MaterialDesignIcons.WindowMaximize))
+                if (ImGui.Button(_applicationContext.IsWindowMaximized
+                            ? MaterialDesignIcons.WindowRestore
+                            : MaterialDesignIcons.WindowMaximize))
                 {
                     if (_applicationContext.IsWindowMaximized)
                     {
@@ -119,6 +127,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
                         MaximizeWindow();
                     }
                 }
+
                 ImGui.SameLine();
                 if (ImGui.Button(MaterialDesignIcons.WindowClose))
                 {
@@ -130,6 +139,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
 
             ImGui.EndMainMenuBar();
         }
+
         UIRenderer.ShowDemoWindow();
         UIRenderer.EndLayout();
 
@@ -144,12 +154,10 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         base.Unload();
     }
 
-    protected override void Update(float deltaTime, float elapsedSeconds)
+    protected override void Update(float deltaTime,
+                                   float elapsedSeconds)
     {
         base.Update(deltaTime, elapsedSeconds);
-        if (IsKeyPressed(Glfw.Key.KeyEscape))
-        {
-            Close();
-        }
+        if (IsKeyPressed(Glfw.Key.KeyEscape)) Close();
     }
 }

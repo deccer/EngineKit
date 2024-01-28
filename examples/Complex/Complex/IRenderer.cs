@@ -9,20 +9,19 @@ namespace Complex;
 public interface IRenderer : IDisposable
 {
     void Clear();
-    
-    void AddMeshInstance(
-        MeshPrimitive meshPrimitive,
-        Material material,
-        Matrix4x4 transform,
-        BoundingBox transformedMeshAabb);
-    
+
+    void AddMeshInstance(MeshPrimitive meshPrimitive,
+                         Material material,
+                         Matrix4x4 transform,
+                         BoundingBox transformedMeshAabb);
+
     void Render(ICamera camera);
-    
+
     void ResizeFramebufferDependentResources();
-    
+
     bool Load();
-    
+
     void RenderUI();
-    
+
     FramebufferDescriptor GetMainFrameDescriptor();
 }
