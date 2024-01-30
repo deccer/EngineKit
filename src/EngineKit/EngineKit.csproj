@@ -30,7 +30,6 @@
         </PackageReference>
         <PackageReference Include="Serilog" Version="3.0.1"/>
         <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1"/>
-        <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0029"/>
         <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0030" />
     </ItemGroup>
 
