@@ -3,7 +3,7 @@ using EngineKit.Mathematics;
 
 namespace Complex;
 
-public struct InstanceInformation
+public struct GpuInstance
 {
     public Matrix4x4 WorldMatrix;
 

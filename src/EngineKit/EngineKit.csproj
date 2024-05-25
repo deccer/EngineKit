@@ -20,8 +20,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CSharpFunctionalExtensions" Version="2.41.0" />
-        <PackageReference Include="ImGui.NET" Version="1.90.1.1" />
+        <PackageReference Include="CSharpFunctionalExtensions" Version="2.42.0" />
+        <PackageReference Include="ImGui.NET" Version="1.90.6.1" />
         <!--PackageReference Include="Ktx2Sharp" Version="1.0.2" /-->
         <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
@@ -30,7 +30,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Serilog" Version="3.1.1" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.3" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" />
         <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0030" />
     </ItemGroup>
 

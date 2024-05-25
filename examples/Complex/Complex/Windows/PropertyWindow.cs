@@ -41,39 +41,12 @@ public class PropertyWindow : Window
 
     protected override void DrawInternal()
     {
-        if (_selectedEntity == null || !_selectedEntityId.HasValue) return;
-
-        ImGui.PushID(_selectedEntity.Name);
-
-        if (ImGui.CollapsingHeader($"{MaterialDesignIcons.Compass} {_selectedEntity.Name}"))
+        if (_selectedEntity == null || !_selectedEntityId.HasValue)
         {
-            var localPosition = _selectedEntity.Position;
-            var localRotation = _selectedEntity.Rotation;
-            var localScale = _selectedEntity.Scale;
-
-            if (ImGui.DragFloat3("Position",
-                    ref localPosition,
-                    0.025f))
-            {
-                _selectedEntity.Position = localPosition;
-            }
-
-            if (ImGui.DragFloat3("Rotation",
-                    ref localRotation,
-                    0.025f))
-            {
-                _selectedEntity.Rotation = localRotation;
-            }
-
-            if (ImGui.DragFloat3("Scale",
-                    ref localScale,
-                    0.025f))
-            {
-                _selectedEntity.Scale = localScale;
-            }
+            return;
         }
 
-        ImGui.PopID();
+        var transformShown = false;
 
         var components = _world.GetAllComponents(_selectedEntityId.Value);
         foreach (var component in components)
@@ -81,23 +54,61 @@ public class PropertyWindow : Window
             var componentType = component.GetType();
             var componentName = componentType.Name;
 
-            ImGui.PushID(componentName);
+            ImGui.PushID(component.GetHashCode());
 
             if (component is NameComponent nameComponent)
             {
                 if (ImGui.CollapsingHeader($"{MaterialDesignIcons.Label} Name"))
                 {
-                    ImGui.TextColored(Colors.ForestGreen, $"{MaterialDesignIcons.Label} Name");
-                    ImGui.SameLine();
-                    ImGui.TextUnformatted(nameComponent.Name);
+                    var name = nameComponent.Name;
+                    if (ImGui.InputText("Name", ref name, 255))
+                    {
+                        nameComponent.Name = name;
+                    }
                 }
             }
             else
             {
-                var isOpen = ImGui.TreeNodeEx(componentName);
-                if (isOpen)
+                if (!transformShown)
                 {
-                    ImGui.TreePop();
+                    ImGui.PushID(_selectedEntity.Name);
+
+                    if (ImGui.CollapsingHeader($"{MaterialDesignIcons.Compass} Transform"))
+                    {
+                        var localPosition = _selectedEntity.Position;
+                        var localRotation = _selectedEntity.Rotation;
+                        var localScale = _selectedEntity.Scale;
+
+                        if (ImGui.DragFloat3("Position",
+                                ref localPosition,
+                                0.025f))
+                        {
+                            _selectedEntity.Position = localPosition;
+                        }
+
+                        if (ImGui.DragFloat3("Rotation",
+                                ref localRotation,
+                                0.025f))
+                        {
+                            _selectedEntity.Rotation = localRotation;
+                        }
+
+                        if (ImGui.DragFloat3("Scale",
+                                ref localScale,
+                                0.025f))
+                        {
+                            _selectedEntity.Scale = localScale;
+                        }
+                    }
+
+                    ImGui.PopID();
+
+
+                    transformShown = true;
+                }
+                if (ImGui.CollapsingHeader($"{MaterialDesignIcons.EqualBox} {componentName}"))
+                {
+
                 }
             }
 

@@ -195,9 +195,9 @@ public sealed class Camera : ICamera
 
     private static Matrix4x4 CreateInfiniteReverseZPerspectiveRh(float fieldOfView, float aspectRatio, float nearPlane)
     {
-        var f = 1.0f / MathF.Tan(fieldOfView / 2.0f);
-        return new Matrix4x4(f / aspectRatio, 0.0f, 0.0f, 0.0f,
-            0.0f, f, 0.0f, 0.0f, 0.0f,
+        var t = 1.0f / MathF.Tan(fieldOfView / 2.0f);
+        return new Matrix4x4(t / aspectRatio, 0.0f, 0.0f, 0.0f,
+            0.0f, t, 0.0f, 0.0f, 0.0f,
             0.0f, 0.0f, -1.0f, 0.0f,
             0.0f, nearPlane, 0.0f);
     }

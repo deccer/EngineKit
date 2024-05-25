@@ -117,9 +117,13 @@ public class Entity
     private void UpdateGlobalMatrix()
     {
         if (_parent != null)
+        {
             _globalMatrix = LocalMatrix * _parent.GetGlobalMatrix();
+        }
         else
+        {
             _globalMatrix = LocalMatrix;
+        }
     }
 
     private void UpdateLocalMatrix()

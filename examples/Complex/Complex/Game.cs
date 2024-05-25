@@ -10,21 +10,15 @@ namespace Complex;
 
 internal class Game
 {
+    private readonly ILogger _logger;
+    private readonly IMessageBus _messageBus;
     private readonly IApplicationContext _applicationContext;
-
-    private readonly ICamera _camera;
-
     private readonly IGraphicsContext _context;
 
+    private readonly ICamera _camera;
     private readonly IInputProvider _inputProvider;
-
-    private readonly ILogger _logger;
-
-    private readonly IMessageBus _messageBus;
     private readonly IModelLibrary _modelLibrary;
-
     private readonly IRenderer _renderer;
-
     private readonly IScene _scene;
 
     public Game(ILogger logger,
@@ -52,15 +46,16 @@ internal class Game
     {
         if (!_renderer.Load())
         {
+            _logger.Error("{Category} Unable to load renderer", "Game");
             return false;
         }
 
-        /*
+/*
         _modelLibrary.AddModelFromFile("SM_Scene", "Data/Props/Scene/Scene.glb");
         _modelLibrary.AddModelFromFile("SM_Hierarchy", "Data/Props/Scene/Hierarchy.gltf");
         _modelLibrary.AddModelFromFile("SM_Deccer_Cubes", "Data/Default/SM_Deccer_Cubes_Textured.gltf");
         _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_WR", "Data/Default/SM_Deccer_Cubes_With_Rotation.glb");
-        */
+*/
 
         _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_Complex", "Data/Default/SM_Deccer_Cubes_Textured_Complex.gltf");
         _modelLibrary.AddModelFromFile("Nasa1", "Data/Props/Asteroids/nasa1.glb");
@@ -71,8 +66,7 @@ internal class Game
         //_modelLibrary.AddModelFromFile("FromSpace", "Data/Props/Asteroids/rock_from_space.glb");
         //_modelLibrary.AddModelFromFile("E1M1", "Data/Scenes/E1M1/E1M1.gltf");
         //_modelLibrary.AddModelFromFile("SmallCity", "Data/Scenes/small_city/small_city.gltf");
-
-        /*
+/*
         _modelLibrary.AddModelFromFile("SM_Bistor", "Data/Scenes/Bistro/scene.gltf");
         _modelLibrary.AddModelFromFile("SM_IntelSponza", "Data/Scenes/IntelSponza/NewSponza_Main_glTF_002.gltf");
         _modelLibrary.AddModelFromFile("SM_IntelSponzaCurtains", "Data/Scenes/IntelSponzaCurtains/NewSponza_Curtains_glTF.gltf");
@@ -100,6 +94,8 @@ internal class Game
         {
             _messageBus.PublishWait(new CloseWindowMessage());
         }
+
+        _renderer.ResizeIfNecessary();
 
         _scene.Update(deltaTime);
 

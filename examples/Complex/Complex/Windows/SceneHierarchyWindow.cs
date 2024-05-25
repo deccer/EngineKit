@@ -82,14 +82,19 @@ public class SceneHierarchyWindow : Window
 
     private void DrawChild(Entity child)
     {
+        var nodeFlags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.SpanFullWidth;
+        if (SelectedEntityId.Equals(child.Id))
+        {
+            nodeFlags |= ImGuiTreeNodeFlags.Selected;
+        }
+
         ImGui.PushID(child.ToString());
 
         var nameComponent = _world.GetComponent<NameComponent>(child.Id);
         var name = nameComponent?.Name ?? "UnnamedEntity";
 
         ImGui.PushID(name + child);
-        var isOpen = ImGui.TreeNodeEx(name, ImGuiTreeNodeFlags.SpanFullWidth);
-
+        var isOpen = ImGui.TreeNodeEx(name, nodeFlags);
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
         {
             SelectedEntityId = child.Id;

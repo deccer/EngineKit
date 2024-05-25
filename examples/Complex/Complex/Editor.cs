@@ -165,6 +165,10 @@ internal sealed class Editor
     {
     }
 
+    public void Unload()
+    {
+    }
+
     private SwapchainDescriptor CreateSwapchainDescriptor(int width, int height)
     {
         return _graphicsContext

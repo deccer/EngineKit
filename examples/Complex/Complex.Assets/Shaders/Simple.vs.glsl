@@ -14,21 +14,21 @@ layout(location = 1) out vec3 v_normal;
 layout(location = 2) out vec2 v_uv;
 layout(location = 3) out flat int v_material_index;
 
-layout(std140, binding = 0) uniform CameraInformationBuffer
+layout(std140, binding = 0) uniform GpuGlobalsBuffer
 {
     mat4 projection_matrix;
     mat4 view_matrix;
 };
 
-struct InstanceInformation
+struct GpuInstance
 {
     mat4 world_matrix;
     ivec4 material_index;
 };
 
-layout(std430, binding = 1) readonly buffer InstanceInformationBuffer
+layout(std430, binding = 1) readonly buffer GpuInstanceBuffer
 {
-    InstanceInformation Instances[];
+    GpuInstance Instances[];
 };
 
 vec3 hsv_to_rgb(in vec3 hsv)
@@ -41,7 +41,7 @@ layout(location = 0) uniform vec3 u_color;
 
 void main()
 {
-    InstanceInformation instance = Instances[gl_DrawID];
+    GpuInstance instance = Instances[gl_DrawID];
     v_position = (instance.world_matrix * vec4(i_position, 1.0)).xyz;
 
     const float GOLDEN_CONJ = 0.6180339887498948482045868343656;

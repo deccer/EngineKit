@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System.Diagnostics;
+using System.Linq;
 using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
+[DebuggerDisplay("{HashCode}")]
 public record struct FramebufferDescriptor
 {
     public string Label;
@@ -24,4 +26,6 @@ public record struct FramebufferDescriptor
     {
         Viewport = new Viewport(0, 0, width, height);
     }
+
+    public int HashCode => GetHashCode();
 }

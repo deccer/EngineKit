@@ -13,14 +13,13 @@ namespace Complex;
 
 internal sealed class ComplexApplication : GraphicsApplication
 {
-    private readonly IApplicationContext _applicationContext;
-
-    private readonly ICamera _camera;
-    private readonly Game _game;
-
     private readonly ILogger _logger;
 
-    private readonly IScene _scene;
+    private readonly IApplicationContext _applicationContext;
+
+    private readonly Game _game;
+
+    private readonly Editor _editor;
 
     public ComplexApplication(ILogger logger,
                               IOptions<WindowSettings> windowSettings,
@@ -31,9 +30,9 @@ internal sealed class ComplexApplication : GraphicsApplication
                               IInputProvider inputProvider,
                               IGraphicsContext graphicsContext,
                               IUIRenderer uiRenderer,
-                              ICamera camera,
+                              IMessageBus messageBus,
                               Game game,
-                              IMessageBus messageBus)
+                              Editor editor)
             : base(logger,
                    windowSettings,
                    contextSettings,
@@ -46,10 +45,12 @@ internal sealed class ComplexApplication : GraphicsApplication
     {
         _logger = logger;
         _applicationContext = applicationContext;
-        _camera = camera;
         _game = game;
+        _editor = editor;
+        /* TODO(deccer) move this to where/when camera is created
         _camera.Sensitivity = 0.125f;
         _camera.Mode = CameraMode.PerspectiveInfinity;
+        */
 
         messageBus.Subscribe<CloseWindowMessage>(OnCloseWindowMessage);
         messageBus.Subscribe<MaximizeWindowMessage>(OnMaximizeWindowMessage);
@@ -81,6 +82,11 @@ internal sealed class ComplexApplication : GraphicsApplication
             return false;
         }
 
+        if (!_editor.Load())
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -88,7 +94,7 @@ internal sealed class ComplexApplication : GraphicsApplication
                                    float elapsedSeconds)
     {
         _game.Render(deltaTime, elapsedSeconds);
-
+        _editor.Render(deltaTime, elapsedSeconds);
         if (_applicationContext.IsLaunchedByNSightGraphicsOnLinux)
         {
             GL.Finish();
@@ -97,6 +103,7 @@ internal sealed class ComplexApplication : GraphicsApplication
 
     protected override void OnUnload()
     {
+        _editor.Unload();
         _game.Unload();
         base.OnUnload();
     }
@@ -107,6 +114,7 @@ internal sealed class ComplexApplication : GraphicsApplication
         base.OnUpdate(deltaTime, elapsedSeconds);
 
         _game.Update(deltaTime, elapsedSeconds);
+        _editor.Update(deltaTime, elapsedSeconds);
     }
 
     protected override void OnHandleDebugger(out bool breakOnError)

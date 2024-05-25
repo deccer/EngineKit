@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace Complex;
 
-public struct CameraInformation
+public struct GpuGlobals
 {
     public Matrix4x4 ProjectionMatrix;
 

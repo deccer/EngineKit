@@ -21,7 +21,7 @@ internal class ForwardRenderer : IRenderer
 
     private uint _aabbCounter;
 
-    private CameraInformation _cameraInformation;
+    private GpuGlobals _gpuGlobals;
 
     private IBuffer? _cameraInformationBuffer;
 
@@ -105,15 +105,17 @@ internal class ForwardRenderer : IRenderer
                 _samplerLibrary);
         _materialBuffer = _materialPool.MaterialBuffer;
 
-        _cameraInformationBuffer = _graphicsContext.CreateTypedBuffer<CameraInformation>("Camera",
+        _cameraInformationBuffer = _graphicsContext.CreateTypedBuffer<GpuGlobals>("GpuGlobals",
                 1,
                 BufferStorageFlags.DynamicStorage);
-        _indirectBuffer = _graphicsContext.CreateTypedBuffer<DrawElementIndirectCommand>("IndirectElements",
+        _indirectBuffer = _graphicsContext.CreateTypedBuffer<DrawElementIndirectCommand>("GpuIndirectElements",
                 20_480u,
                 BufferStorageFlags.DynamicStorage);
-        _instanceBuffer = _graphicsContext.CreateTypedBuffer<InstanceInformation>("Instances",
+        _instanceBuffer = _graphicsContext.CreateTypedBuffer<GpuInstance>("GpuInstances",
                 20_480u,
                 BufferStorageFlags.DynamicStorage);
+
+        //TODO: refactor this out into some LineRenderer
         _lineVertexBuffer = _graphicsContext.CreateTypedBuffer<VertexPositionColor>("Debug-Aabb-Lines",
                 _maxAabbCount,
                 BufferStorageFlags.DynamicStorage);
@@ -138,11 +140,13 @@ internal class ForwardRenderer : IRenderer
 
         if (forwardGraphicsPipelineResult.IsFailure)
         {
+            _logger.Error("{Category} {ErrorMessage}", "Renderer", forwardGraphicsPipelineResult.Error);
             return false;
         }
 
         _forwardGraphicsPipeline = forwardGraphicsPipelineResult.Value;
 
+        //TODO(deccer) refactor this out into some LineRenderer
         var lineRendererGraphicsPipelineResult = _graphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromFiles("Shaders/Debug/Line.vs.glsl",
                 "Shaders/Debug/Line.fs.glsl")
@@ -161,7 +165,7 @@ internal class ForwardRenderer : IRenderer
 
         if (lineRendererGraphicsPipelineResult.IsFailure)
         {
-            _logger.Error(lineRendererGraphicsPipelineResult.Error);
+            _logger.Error("{Category} {ErrorMessage}", "Renderer", lineRendererGraphicsPipelineResult.Error);
             return false;
         }
 
@@ -197,7 +201,7 @@ internal class ForwardRenderer : IRenderer
                 InstanceCount = 1
             },
             _meshInstanceCount);
-        _instanceBuffer!.UpdateElement(new InstanceInformation
+        _instanceBuffer!.UpdateElement(new GpuInstance
             {
                 WorldMatrix = transform,
                 MaterialIndex = new UInt4(materialId.Index,
@@ -217,9 +221,9 @@ internal class ForwardRenderer : IRenderer
 
     public void Render(ICamera camera)
     {
-        _cameraInformation.ProjectionMatrix = camera.ProjectionMatrix;
-        _cameraInformation.ViewMatrix = camera.ViewMatrix;
-        _cameraInformationBuffer!.UpdateElement(_cameraInformation, 0);
+        _gpuGlobals.ProjectionMatrix = camera.ProjectionMatrix;
+        _gpuGlobals.ViewMatrix = camera.ViewMatrix;
+        _cameraInformationBuffer!.UpdateElement(_gpuGlobals, 0);
 
         _graphicsContext.BeginRenderPass(_forwardRenderPass);
         _graphicsContext.BindGraphicsPipeline(_forwardGraphicsPipeline!);
@@ -286,6 +290,7 @@ internal class ForwardRenderer : IRenderer
         _materialPool?.Dispose();
     }
 
+    //TODO(deccer) refactor this out to some LineRenderer
     private void AddDebugLinesForBoundingBox(BoundingBox boundingBox)
     {
         var nearColor = Colors.Orange.ToVector3();
@@ -369,8 +374,14 @@ internal class ForwardRenderer : IRenderer
 
     private void ResizeFramebufferDependentResources()
     {
-        DestroyFramebufferDependentResources();
-        CreateFramebufferDependentResources();
+        if (_applicationContext.HasWindowFramebufferSizeChanged || _applicationContext.HasSceneViewSizeChanged)
+        {
+            DestroyFramebufferDependentResources();
+            CreateFramebufferDependentResources();
+
+            _applicationContext.HasSceneViewSizeChanged = false;
+            _applicationContext.HasWindowFramebufferSizeChanged = false;
+        }
     }
 
     private void CreateFramebufferDependentResources()
