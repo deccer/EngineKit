@@ -11,6 +11,8 @@ internal class ForwardRenderer : IRenderer
 {
     private readonly IApplicationContext _applicationContext;
 
+    private readonly ICamera _camera;
+
     private readonly IGraphicsContext _graphicsContext;
 
     private readonly ILogger _logger;
@@ -59,25 +61,29 @@ internal class ForwardRenderer : IRenderer
 
     public bool ShowAaBb;
 
-    public ForwardRenderer(ILogger logger,
-                           IGraphicsContext graphicsContext,
-                           ISamplerLibrary samplerLibrary,
-                           IApplicationContext applicationContext,
-                           IUIRenderer uiRenderer)
+    private bool _isEditor;
+
+    public ForwardRenderer(
+        ILogger logger,
+        IGraphicsContext graphicsContext,
+        ISamplerLibrary samplerLibrary,
+        IApplicationContext applicationContext,
+        ICamera camera)
     {
         _logger = logger;
         _graphicsContext = graphicsContext;
         _samplerLibrary = samplerLibrary;
         _applicationContext = applicationContext;
+        _camera = camera;
         _uColor = new Vector3(0.61f,
-                0.875f,
-                0.85f);
+            0.875f,
+            0.85f);
 
         _maxAabbCount = 20_000;
         _aabbCounter = 0;
     }
 
-    public FramebufferDescriptor GetMainFrameDescriptor()
+    public FramebufferDescriptor GetMainFramebufferDescriptor()
     {
         return _forwardRenderPass;
     }
@@ -103,10 +109,10 @@ internal class ForwardRenderer : IRenderer
                 1,
                 BufferStorageFlags.DynamicStorage);
         _indirectBuffer = _graphicsContext.CreateTypedBuffer<DrawElementIndirectCommand>("IndirectElements",
-                20480,
+                20_480u,
                 BufferStorageFlags.DynamicStorage);
         _instanceBuffer = _graphicsContext.CreateTypedBuffer<InstanceInformation>("Instances",
-                20480u,
+                20_480u,
                 BufferStorageFlags.DynamicStorage);
         _lineVertexBuffer = _graphicsContext.CreateTypedBuffer<VertexPositionColor>("Debug-Aabb-Lines",
                 _maxAabbCount,
@@ -216,12 +222,6 @@ internal class ForwardRenderer : IRenderer
         _cameraInformationBuffer!.UpdateElement(_cameraInformation, 0);
 
         _graphicsContext.BeginRenderPass(_forwardRenderPass);
-        if (_applicationContext.IsEditorEnabled)
-            _graphicsContext.UseViewport(new Viewport(0,
-                0,
-                _applicationContext.EditorFramebufferSize.X,
-                _applicationContext.EditorFramebufferSize.Y));
-
         _graphicsContext.BindGraphicsPipeline(_forwardGraphicsPipeline!);
         _forwardGraphicsPipeline!.VertexUniform(0, _uColor);
 
@@ -244,13 +244,15 @@ internal class ForwardRenderer : IRenderer
             _lineRendererGraphicsPipeline.DrawArrays(24 * _aabbCounter, Offset.Zero);
         }
 
-        /*
-        _graphicsContext.BlitFramebufferToSwapchain(
-            _applicationContext.ScaledFramebufferSize.X,
-            _applicationContext.ScaledFramebufferSize.Y,
-            _applicationContext.FramebufferSize.X,
-            _applicationContext.FramebufferSize.Y);
-            */
+        if (!_isEditor)
+        {
+            _graphicsContext.BlitFramebufferToSwapchain(
+                _applicationContext.WindowScaledFramebufferSize.X,
+                _applicationContext.WindowScaledFramebufferSize.Y,
+                _applicationContext.WindowFramebufferSize.X,
+                _applicationContext.WindowFramebufferSize.Y);
+        }
+
         _graphicsContext.EndRenderPass();
     }
 
@@ -282,12 +284,6 @@ internal class ForwardRenderer : IRenderer
         _instanceBuffer?.Dispose();
         _meshPool?.Dispose();
         _materialPool?.Dispose();
-    }
-
-    public void ResizeFramebufferDependentResources()
-    {
-        DestroyFramebufferDependentResources();
-        CreateFramebufferDependentResources();
     }
 
     private void AddDebugLinesForBoundingBox(BoundingBox boundingBox)
@@ -349,29 +345,59 @@ internal class ForwardRenderer : IRenderer
         _aabbCounter++;
     }
 
+    public void ResizeIfNecessary()
+    {
+        if (!_applicationContext.HasWindowFramebufferSizeChanged && !_applicationContext.HasSceneViewSizeChanged)
+        {
+            return;
+        }
+
+        ResizeFramebufferDependentResources();
+
+        if (!_isEditor)
+        {
+            _camera.Resize(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y);
+            _forwardRenderPass.ResizeViewport(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y);
+        }
+        else
+        {
+            _camera.Resize(_applicationContext.SceneViewSize.X, _applicationContext.SceneViewSize.Y);
+            _forwardRenderPass.ResizeViewport(_applicationContext.SceneViewSize.X, _applicationContext.SceneViewSize.Y);
+        }
+
+    }
+
+    private void ResizeFramebufferDependentResources()
+    {
+        DestroyFramebufferDependentResources();
+        CreateFramebufferDependentResources();
+    }
+
     private void CreateFramebufferDependentResources()
     {
-        _forwardRenderPassColorAttachment = _graphicsContext.CreateTexture2D(
-            _applicationContext.IsEditorEnabled
-                ? _applicationContext.EditorFramebufferSize
-                : _applicationContext.ScaledFramebufferSize,
+        _forwardRenderPassColorAttachment = _graphicsContext.CreateTexture2D(_isEditor
+                ? _applicationContext.SceneViewScaledSize
+                : _applicationContext.WindowScaledFramebufferSize,
             Format.R8G8B8A8Srgb,
             "ForwardColorAttachment");
-        _forwardRenderPassDepthAttachment = _graphicsContext.CreateTexture2D(
-            _applicationContext.ScaledFramebufferSize,
+        _forwardRenderPassDepthAttachment = _graphicsContext.CreateTexture2D(_isEditor
+            ? _applicationContext.SceneViewScaledSize
+            : _applicationContext.WindowScaledFramebufferSize,
             Format.D32Float,
             "ForwardDepthAttachment");
+
+        var viewport = _isEditor
+            ? _applicationContext.SceneViewScaledSize
+            : _applicationContext.WindowFramebufferSize;
 
         _forwardRenderPass = _graphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_forwardRenderPassColorAttachment,
                 true,
-                Colors
-                    .DarkSlateBlue) //MathHelper.GammaToLinear(Colors.DarkSlateBlue))
+                Colors.DarkSlateBlue) //MathHelper.GammaToLinear(Colors.DarkSlateBlue))
             .WithDepthAttachment(_forwardRenderPassDepthAttachment,
                 true,
                 0)
-            .WithViewport(_applicationContext.ScaledFramebufferSize.X,
-                _applicationContext.ScaledFramebufferSize.Y)
+            .WithViewport(viewport.X, viewport.Y)
             .Build("ForwardRenderPass");
     }
 

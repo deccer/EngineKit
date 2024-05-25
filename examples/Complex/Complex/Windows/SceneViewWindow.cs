@@ -1,6 +1,5 @@
 using System.Numerics;
 using EngineKit;
-using EngineKit.Mathematics;
 using EngineKit.UI;
 using ImGuiNET;
 
@@ -9,8 +8,6 @@ namespace Complex.Windows;
 public class SceneViewWindow : Window
 {
     private readonly IApplicationContext _applicationContext;
-
-    private readonly IMessageBus _messageBus;
 
     private readonly IRenderer _renderer;
 
@@ -22,7 +19,6 @@ public class SceneViewWindow : Window
     {
         _renderer = renderer;
         _applicationContext = applicationContext;
-        _messageBus = messageBus;
         Caption = $"{MaterialDesignIcons.ImageFilterHdr} Scene";
         OverwriteStyle = true;
     }
@@ -32,12 +28,11 @@ public class SceneViewWindow : Window
         var availableSize = ImGui.GetContentRegionAvail();
         if (_oldAvailableSize != availableSize)
         {
-            _applicationContext.EditorFramebufferSize = new Int2((int)availableSize.X, (int)availableSize.Y);
-            _messageBus.PublishWait(new ImmediateFramebufferResizeMessage());
+            _applicationContext.ResizeSceneView((int)availableSize.X, (int)availableSize.Y);
             _oldAvailableSize = availableSize;
         }
 
-        ImGui.Image((nint)_renderer.GetMainFrameDescriptor().ColorAttachments[0].Texture.Id,
+        ImGui.Image((nint)_renderer.GetMainFramebufferDescriptor().ColorAttachments[0].Texture.Id,
                 availableSize,
                 Vector2.UnitY,
                 Vector2.UnitX);

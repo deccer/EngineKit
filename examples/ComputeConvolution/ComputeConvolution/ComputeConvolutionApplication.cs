@@ -33,8 +33,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         IMetrics metrics,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
-        IUIRenderer uiRenderer,
-        IMessageBus messageBus)
+        IUIRenderer uiRenderer)
         : base(
             logger,
             windowSettings,
@@ -44,29 +43,28 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             metrics,
             inputProvider,
             graphicsContext,
-            uiRenderer,
-            messageBus)
+            uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;
         _metrics = metrics;
     }
-    
-    protected override bool Initialize()
+
+    protected override bool OnInitialize()
     {
-        if (!base.Initialize())
+        if (!base.OnInitialize())
         {
             return false;
         }
-        
+
         SetWindowIcon("enginekit-icon.png");
 
         return true;
     }
 
-    protected override bool Load()
+    protected override bool OnLoad()
     {
-        if (!base.Load())
+        if (!base.OnLoad())
         {
             _logger.Error("{Category}: Unable to load", "App");
             return false;
@@ -90,7 +88,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render(float deltaTime, float elapsedSeconds)
+    protected override void OnRender(float deltaTime, float elapsedSeconds)
     {
         if (_metrics.FrameCounter == 0)
         {
@@ -110,19 +108,19 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
         RenderUi();
     }
 
-    protected override void Unload()
+    protected override void OnUnload()
     {
         _skyboxSampler?.Dispose();
         _skyboxTexture?.Dispose();
         _skyboxConvolvedTexture?.Dispose();
         _sceneGraphicsPipeline?.Dispose();
 
-        base.Unload();
+        base.OnUnload();
     }
 
-    protected override void Update(float deltaTime, float elapsedSeconds)
+    protected override void OnUpdate(float deltaTime, float elapsedSeconds)
     {
-        base.Update(deltaTime, elapsedSeconds);
+        base.OnUpdate(deltaTime, elapsedSeconds);
         if (IsKeyPressed(Glfw.Key.KeyEscape))
         {
             Close();

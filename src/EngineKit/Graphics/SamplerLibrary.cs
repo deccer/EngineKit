@@ -12,7 +12,7 @@ internal sealed class SamplerLibrary : ISamplerLibrary
         _graphicsContext = graphicsContext;
         _samplers = new Dictionary<SamplerInformation, ISampler>();
     }
-    
+
     public void Dispose()
     {
         foreach (var (_, sampler) in _samplers)
@@ -37,7 +37,7 @@ internal sealed class SamplerLibrary : ISamplerLibrary
         {
             return;
         }
-        
+
         if (_samplers.ContainsKey(samplerInformation.Value))
         {
             return;
@@ -54,7 +54,7 @@ internal sealed class SamplerLibrary : ISamplerLibrary
             MaxLod = 1000.0f,
             LodBias = 0.0f,
         });
-        
+
         _samplers.Add(samplerInformation.Value, sampler);
     }
 }

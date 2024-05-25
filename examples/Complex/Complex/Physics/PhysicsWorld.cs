@@ -42,6 +42,5 @@ internal class PhysicsWorld : IPhysicsWorld
     {
         _bufferPool.Clear();
         _threadDispatcher.Dispose();
-        _simulation.Dispose();
     }
 }

@@ -1,13 +1,17 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 using EngineKit.Mathematics;
+using Microsoft.Extensions.Options;
 
 namespace EngineKit;
 
-internal sealed class ApplicationContext : IApplicationContext
+public class ApplicationContext : IApplicationContext
 {
-    public ApplicationContext()
+    private readonly WindowSettings _windowSettings;
+
+    public ApplicationContext(IOptions<WindowSettings> windowSettings)
     {
+        _windowSettings = windowSettings.Value;
         IsLaunchedByNSightGraphicsOnLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) &&
                                             !string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("NOMAD_OPENGL_DELIMITER"));
 
@@ -31,19 +35,39 @@ internal sealed class ApplicationContext : IApplicationContext
 
     public Int2 WindowSize { get; set; }
 
-    public Int2 FramebufferSize { get; set; }
+    public Int2 WindowFramebufferSize { get; private set; }
 
-    public Int2 ScaledFramebufferSize { get; set; }
+    public Int2 WindowScaledFramebufferSize { get; private set; }
+
+    public bool HasWindowFramebufferSizeChanged { get; set; }
+
+    public Int2 SceneViewSize { get; private set; }
+
+    public Int2 SceneViewScaledSize { get; private set; }
+
+    public bool HasSceneViewSizeChanged { get; set; }
 
     public bool IsWindowMaximized { get; set; }
-
-    public bool ShowResizeInLog { get; set; }
 
     public bool IsLaunchedByNSightGraphicsOnLinux { get; }
 
     public bool IsLaunchedByRenderDoc { get; }
 
-    public bool IsEditorEnabled { get; set; }
+    public void ResizeWindowFramebuffer(int width, int height)
+    {
+        WindowFramebufferSize = new Int2(width, height);
+        WindowScaledFramebufferSize = new Int2(new Double2(
+            width * _windowSettings.ResolutionScale,
+            height * _windowSettings.ResolutionScale));
+        HasWindowFramebufferSizeChanged = true;
+    }
 
-    public Int2 EditorFramebufferSize { get; set; }
+    public void ResizeSceneView(int width, int height)
+    {
+        SceneViewSize = new Int2(width, height);
+        SceneViewScaledSize = new Int2(new Double2(
+            width * _windowSettings.ResolutionScale,
+            height * _windowSettings.ResolutionScale));
+        HasSceneViewSizeChanged = true;
+    }
 }

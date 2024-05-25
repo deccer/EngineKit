@@ -15,7 +15,7 @@ internal sealed class MeshPool : IMeshPool
         uint maxIndexCount)
     {
         _pooledMeshes = new Dictionary<MeshPrimitive, PooledMesh>(1024);
-        
+
         VertexBuffer = graphicsContext.CreateUntypedBuffer(label + "Vertices", (nuint)(maxVertexCount * Unsafe.SizeOf<VertexPositionNormalUvTangent>()), BufferStorageFlags.DynamicStorage);
         IndexBuffer = graphicsContext.CreateUntypedBuffer(label + "Indices", (nuint)(maxIndexCount * Unsafe.SizeOf<uint>()), BufferStorageFlags.DynamicStorage);
     }
@@ -23,7 +23,7 @@ internal sealed class MeshPool : IMeshPool
     public IBuffer VertexBuffer { get; }
 
     public IBuffer IndexBuffer { get; }
-    
+
     public uint VertexBufferStride => VertexPositionNormalUvTangent.Stride;
 
     public void Dispose()
@@ -43,7 +43,7 @@ internal sealed class MeshPool : IMeshPool
         var indexCount = meshPrimitive.IndexCount;
         var vertexOffset = (uint)_pooledMeshes.Values.Sum(pm => pm.VertexCount);
         var vertexCount = meshPrimitive.VertexCount;
-        
+
         pooledMesh = new PooledMesh(
             (uint)indexCount,
             (uint)indexOffset,

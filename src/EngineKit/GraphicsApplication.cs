@@ -1,7 +1,6 @@
 using System.Numerics;
 using EngineKit.Graphics;
 using EngineKit.Input;
-using EngineKit.Messages;
 using EngineKit.Native.OpenGL;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -13,10 +12,6 @@ public abstract class GraphicsApplication : Application
     private readonly ILogger _logger;
 
     private readonly IApplicationContext _applicationContext;
-    private readonly IMessageBus _messageBus;
-
-    protected IGraphicsContext GraphicsContext { get; }
-    protected IUIRenderer UIRenderer { get; }
 
     protected GraphicsApplication(
         ILogger logger,
@@ -27,33 +22,28 @@ public abstract class GraphicsApplication : Application
         IMetrics metrics,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
-        IUIRenderer uiRenderer,
-        IMessageBus messageBus)
+        IUIRenderer uiRenderer)
         : base(logger, windowSettings, contextSettings, applicationContext, capabilities, metrics, inputProvider)
     {
         _logger = logger;
         _applicationContext = applicationContext;
-        _messageBus = messageBus;
         GraphicsContext = graphicsContext;
         UIRenderer = uiRenderer;
     }
 
-    protected override void FramebufferResized()
-    {
-        base.FramebufferResized();
-        _messageBus.PublishWait(new FramebufferResizedMessage());
-        UIRenderer.WindowResized(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y);
-    }
+    protected IGraphicsContext GraphicsContext { get; }
 
-    protected override bool Load()
+    protected IUIRenderer UIRenderer { get; }
+
+    protected override bool OnLoad()
     {
-        if (!base.Load())
+        if (!base.OnLoad())
         {
             _logger.Error("{Category}: Unable to load", "App");
             return false;
         }
 
-        if (!UIRenderer.Load(_applicationContext.FramebufferSize.X, _applicationContext.FramebufferSize.Y))
+        if (!UIRenderer.Load(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y))
         {
             return false;
         }
@@ -68,28 +58,32 @@ public abstract class GraphicsApplication : Application
         GL.Disable(GL.EnableType.PolygonOffsetFill);
         GL.Disable(GL.EnableType.Multisample);
         GL.Enable(GL.EnableType.FramebufferSrgb);
-        
+
         return true;
     }
 
-    protected override void Unload()
+    protected override void OnUnload()
     {
         UIRenderer.Dispose();
         GraphicsContext.Dispose();
-        base.Unload();
+        base.OnUnload();
     }
 
-    protected override void Update(float deltaTime, float elapsedSeconds)
+    protected override void OnUpdate(float deltaTime, float elapsedSeconds)
     {
+        if (_applicationContext.HasWindowFramebufferSizeChanged)
+        {
+            UIRenderer.ResizeWindow(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y);
+        }
         UIRenderer.Update(deltaTime);
     }
 
-    protected override void MouseScrolled(double scrollX, double scrollY)
+    protected override void OnMouseScrolled(double scrollX, double scrollY)
     {
         UIRenderer.MouseScroll(new Vector2((float)scrollX, (float)scrollY));
     }
 
-    protected override void CharacterInput(char codePoint)
+    protected override void OnCharacterInput(char codePoint)
     {
         UIRenderer.CharacterInput(codePoint);
     }

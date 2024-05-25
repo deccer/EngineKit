@@ -17,11 +17,11 @@ public interface IRenderer : IDisposable
 
     void Render(ICamera camera);
 
-    void ResizeFramebufferDependentResources();
-
     bool Load();
 
     void RenderUI();
 
-    FramebufferDescriptor GetMainFrameDescriptor();
+    FramebufferDescriptor GetMainFramebufferDescriptor();
+
+    void ResizeIfNecessary();
 }

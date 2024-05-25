@@ -18,23 +18,24 @@ public interface ICamera
     Vector3 Up { get; set; }
 
     float KeyboardAccelerationBoost { get; set; }
-    
+
     float OptionalBoost { get; set; }
 
     float Sensitivity { get; set; }
 
     float Zoom { get; set; }
-    
+
     CameraMode Mode { get; set; }
-    
+
     Vector3 Velocity { get; set; }
 
     void ProcessKeyboard();
 
     void ProcessMouseMovement();
 
-    void Resize();
+    void Resize(int width, int height);
 
     BoundingFrustum GetViewFrustum();
+
     void AdvanceSimulation(float deltaTime);
 }

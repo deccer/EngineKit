@@ -12,11 +12,17 @@ public interface IApplicationContext
 
     Int2 WindowSize { get; set; }
 
-    Int2 FramebufferSize { get; set; }
+    Int2 WindowFramebufferSize { get; }
 
-    Int2 ScaledFramebufferSize { get; set; }
+    Int2 WindowScaledFramebufferSize { get; }
 
-    bool ShowResizeInLog { get; set; }
+    bool HasWindowFramebufferSizeChanged { get; set; }
+
+    Int2 SceneViewSize { get; }
+
+    Int2 SceneViewScaledSize { get; }
+
+    bool HasSceneViewSizeChanged { get; set; }
 
     bool IsLaunchedByNSightGraphicsOnLinux { get; }
 
@@ -24,7 +30,7 @@ public interface IApplicationContext
 
     bool IsWindowMaximized { get; set; }
 
-    bool IsEditorEnabled { get; set; }
+    void ResizeWindowFramebuffer(int width, int height);
 
-    Int2 EditorFramebufferSize { get; set; }
+    void ResizeSceneView(int width, int height);
 }

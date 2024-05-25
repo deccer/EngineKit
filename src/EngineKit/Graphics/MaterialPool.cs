@@ -41,7 +41,7 @@ internal sealed class MaterialPool : IMaterialPool
             MinLod = -1000.0f,
             MaxLod = 1000.0f
         });
-        
+
         MaterialBuffer = graphicsContext.CreateTypedBuffer<GpuMaterial>(label, maxMaterialCount, BufferStorageFlags.DynamicStorage);
     }
 

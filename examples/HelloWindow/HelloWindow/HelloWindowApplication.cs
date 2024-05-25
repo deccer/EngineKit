@@ -32,8 +32,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
                                   IMetrics metrics,
                                   IInputProvider inputProvider,
                                   IGraphicsContext graphicsContext,
-                                  IUIRenderer uiRenderer,
-                                  IMessageBus messageBus)
+                                  IUIRenderer uiRenderer)
             : base(logger,
                    windowSettings,
                    contextSettings,
@@ -42,8 +41,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
                    metrics,
                    inputProvider,
                    graphicsContext,
-                   uiRenderer,
-                   messageBus)
+                   uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;
@@ -52,9 +50,9 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         _clearColor = MathHelper.GammaToLinear(Colors.DarkSlateBlue);
     }
 
-    protected override bool Initialize()
+    protected override bool OnInitialize()
     {
-        if (!base.Initialize())
+        if (!base.OnInitialize())
         {
             return false;
         }
@@ -64,9 +62,9 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         return true;
     }
 
-    protected override bool Load()
+    protected override bool OnLoad()
     {
-        if (!base.Load())
+        if (!base.OnLoad())
         {
             _logger.Error("{Category}: Unable to load", "App");
             return false;
@@ -79,7 +77,7 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render(float deltaTime,
+    protected override void OnRender(float deltaTime,
                                    float elapsedSeconds)
     {
         GL.Clear(GL.FramebufferBit.ColorBufferBit | GL.FramebufferBit.DepthBufferBit);
@@ -149,15 +147,15 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         }
     }
 
-    protected override void Unload()
+    protected override void OnUnload()
     {
-        base.Unload();
+        base.OnUnload();
     }
 
-    protected override void Update(float deltaTime,
+    protected override void OnUpdate(float deltaTime,
                                    float elapsedSeconds)
     {
-        base.Update(deltaTime, elapsedSeconds);
+        base.OnUpdate(deltaTime, elapsedSeconds);
         if (IsKeyPressed(Glfw.Key.KeyEscape)) Close();
     }
 }

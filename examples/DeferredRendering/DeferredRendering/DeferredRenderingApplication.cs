@@ -72,8 +72,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         IUIRenderer uiRenderer,
         ICamera camera,
         IMeshLoader meshLoader,
-        IMaterialLibrary materialLibrary,
-        IMessageBus messageBus)
+        IMaterialLibrary materialLibrary)
         : base(
             logger,
             windowSettings,
@@ -83,8 +82,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             metrics,
             inputProvider,
             graphicsContext,
-            uiRenderer,
-            messageBus)
+            uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;
@@ -99,30 +97,24 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         _gpuMaterials = new List<GpuMaterial>(256);
         _gpuMaterialsInUse = new List<string>(256);
         _textures = new Dictionary<string, ITexture>(16);
+
     }
 
-    protected override void FramebufferResized()
+    protected override bool OnInitialize()
     {
-        DestroyResolutionDependentResources();
-        CreateResolutionDependentResources();
-        base.FramebufferResized();
-    }
-    
-    protected override bool Initialize()
-    {
-        if (!base.Initialize())
+        if (!base.OnInitialize())
         {
             return false;
         }
-        
+
         SetWindowIcon("enginekit-icon.png");
 
         return true;
     }
 
-    protected override bool Load()
+    protected override bool OnLoad()
     {
-        if (!base.Load())
+        if (!base.OnLoad())
         {
             return false;
         }
@@ -145,11 +137,11 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         _gpuCameraConstantsBuffer = GraphicsContext.CreateTypedBuffer<GpuCameraConstants>("CameraConstants", 1, BufferStorageFlags.DynamicStorage);
 
         _camera.ProcessMouseMovement();
-        
+
         return true;
     }
 
-    protected override void Render(float deltaTime, float elapsedSeconds)
+    protected override void OnRender(float deltaTime, float elapsedSeconds)
     {
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
         _gpuCameraConstantsBuffer!.UpdateElement(_gpuCameraConstants, Offset.Zero);
@@ -206,10 +198,10 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
         GraphicsContext.BeginRenderPass(_swapchainDescriptor);
         GraphicsContext.BlitFramebufferToSwapchain(
-            _applicationContext.ScaledFramebufferSize.X,
-            _applicationContext.ScaledFramebufferSize.Y,
-            _applicationContext.FramebufferSize.X,
-            _applicationContext.FramebufferSize.Y);
+            _applicationContext.WindowScaledFramebufferSize.X,
+            _applicationContext.WindowScaledFramebufferSize.Y,
+            _applicationContext.WindowFramebufferSize.X,
+            _applicationContext.WindowFramebufferSize.Y);
 
         UIRenderer.BeginLayout();
         if (ImGui.BeginMainMenuBar())
@@ -257,7 +249,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
                 {
                     Close();
                 }
-                
+
                 ImGui.EndMainMenuBar();
             }
 
@@ -281,18 +273,18 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         GL.Finish();
     }
 
-    protected override void Unload()
+    protected override void OnUnload()
     {
         DestroyResolutionDependentResources();
 
         _pointSampler?.Dispose();
 
-        base.Unload();
+        base.OnUnload();
     }
 
-    protected override void Update(float deltaTime, float elapsedSeconds)
+    protected override void OnUpdate(float deltaTime, float elapsedSeconds)
     {
-        base.Update(deltaTime, elapsedSeconds);
+        base.OnUpdate(deltaTime, elapsedSeconds);
 
         if (IsMousePressed(Glfw.MouseButton.ButtonRight))
         {
@@ -334,8 +326,10 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         }
     }
 
-    protected override void WindowResized()
+    protected override void OnWindowResized()
     {
+        DestroyResolutionDependentResources();
+        CreateResolutionDependentResources();
         CreateSwapchainDescriptor();
     }
 
@@ -439,25 +433,25 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     private void CreateResolutionDependentResources()
     {
-        _gBufferBaseColorTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
-            _applicationContext.ScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "BaseColor");
-        _gBufferNormalTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
-            _applicationContext.ScaledFramebufferSize.Y, Format.R16G16B16Float, "Normals");
-        _gBufferDepthTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
-            _applicationContext.ScaledFramebufferSize.Y, Format.D32UNorm, "Depth");
+        _gBufferBaseColorTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
+            _applicationContext.WindowScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "BaseColor");
+        _gBufferNormalTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
+            _applicationContext.WindowScaledFramebufferSize.Y, Format.R16G16B16Float, "Normals");
+        _gBufferDepthTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
+            _applicationContext.WindowScaledFramebufferSize.Y, Format.D32UNorm, "Depth");
 
         _gBufferFramebufferDescriptor = GraphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_gBufferBaseColorTexture, true, Colors.DarkSlateBlue)
             .WithColorAttachment(_gBufferNormalTexture, true, Vector4.Zero)
             .WithDepthAttachment(_gBufferDepthTexture, true)
-            .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
+            .WithViewport(_applicationContext.WindowScaledFramebufferSize.X, _applicationContext.WindowScaledFramebufferSize.Y)
             .Build("GBuffer");
 
-        _finalTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledFramebufferSize.X,
-            _applicationContext.ScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "Final");
+        _finalTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
+            _applicationContext.WindowScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "Final");
         _finalFramebufferDescriptor = GraphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_finalTexture, true, new Vector4(0.2f, 0.2f, 0.2f, 1.0f))
-            .WithViewport(_applicationContext.ScaledFramebufferSize.X, _applicationContext.ScaledFramebufferSize.Y)
+            .WithViewport(_applicationContext.WindowScaledFramebufferSize.X, _applicationContext.WindowScaledFramebufferSize.Y)
             .Build("Final");
     }
 
@@ -488,7 +482,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         }
 
         _gBufferGraphicsPipeline = gBufferGraphicsPipelineResult.Value;
-        
+
         var gBufferVertexPullingGraphicsPipelineResult = GraphicsContext.CreateGraphicsPipelineBuilder()
             .WithShadersFromFiles("Shaders/SceneVertexPulling.vs.glsl", "Shaders/Scene.fs.glsl")
             .WithCullingEnabled(CullMode.Back)

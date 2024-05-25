@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+//using Ktx2Sharp;
 using EngineKit.Native.Ktx;
 using Serilog;
 
@@ -13,7 +14,7 @@ internal sealed class KtxImageLoader : IKtxImageLoader
     {
         _logger = logger.ForContext<KtxImageLoader>();
     }
-    
+
     public Span<byte> LoadImageFromFile(string filePath, Ktx.TranscodeFormat transcodeFormat = Ktx.TranscodeFormat.Bc7Rgba)
     {
         if (!File.Exists(filePath))
@@ -21,7 +22,7 @@ internal sealed class KtxImageLoader : IKtxImageLoader
             _logger.Debug("{Category}: File does not exist {FileName}", nameof(KtxImageLoader), filePath);
             return Span<byte>.Empty;
         }
-        
+
         unsafe
         {
             var ktxTexture = Ktx.LoadFromFile(filePath);

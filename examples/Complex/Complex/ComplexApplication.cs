@@ -1,6 +1,4 @@
 using System.Threading.Tasks;
-using Complex.States;
-using Complex.Windows;
 using EngineKit;
 using EngineKit.Graphics;
 using EngineKit.Input;
@@ -9,6 +7,8 @@ using EngineKit.Native.OpenGL;
 using Microsoft.Extensions.Options;
 using Serilog;
 
+//TODO(deccer): Remove Camera from GraphicsApplication, should be an entity? in a scene?
+
 namespace Complex;
 
 internal sealed class ComplexApplication : GraphicsApplication
@@ -16,14 +16,9 @@ internal sealed class ComplexApplication : GraphicsApplication
     private readonly IApplicationContext _applicationContext;
 
     private readonly ICamera _camera;
-
-    private readonly ILayeredProgramStates _layeredProgramStates;
+    private readonly Game _game;
 
     private readonly ILogger _logger;
-
-    private readonly IModelLibrary _modelLibrary;
-
-    private readonly IRenderer _renderer;
 
     private readonly IScene _scene;
 
@@ -36,12 +31,9 @@ internal sealed class ComplexApplication : GraphicsApplication
                               IInputProvider inputProvider,
                               IGraphicsContext graphicsContext,
                               IUIRenderer uiRenderer,
-                              IModelLibrary modelLibrary,
                               ICamera camera,
-                              IScene scene,
-                              IRenderer renderer,
-                              IMessageBus messageBus,
-                              ILayeredProgramStates layeredProgramStates)
+                              Game game,
+                              IMessageBus messageBus)
             : base(logger,
                    windowSettings,
                    contextSettings,
@@ -50,80 +42,41 @@ internal sealed class ComplexApplication : GraphicsApplication
                    metrics,
                    inputProvider,
                    graphicsContext,
-                   uiRenderer,
-                   messageBus)
+                   uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;
-        _modelLibrary = modelLibrary;
         _camera = camera;
+        _game = game;
         _camera.Sensitivity = 0.125f;
         _camera.Mode = CameraMode.PerspectiveInfinity;
-        _scene = scene;
-        _renderer = renderer;
-        _layeredProgramStates = layeredProgramStates;
 
         messageBus.Subscribe<CloseWindowMessage>(OnCloseWindowMessage);
         messageBus.Subscribe<MaximizeWindowMessage>(OnMaximizeWindowMessage);
         messageBus.Subscribe<RestoreWindowMessage>(OnRestoreWindowMessage);
-        messageBus.Subscribe<ImmediateFramebufferResizeMessage>(OnImmediateFramebufferResizeMessage);
     }
 
-    protected override bool Initialize()
+    protected override bool OnInitialize()
     {
-        if (!base.Initialize())
+        if (!base.OnInitialize())
         {
             return false;
         }
 
         SetWindowIcon("enginekit-icon.png");
 
-        _layeredProgramStates.ComposeLayeredState("Editor", [nameof(GameProgramState), nameof(EditorProgramState)]);
-
         return true;
     }
 
-    protected override bool Load()
+    protected override bool OnLoad()
     {
-        if (!base.Load())
+        if (!base.OnLoad())
         {
             _logger.Error("{Category}: Unable to load", "App");
             return false;
         }
 
-        if (!_renderer.Load())
-        {
-            return false;
-        }
-
-        _layeredProgramStates.SwitchToState("Editor");
-
-        /*
-        _modelLibrary.AddModelFromFile("SM_Scene", "Data/Props/Scene/Scene.glb");
-        _modelLibrary.AddModelFromFile("SM_Hierarchy", "Data/Props/Scene/Hierarchy.gltf");
-        _modelLibrary.AddModelFromFile("SM_Deccer_Cubes", "Data/Default/SM_Deccer_Cubes_Textured.gltf");
-        _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_WR", "Data/Default/SM_Deccer_Cubes_With_Rotation.glb");
-        */
-
-        _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_Complex", "Data/Default/SM_Deccer_Cubes_Textured_Complex.gltf");
-        _modelLibrary.AddModelFromFile("Nasa1", "Data/Props/Asteroids/nasa1.glb");
-        _modelLibrary.AddModelFromFile("Nasa2", "Data/Props/Asteroids/nasa2.glb");
-        _modelLibrary.AddModelFromFile("Nasa3", "Data/Props/Asteroids/nasa3.glb");
-        _modelLibrary.AddModelFromFile("Nasa4", "Data/Props/Asteroids/nasa4.glb");
-        //_modelLibrary.AddModelFromFile("FromSpace", "Data/Props/Asteroids/rock_from_space.glb");
-        //_modelLibrary.AddModelFromFile("E1M1", "Data/Scenes/E1M1/E1M1.gltf");
-        //_modelLibrary.AddModelFromFile("SmallCity", "Data/Scenes/small_city/small_city.gltf");
-
-        /*
-        _modelLibrary.AddModelFromFile("SM_Bistor", "Data/Scenes/Bistro/scene.gltf");
-        _modelLibrary.AddModelFromFile("SM_IntelSponza", "Data/Scenes/IntelSponza/NewSponza_Main_glTF_002.gltf");
-        _modelLibrary.AddModelFromFile("SM_IntelSponzaCurtains", "Data/Scenes/IntelSponzaCurtains/NewSponza_Curtains_glTF.gltf");
-        _modelLibrary.AddModelFromFile("SM_IntelSponzaIvy", "Data/Scenes/IntelSponzaIvy/NewSponza_IvyGrowth_glTF.gltf");
-        _modelLibrary.AddModelFromFile("SM_IntelSponzaTree", "Data/Scenes/IntelSponzaTree/NewSponza_CypressTree_glTF.gltf");
-        _modelLibrary.AddModelFromFile("SM_IntelSponzaCandles", "Data/Scenes/IntelSponzaCandles/NewSponza_4_Combined_glTF.gltf");
-*/
-
-        if (!_layeredProgramStates.Load())
+        if (!_game.Load())
         {
             return false;
         }
@@ -131,10 +84,10 @@ internal sealed class ComplexApplication : GraphicsApplication
         return true;
     }
 
-    protected override void Render(float deltaTime,
+    protected override void OnRender(float deltaTime,
                                    float elapsedSeconds)
     {
-        _layeredProgramStates.Render(deltaTime, elapsedSeconds);
+        _game.Render(deltaTime, elapsedSeconds);
 
         if (_applicationContext.IsLaunchedByNSightGraphicsOnLinux)
         {
@@ -142,28 +95,21 @@ internal sealed class ComplexApplication : GraphicsApplication
         }
     }
 
-    protected override void Unload()
+    protected override void OnUnload()
     {
-        _scene.Dispose();
-        base.Unload();
+        _game.Unload();
+        base.OnUnload();
     }
 
-    protected override void Update(float deltaTime,
+    protected override void OnUpdate(float deltaTime,
                                    float elapsedSeconds)
     {
-        base.Update(deltaTime, elapsedSeconds);
+        base.OnUpdate(deltaTime, elapsedSeconds);
 
-        _layeredProgramStates.Update(deltaTime, elapsedSeconds);
+        _game.Update(deltaTime, elapsedSeconds);
     }
 
-    protected override void FramebufferResized()
-    {
-        base.FramebufferResized();
-
-        _renderer.ResizeFramebufferDependentResources();
-    }
-
-    protected override void HandleDebugger(out bool breakOnError)
+    protected override void OnHandleDebugger(out bool breakOnError)
     {
         breakOnError = true;
     }
@@ -183,12 +129,6 @@ internal sealed class ComplexApplication : GraphicsApplication
     private Task OnRestoreWindowMessage(RestoreWindowMessage message)
     {
         RestoreWindow();
-        return Task.CompletedTask;
-    }
-
-    private Task OnImmediateFramebufferResizeMessage(ImmediateFramebufferResizeMessage _)
-    {
-        _renderer.ResizeFramebufferDependentResources();
         return Task.CompletedTask;
     }
 }

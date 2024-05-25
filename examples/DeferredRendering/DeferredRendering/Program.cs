@@ -34,7 +34,8 @@ internal static class Program
         services.Configure<WindowSettings>(configuration.GetSection(nameof(WindowSettings)));
         services.Configure<ContextSettings>(configuration.GetSection(nameof(ContextSettings)));
         services.AddEngine();
-        services.AddSingleton<ICamera>(provider => new Camera(provider.GetRequiredService<IApplicationContext>(),
+        services.AddSingleton<ICamera>(provider => new Camera(
+            provider.GetRequiredService<IApplicationContext>(),
             provider.GetRequiredService<IInputProvider>(), new Vector3(0, 0, 10), Vector3.UnitY));
         services.AddSingleton<IApplication, DeferredRenderingApplication>();
         return services.BuildServiceProvider();

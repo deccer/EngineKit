@@ -62,8 +62,8 @@ internal sealed class UIRenderer : IUIRenderer
         out_color = v_color * texture(t_font, v_uv);
     }";
 
-    private static readonly unsafe uint ImDrawVertStride = (uint)sizeof(ImDrawVert); 
-    
+    private static readonly unsafe uint ImDrawVertStride = (uint)sizeof(ImDrawVert);
+
     private readonly ILogger _logger;
     private readonly IGraphicsContext _graphicsContext;
     private readonly IInputProvider _inputProvider;
@@ -83,8 +83,6 @@ internal sealed class UIRenderer : IUIRenderer
     private ITexture? _fontTexture;
     private ISampler? _fontSampler;
 
-
-
     private int _framebufferWidth;
     private int _framebufferHeight;
 
@@ -93,6 +91,7 @@ internal sealed class UIRenderer : IUIRenderer
     private readonly Vector2 _scaleFactor = Vector2.One;
 
     private readonly IDictionary<string, ImFontPtr> _fonts;
+    private readonly IDictionary<Glfw.Key, ImGuiKey> _keyMap;
 
     private Array _keyValues;
 
@@ -107,6 +106,7 @@ internal sealed class UIRenderer : IUIRenderer
         _keyValues = Array.Empty<Glfw.Key>();
         _pressedChars = new List<char>();
         _fonts = new Dictionary<string, ImFontPtr>(16);
+        _keyMap = CreateKeyMap();
     }
 
     public bool AddFont(string name, string filePath, float fontSize)
@@ -189,13 +189,12 @@ internal sealed class UIRenderer : IUIRenderer
         style.WindowMenuButtonPosition = ImGuiDir.None;
 
         CreateDeviceResources();
-        SetKeyMapping();
         SetPerFrameImGuiData(1.0f / 60.0f);
 
         return true;
     }
 
-    public void WindowResized(int width, int height)
+    public void ResizeWindow(int width, int height)
     {
         _framebufferWidth = width;
         _framebufferHeight = height;
@@ -331,7 +330,6 @@ internal sealed class UIRenderer : IUIRenderer
         _fontTexture.Update(updateTextureDescriptor, pixels);
 
         _imGuiIo.Fonts.SetTexID((nint)_fontTexture.Id);
-        //_imGuiIo.Fonts.ClearTexData();
     }
 
     private void SetPerFrameImGuiData(float deltaSeconds)
@@ -348,11 +346,11 @@ internal sealed class UIRenderer : IUIRenderer
         var currentMouseState = _inputProvider.MouseState;
         var currentKeyboardState = _inputProvider.KeyboardState;
 
-        _imGuiIo.MouseDown[0] = currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonLeft);
-        _imGuiIo.MouseDown[1] = currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonRight);
-        _imGuiIo.MouseDown[2] = currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonMiddle);
-        _imGuiIo.MousePos = new Vector2(currentMouseState.X, currentMouseState.Y);
-        
+        _imGuiIo.AddMouseButtonEvent(0, currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonLeft));
+        _imGuiIo.AddMouseButtonEvent(1, currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonRight));
+        _imGuiIo.AddMouseButtonEvent(2, currentMouseState.IsButtonDown(Glfw.MouseButton.ButtonMiddle));
+        _imGuiIo.AddMousePosEvent(currentMouseState.X, currentMouseState.Y);
+
         var scrollDelta = currentMouseState.Scroll.Y - _scrollWheelValue;
         _imGuiIo.MouseWheel = scrollDelta > 0
             ? 1
@@ -368,8 +366,16 @@ internal sealed class UIRenderer : IUIRenderer
                 continue;
             }
 
-            _imGuiIo.KeysDown[(int)key] = currentKeyboardState.IsKeyDown(key);
+            if (_keyMap.TryGetValue(key, out var igKey))
+            {
+                _imGuiIo.AddKeyEvent(igKey, currentKeyboardState.IsKeyDown(key));
+            }
         }
+
+        _imGuiIo.AddKeyEvent(ImGuiKey.ModCtrl, currentKeyboardState[Glfw.Key.KeyLeftCtrl] || currentKeyboardState[Glfw.Key.KeyRightCtrl]);
+        _imGuiIo.AddKeyEvent(ImGuiKey.ModAlt, currentKeyboardState[Glfw.Key.KeyLeftAlt] || currentKeyboardState[Glfw.Key.KeyRightAlt]);
+        _imGuiIo.AddKeyEvent(ImGuiKey.ModShift, currentKeyboardState[Glfw.Key.KeyLeftShift] || currentKeyboardState[Glfw.Key.KeyRightShift]);
+        _imGuiIo.AddKeyEvent(ImGuiKey.ModSuper, currentKeyboardState[Glfw.Key.KeyLeftCtrl] || currentKeyboardState[Glfw.Key.KeyRightCtrl]);
 
         foreach (var c in _pressedChars)
         {
@@ -377,11 +383,6 @@ internal sealed class UIRenderer : IUIRenderer
         }
 
         _pressedChars.Clear();
-
-        _imGuiIo.KeyCtrl = currentKeyboardState[Glfw.Key.KeyLeftCtrl] || currentKeyboardState[Glfw.Key.KeyRightCtrl];
-        _imGuiIo.KeyAlt = currentKeyboardState[Glfw.Key.KeyLeftAlt] || currentKeyboardState[Glfw.Key.KeyRightAlt];
-        _imGuiIo.KeyShift = currentKeyboardState[Glfw.Key.KeyLeftShift] || currentKeyboardState[Glfw.Key.KeyRightShift];
-        _imGuiIo.KeySuper = currentKeyboardState[Glfw.Key.KeyLeftCtrl] || currentKeyboardState[Glfw.Key.KeyRightCtrl];
     }
 
     public void CharacterInput(char keyChar)
@@ -391,78 +392,81 @@ internal sealed class UIRenderer : IUIRenderer
 
     public void MouseScroll(Vector2 offset)
     {
-        _imGuiIo.MouseWheel = offset.Y;
-        _imGuiIo.MouseWheelH = offset.X;
+        _imGuiIo.AddMouseWheelEvent(offset.X, offset.Y);
     }
 
-    private void SetKeyMapping()
+    private static Dictionary<Glfw.Key, ImGuiKey> CreateKeyMap()
     {
-        _imGuiIo.KeyMap[(int)ImGuiKey.Tab] = (int)Glfw.Key.KeyTab;
-        _imGuiIo.KeyMap[(int)ImGuiKey.LeftArrow] = (int)Glfw.Key.KeyArrowLeft;
-        _imGuiIo.KeyMap[(int)ImGuiKey.RightArrow] = (int)Glfw.Key.KeyArrowRight;
-        _imGuiIo.KeyMap[(int)ImGuiKey.UpArrow] = (int)Glfw.Key.KeyArrowUp;
-        _imGuiIo.KeyMap[(int)ImGuiKey.DownArrow] = (int)Glfw.Key.KeyArrowDown;
-        _imGuiIo.KeyMap[(int)ImGuiKey.PageUp] = (int)Glfw.Key.KeyPageUp;
-        _imGuiIo.KeyMap[(int)ImGuiKey.PageDown] = (int)Glfw.Key.KeyPageDown;
-        _imGuiIo.KeyMap[(int)ImGuiKey.Home] = (int)Glfw.Key.KeyHome;
-        _imGuiIo.KeyMap[(int)ImGuiKey.End] = (int)Glfw.Key.KeyEnd;
-        _imGuiIo.KeyMap[(int)ImGuiKey.Insert] = (int)Glfw.Key.KeyInsert;
-        _imGuiIo.KeyMap[(int)ImGuiKey.Delete] = (int)Glfw.Key.KeyDelete;
-        _imGuiIo.KeyMap[(int)ImGuiKey.Backspace] = (int)Glfw.Key.KeyBackspace;
-        _imGuiIo.KeyMap[(int)ImGuiKey.Enter] = (int)Glfw.Key.KeyEnter;
-        
-        _imGuiIo.KeyMap[(int)ImGuiKey.Apostrophe] = (int)Glfw.Key.KeyApostrophe;
-        _imGuiIo.KeyMap[(int)ImGuiKey.Backslash] = (int)Glfw.Key.KeyBackslash;
-        _imGuiIo.KeyMap[(int)ImGuiKey.GraveAccent] = (int)Glfw.Key.KeyBacktick;
+        return new Dictionary<Glfw.Key, ImGuiKey>
+        {
+            { Glfw.Key.KeyTab, ImGuiKey.Tab },
+            { Glfw.Key.KeyArrowLeft, ImGuiKey.LeftArrow },
+            { Glfw.Key.KeyArrowRight, ImGuiKey.RightArrow },
+            { Glfw.Key.KeyArrowUp, ImGuiKey.UpArrow },
+            { Glfw.Key.KeyArrowDown, ImGuiKey.DownArrow },
+            { Glfw.Key.KeyPageUp, ImGuiKey.PageUp },
+            { Glfw.Key.KeyPageDown, ImGuiKey.PageDown },
+            { Glfw.Key.KeyHome, ImGuiKey.Home },
+            { Glfw.Key.KeyEnd, ImGuiKey.End },
+            { Glfw.Key.KeyInsert, ImGuiKey.Insert },
+            { Glfw.Key.KeyDelete, ImGuiKey.Delete },
+            { Glfw.Key.KeyBackspace, ImGuiKey.Backspace },
+            { Glfw.Key.KeyEnter, ImGuiKey.Enter },
 
-        _imGuiIo.KeyMap[(int)ImGuiKey.F1] = (int)Glfw.Key.KeyF1;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F2] = (int)Glfw.Key.KeyF2;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F3] = (int)Glfw.Key.KeyF3;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F4] = (int)Glfw.Key.KeyF4;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F5] = (int)Glfw.Key.KeyF5;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F6] = (int)Glfw.Key.KeyF6;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F7] = (int)Glfw.Key.KeyF7;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F8] = (int)Glfw.Key.KeyF8;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F9] = (int)Glfw.Key.KeyF9;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F10] = (int)Glfw.Key.KeyF10;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F11] = (int)Glfw.Key.KeyF11;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F12] = (int)Glfw.Key.KeyF12;
-        
-        _imGuiIo.KeyMap[(int)ImGuiKey._0] = (int)Glfw.Key.Key0;
-        _imGuiIo.KeyMap[(int)ImGuiKey._1] = (int)Glfw.Key.Key1;
-        _imGuiIo.KeyMap[(int)ImGuiKey._2] = (int)Glfw.Key.Key2;
-        _imGuiIo.KeyMap[(int)ImGuiKey._3] = (int)Glfw.Key.Key3;
-        _imGuiIo.KeyMap[(int)ImGuiKey._4] = (int)Glfw.Key.Key4;
-        _imGuiIo.KeyMap[(int)ImGuiKey._5] = (int)Glfw.Key.Key5;
-        _imGuiIo.KeyMap[(int)ImGuiKey._6] = (int)Glfw.Key.Key6;
-        _imGuiIo.KeyMap[(int)ImGuiKey._7] = (int)Glfw.Key.Key7;
-        _imGuiIo.KeyMap[(int)ImGuiKey._8] = (int)Glfw.Key.Key8;
-        _imGuiIo.KeyMap[(int)ImGuiKey._9] = (int)Glfw.Key.Key9;
-        _imGuiIo.KeyMap[(int)ImGuiKey.A] = (int)Glfw.Key.KeyA;
-        _imGuiIo.KeyMap[(int)ImGuiKey.B] = (int)Glfw.Key.KeyB;
-        _imGuiIo.KeyMap[(int)ImGuiKey.C] = (int)Glfw.Key.KeyC;
-        _imGuiIo.KeyMap[(int)ImGuiKey.D] = (int)Glfw.Key.KeyD;
-        _imGuiIo.KeyMap[(int)ImGuiKey.E] = (int)Glfw.Key.KeyE;
-        _imGuiIo.KeyMap[(int)ImGuiKey.F] = (int)Glfw.Key.KeyF;
-        _imGuiIo.KeyMap[(int)ImGuiKey.G] = (int)Glfw.Key.KeyG;
-        _imGuiIo.KeyMap[(int)ImGuiKey.H] = (int)Glfw.Key.KeyH;
-        _imGuiIo.KeyMap[(int)ImGuiKey.I] = (int)Glfw.Key.KeyI;
-        _imGuiIo.KeyMap[(int)ImGuiKey.J] = (int)Glfw.Key.KeyJ;
-        _imGuiIo.KeyMap[(int)ImGuiKey.K] = (int)Glfw.Key.KeyK;
-        _imGuiIo.KeyMap[(int)ImGuiKey.L] = (int)Glfw.Key.KeyL;
-        _imGuiIo.KeyMap[(int)ImGuiKey.M] = (int)Glfw.Key.KeyM;
-        _imGuiIo.KeyMap[(int)ImGuiKey.N] = (int)Glfw.Key.KeyN;
-        _imGuiIo.KeyMap[(int)ImGuiKey.O] = (int)Glfw.Key.KeyO;
-        _imGuiIo.KeyMap[(int)ImGuiKey.P] = (int)Glfw.Key.KeyP;
-        _imGuiIo.KeyMap[(int)ImGuiKey.Q] = (int)Glfw.Key.KeyQ;
-        _imGuiIo.KeyMap[(int)ImGuiKey.R] = (int)Glfw.Key.KeyR;
-        _imGuiIo.KeyMap[(int)ImGuiKey.S] = (int)Glfw.Key.KeyS;
-        _imGuiIo.KeyMap[(int)ImGuiKey.T] = (int)Glfw.Key.KeyT;
-        _imGuiIo.KeyMap[(int)ImGuiKey.U] = (int)Glfw.Key.KeyU;
-        _imGuiIo.KeyMap[(int)ImGuiKey.V] = (int)Glfw.Key.KeyV;
-        _imGuiIo.KeyMap[(int)ImGuiKey.X] = (int)Glfw.Key.KeyX;
-        _imGuiIo.KeyMap[(int)ImGuiKey.Y] = (int)Glfw.Key.KeyY;
-        _imGuiIo.KeyMap[(int)ImGuiKey.Z] = (int)Glfw.Key.KeyZ;
+            { Glfw.Key.KeyApostrophe, ImGuiKey.Apostrophe },
+            { Glfw.Key.KeyBackslash, ImGuiKey.Backslash },
+            { Glfw.Key.KeyBacktick, ImGuiKey.GraveAccent },
+
+            { Glfw.Key.KeyF1, ImGuiKey.F1 },
+            { Glfw.Key.KeyF2, ImGuiKey.F2 },
+            { Glfw.Key.KeyF3, ImGuiKey.F3 },
+            { Glfw.Key.KeyF4, ImGuiKey.F4 },
+            { Glfw.Key.KeyF5, ImGuiKey.F5 },
+            { Glfw.Key.KeyF6, ImGuiKey.F6 },
+            { Glfw.Key.KeyF7, ImGuiKey.F7 },
+            { Glfw.Key.KeyF8, ImGuiKey.F8 },
+            { Glfw.Key.KeyF9, ImGuiKey.F9 },
+            { Glfw.Key.KeyF10, ImGuiKey.F10 },
+            { Glfw.Key.KeyF11, ImGuiKey.F11 },
+            { Glfw.Key.KeyF12, ImGuiKey.F12 },
+
+            { Glfw.Key.Key0, ImGuiKey._0 },
+            { Glfw.Key.Key1, ImGuiKey._1 },
+            { Glfw.Key.Key2, ImGuiKey._2 },
+            { Glfw.Key.Key3, ImGuiKey._3 },
+            { Glfw.Key.Key4, ImGuiKey._4 },
+            { Glfw.Key.Key5, ImGuiKey._5 },
+            { Glfw.Key.Key6, ImGuiKey._6 },
+            { Glfw.Key.Key7, ImGuiKey._7 },
+            { Glfw.Key.Key8, ImGuiKey._8 },
+            { Glfw.Key.Key9, ImGuiKey._9 },
+            { Glfw.Key.KeyA, ImGuiKey.A },
+            { Glfw.Key.KeyB, ImGuiKey.B },
+            { Glfw.Key.KeyC, ImGuiKey.C },
+            { Glfw.Key.KeyD, ImGuiKey.D },
+            { Glfw.Key.KeyE, ImGuiKey.E },
+            { Glfw.Key.KeyF, ImGuiKey.F },
+            { Glfw.Key.KeyG, ImGuiKey.G },
+            { Glfw.Key.KeyH, ImGuiKey.H },
+            { Glfw.Key.KeyI, ImGuiKey.I },
+            { Glfw.Key.KeyJ, ImGuiKey.J },
+            { Glfw.Key.KeyK, ImGuiKey.K },
+            { Glfw.Key.KeyL, ImGuiKey.L },
+            { Glfw.Key.KeyM, ImGuiKey.M },
+            { Glfw.Key.KeyN, ImGuiKey.N },
+            { Glfw.Key.KeyO, ImGuiKey.O },
+            { Glfw.Key.KeyP, ImGuiKey.P },
+            { Glfw.Key.KeyQ, ImGuiKey.Q },
+            { Glfw.Key.KeyR, ImGuiKey.R },
+            { Glfw.Key.KeyS, ImGuiKey.S },
+            { Glfw.Key.KeyT, ImGuiKey.T },
+            { Glfw.Key.KeyU, ImGuiKey.U },
+            { Glfw.Key.KeyV, ImGuiKey.V },
+            { Glfw.Key.KeyW, ImGuiKey.W },
+            { Glfw.Key.KeyX, ImGuiKey.X },
+            { Glfw.Key.KeyY, ImGuiKey.Y },
+            { Glfw.Key.KeyZ, ImGuiKey.Z }
+        };
     }
 
     private unsafe void RenderDrawData(ImDrawDataPtr drawDataPtr)
@@ -474,7 +478,7 @@ internal sealed class UIRenderer : IUIRenderer
 
         for (var i = 0; i < drawDataPtr.CmdListsCount; i++)
         {
-            var commandList = drawDataPtr.CmdListsRange[i];
+            var commandList = drawDataPtr.CmdLists[i];
             var vertexSize = commandList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>();
             if (vertexSize > _vertexBufferSize)
             {
@@ -509,7 +513,7 @@ internal sealed class UIRenderer : IUIRenderer
 
         for (var n = 0; n < drawDataPtr.CmdListsCount; n++)
         {
-            var commandList = drawDataPtr.CmdListsRange[n];
+            var commandList = drawDataPtr.CmdLists[n];
 
             _vertexBuffer!.UpdateData(
                 commandList.VtxBuffer.Data,

@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
     {
         Configuration.Default.StreamProcessingBufferSize = 16384;
         Configuration.Default.PreferContiguousImageBuffers = true;
-        
+
         services.AddSingleton<IApplicationContext, ApplicationContext>();
         services.AddSingleton<ICapabilities, Capabilities>();
         services.AddSingleton<IMetrics, Metrics>();
@@ -27,11 +27,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IShaderIncludeHandler, VirtualFileShaderIncludeHandler>();
 
         services.AddSingleton<IGraphicsContext, GraphicsContext>();
-        services.AddSingleton<IApplicationContext, ApplicationContext>();
         services.AddSingleton<IInputProvider, InputProvider>();
         services.AddSingleton<IMeshLoader, SharpGltfMeshLoader>();
         services.AddSingleton<IUIRenderer, UIRenderer>();
-        
+
         services.AddSingleton<IModelLibrary, ModelLibrary>();
         services.AddSingleton<IMaterialLibrary, MaterialLibrary>();
         services.AddSingleton<ISamplerLibrary, SamplerLibrary>();

@@ -9,6 +9,7 @@ using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.Ktx;
 using EngineKit.Native.OpenGL;
+//using Ktx2Sharp;
 using Microsoft.Extensions.Options;
 using Serilog;
 using SixLabors.ImageSharp;
@@ -70,7 +71,7 @@ public class Application : IApplication
 
     public void Run()
     {
-        if (!Initialize())
+        if (!OnInitialize())
         {
             return;
         }
@@ -83,7 +84,7 @@ public class Application : IApplication
 
         _logger.Debug("{Category}: Initialized", "App");
 
-        if (!Load())
+        if (!OnLoad())
         {
             return;
         }
@@ -114,8 +115,8 @@ public class Application : IApplication
             _metrics.AverageFrameTime = _frameTimeAverager.CurrentAverageFrameTime;
 
             var elapsedSeconds = (float)stopwatch.Elapsed.TotalSeconds;
-            Render(deltaSeconds, elapsedSeconds);
-            Update(deltaSeconds, elapsedSeconds);
+            OnRender(deltaSeconds, elapsedSeconds);
+            OnUpdate(deltaSeconds, elapsedSeconds);
 
             _inputProvider.MouseState.Center();
             Glfw.PollEvents();
@@ -128,7 +129,7 @@ public class Application : IApplication
 
         _logger.Debug("{Category}: Unloading", "App");
 
-        Unload();
+        OnUnload();
         Glfw.DestroyWindow(_windowHandle);
 
         _logger.Debug("{Category}: Unloaded", "App");
@@ -157,11 +158,11 @@ public class Application : IApplication
         Glfw.SetInputMode(_windowHandle, Glfw.InputMode.Cursor, Glfw.CursorNormal);
     }
 
-    protected virtual void FixedUpdate()
+    protected virtual void OnFixedUpdate()
     {
     }
 
-    protected virtual bool Initialize()
+    protected virtual bool OnInitialize()
     {
         PrintSystemInformation();
 
@@ -288,16 +289,12 @@ public class Application : IApplication
             Glfw.SetWindowPos(_windowHandle, monitorLeft, monitorTop);
         }
 
+
         Glfw.GetFramebufferSize(
             _windowHandle,
             out var framebufferWidth,
             out var framebufferHeight);
-        _applicationContext.FramebufferSize = new Int2(
-            framebufferWidth,
-            framebufferHeight);
-        _applicationContext.ScaledFramebufferSize = new Int2(
-            (int)(framebufferWidth * _windowSettings.Value.ResolutionScale),
-            (int)(framebufferHeight * _windowSettings.Value.ResolutionScale));
+        _applicationContext.ResizeWindowFramebuffer(framebufferWidth, framebufferHeight);
         _applicationContext.IsWindowMaximized = false;
 
         if (Glfw.IsRawMouseMotionSupported())
@@ -316,7 +313,6 @@ public class Application : IApplication
         _logger.Information("{Category}: Renderer - {Renderer}", "GL", GL.GetString(GL.StringName.Renderer));
         _logger.Information("{Category}: Version - {Version}", "GL", GL.GetString(GL.StringName.Version));
         _logger.Information("{Category}: Shading Language Version - {ShadingLanguageVersion}", "GL", GL.GetString(GL.StringName.ShadingLanguageVersion));
-
 
         if (_capabilities.SupportsSwapControl)
         {
@@ -348,21 +344,46 @@ public class Application : IApplication
         return true;
     }
 
-    protected virtual bool Load()
+    protected virtual bool OnLoad()
     {
         return true;
     }
 
-    protected virtual void Render(float deltaTime, float elapsedSeconds)
+    protected virtual void OnRender(float deltaTime, float elapsedSeconds)
     {
     }
 
-    protected virtual void Unload()
+    protected virtual void OnUnload()
     {
         UnbindCallbacks();
     }
 
-    protected virtual void Update(float deltaTime, float elapsedSeconds)
+    protected virtual void OnUpdate(float deltaTime, float elapsedSeconds)
+    {
+    }
+
+    protected virtual void OnHandleDebugger(out bool breakOnError)
+    {
+        breakOnError = false;
+    }
+
+    protected virtual void OnWindowResized()
+    {
+    }
+
+    protected virtual void OnCharacterInput(char codePoint)
+    {
+    }
+
+    protected virtual void OnMouseEnter()
+    {
+    }
+
+    protected virtual void OnMouseLeave()
+    {
+    }
+
+    protected virtual void OnMouseScrolled(double scrollX, double scrollY)
     {
     }
 
@@ -405,19 +426,6 @@ public class Application : IApplication
         }
     }
 
-    protected virtual void HandleDebugger(out bool breakOnError)
-    {
-        breakOnError = false;
-    }
-
-    protected virtual void WindowResized()
-    {
-    }
-
-    protected virtual void FramebufferResized()
-    {
-    }
-
     protected bool IsKeyPressed(Glfw.Key key)
     {
         return Glfw.GetKeyPressed(_windowHandle, key);
@@ -447,28 +455,6 @@ public class Application : IApplication
         _applicationContext.IsWindowMaximized = false;
     }
 
-    protected virtual void OnKeyPressed(
-        Glfw.Key key,
-        Glfw.Scancode scancode,
-        Glfw.KeyAction action,
-        Glfw.KeyModifiers modifiers)
-    {
-        _logger.Verbose("{Category} Key: {Key} Scancode: {ScanCode} Action: {Action} Modifiers: {Modifiers}",
-            "Glfw",
-            key,
-            scancode,
-            action,
-            modifiers);
-    }
-
-    protected virtual void MouseScrolled(double scrollX, double scrollY)
-    {
-    }
-
-    protected virtual void CharacterInput(char codePoint)
-    {
-    }
-
     private void BindCallbacks()
     {
         _debugProcCallback = DebugCallback;
@@ -477,7 +463,7 @@ public class Application : IApplication
         _keyCallback = OnKey;
         _mouseButtonCallback = OnMouseButton;
         _mouseScrollCallback = OnMouseScroll;
-        _framebufferSizeCallback = OnFramebufferSize;
+        _framebufferSizeCallback = OnWindowFramebufferSizeChanged;
         _windowSizeCallback = OnWindowSize;
         _windowCharCallback = OnInputCharacter;
 
@@ -516,8 +502,6 @@ public class Application : IApplication
         {
             _inputProvider.KeyboardState.SetKeyState(key, action is Glfw.KeyAction.Pressed or Glfw.KeyAction.Repeat);
         }
-
-        OnKeyPressed(key, scancode, action, modifiers);
     }
 
     private void OnMouseMove(
@@ -546,7 +530,14 @@ public class Application : IApplication
         nint windowHandle,
         Glfw.CursorEnterMode cursorEnterMode)
     {
-        _logger.Verbose("{Category}: Mode: {CursorEnterMode}", "Glfw", cursorEnterMode);
+        if (cursorEnterMode == Glfw.CursorEnterMode.Entered)
+        {
+            OnMouseEnter();
+        }
+        else
+        {
+            OnMouseLeave();
+        }
     }
 
     private void OnMouseButton(
@@ -569,7 +560,7 @@ public class Application : IApplication
         double scrollY)
     {
         _inputProvider.MouseState.Scroll += new Vector2((float)scrollX, (float)scrollY);
-        MouseScrolled(scrollX, scrollY);
+        OnMouseScrolled(scrollX, scrollY);
     }
 
     private void OnWindowSize(
@@ -577,38 +568,21 @@ public class Application : IApplication
         int width,
         int height)
     {
-        var oldWindowSize = _applicationContext.WindowSize;
         _applicationContext.WindowSize = new Int2(width, height);
-        if (_applicationContext.ShowResizeInLog)
-        {
-            _logger.Debug("{Category}: Window resized from {OldWidth}x{OldHeight} to {Width}x{Height}", "App", oldWindowSize.X, oldWindowSize.Y, width, height);
-        }
-        WindowResized();
+        OnWindowResized();
     }
 
-    private void OnFramebufferSize(nint windowHandle, int width, int height)
+    private void OnWindowFramebufferSizeChanged(nint windowHandle, int width, int height)
     {
-        var oldFramebufferSize = _applicationContext.FramebufferSize;
-        var oldScaledFramebufferSize = _applicationContext.ScaledFramebufferSize;
-        _applicationContext.FramebufferSize = _applicationContext.IsEditorEnabled
-            ? _applicationContext.EditorFramebufferSize
-            : new Int2(width, height);
-
-        _applicationContext.ScaledFramebufferSize = new Int2(
-            (int)(width * _windowSettings.Value.ResolutionScale),
-            (int)(height * _windowSettings.Value.ResolutionScale));
-
-        if (_applicationContext.ShowResizeInLog)
+        if (width * height != 0)
         {
-            _logger.Debug("{Category}: Framebuffer resized from {OldWidth}x{OldHeight} to {Width}x{Height}", "App", oldFramebufferSize.X, oldFramebufferSize.Y, width, height);
-            _logger.Debug("{Category}: ScaledFramebuffer resized from {OldWidth}x{OldHeight} to {Width}x{Height}", "App", oldScaledFramebufferSize.X, oldScaledFramebufferSize.Y, width, height);
+            _applicationContext.ResizeWindowFramebuffer(width, height);
         }
-        FramebufferResized();
     }
 
     private void OnInputCharacter(nint windowHandle, uint codePoint)
     {
-        CharacterInput((char)codePoint);
+        OnCharacterInput((char)codePoint);
     }
 
     private void PrintSystemInformation()
@@ -657,7 +631,7 @@ public class Application : IApplication
         {
             _logger.Error("{@MessageString}", message);
 
-            HandleDebugger(out var breakOnError);
+            OnHandleDebugger(out var breakOnError);
             if (breakOnError)
             {
                 Debugger.Break();

@@ -14,9 +14,14 @@ public record struct FramebufferDescriptor
     public FramebufferRenderAttachment? DepthAttachment;
 
     public FramebufferRenderAttachment? StencilAttachment;
-    
+
     public bool HasSrgbEnabledAttachment()
     {
         return ColorAttachments.Any(colorAttachment => colorAttachment.Texture.TextureCreateDescriptor.Format is Format.R8G8B8Srgb or Format.R8G8B8A8Srgb);
+    }
+
+    public void ResizeViewport(int width, int height)
+    {
+        Viewport = new Viewport(0, 0, width, height);
     }
 }

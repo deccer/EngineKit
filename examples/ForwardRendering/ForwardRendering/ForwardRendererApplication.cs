@@ -58,8 +58,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         IGraphicsContext graphicsContext,
         IUIRenderer uiRenderer,
         IMeshLoader meshLoader,
-        ICamera camera,
-        IMessageBus messageBus)
+        ICamera camera)
         : base(
             logger,
             windowSettings,
@@ -69,13 +68,11 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
             metrics,
             inputProvider,
             graphicsContext,
-            uiRenderer,
-            messageBus)
+            uiRenderer)
     {
         _logger = logger;
         _applicationContext = applicationContext;
         _capabilities = capabilities;
-        _applicationContext.ShowResizeInLog = true;
         _metrics = metrics;
         _meshLoader = meshLoader;
         _camera = camera;
@@ -89,22 +86,22 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _gpuModelMeshInstances = new List<GpuModelMeshInstance>();
         _gpuIndirectElements = new List<DrawElementIndirectCommand>();
     }
-    
-    protected override bool Initialize()
+
+    protected override bool OnInitialize()
     {
-        if (!base.Initialize())
+        if (!base.OnInitialize())
         {
             return false;
         }
-        
+
         SetWindowIcon("enginekit-icon.png");
 
         return true;
     }
 
-    protected override bool Load()
+    protected override bool OnLoad()
     {
-        if (!base.Load())
+        if (!base.OnLoad())
         {
             _logger.Error("{Category}: Unable to load", "App");
             return false;
@@ -169,24 +166,24 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
         _gpuMaterialBuffer = GraphicsContext.CreateTypedBuffer<GpuMaterial>("Materials", (uint)_gpuMaterials.Count, BufferStorageFlags.DynamicStorage);
         _gpuMaterialBuffer.UpdateElements(_gpuMaterials.ToArray(), 0);
-        
+
         _camera.AdvanceSimulation(0.0f);
 
         return true;
     }
 
-    protected override void Render(float deltaTime, float elapsedSeconds)
+    protected override void OnRender(float deltaTime, float elapsedSeconds)
     {
         _gpuModelMeshInstances = _modelMeshInstances.Select((mm, index) =>
         {
-            var rotationMatrix = index switch 
+            var rotationMatrix = index switch
             {
                 0 => Matrix4x4.CreateRotationX(1.0f * elapsedSeconds),
                 1 => Matrix4x4.CreateRotationZ(0.5f * elapsedSeconds),
-                2 => Matrix4x4.CreateRotationY(2.0f * elapsedSeconds),                
+                2 => Matrix4x4.CreateRotationY(2.0f * elapsedSeconds),
                 _ => Matrix4x4.Identity
             };
-            
+
             return new GpuModelMeshInstance
             {
                 World = rotationMatrix * mm.World
@@ -230,17 +227,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         RenderUi();
     }
 
-    protected override void FramebufferResized()
-    {
-        base.FramebufferResized();
-        _swapchainDescriptor = GraphicsContext.GetSwapchainDescriptorBuilder()
-            .ClearColor(MathHelper.GammaToLinear(Colors.DarkSlateBlue))
-            .ClearDepth(1.0f)
-            .WithFramebufferSizeAsViewport()
-            .Build("Swapchain");
-    }
-
-    protected override void Unload()
+    protected override void OnUnload()
     {
         _linearMipmapNearestSampler?.Dispose();
         _linearMipmapLinear?.Dispose();
@@ -252,17 +239,17 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _gpuMaterialBuffer?.Dispose();
         _gpuModelMeshInstanceBuffer?.Dispose();
 
-        base.Unload();
+        base.OnUnload();
     }
 
-    protected override void HandleDebugger(out bool breakOnError)
+    protected override void OnHandleDebugger(out bool breakOnError)
     {
         breakOnError = true;
     }
 
-    protected override void Update(float deltaTime, float elapsedSeconds)
+    protected override void OnUpdate(float deltaTime, float elapsedSeconds)
     {
-        base.Update(deltaTime, elapsedSeconds);
+        base.OnUpdate(deltaTime, elapsedSeconds);
 
         if (IsMousePressed(Glfw.MouseButton.ButtonRight))
         {
@@ -289,6 +276,16 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         {
             ShowCursor();
         }
+    }
+
+    protected override void OnWindowResized()
+    {
+        base.OnWindowResized();
+        _swapchainDescriptor = GraphicsContext.GetSwapchainDescriptorBuilder()
+            .ClearColor(MathHelper.GammaToLinear(Colors.DarkSlateBlue))
+            .ClearDepth(1.0f)
+            .WithFramebufferSizeAsViewport()
+            .Build("Swapchain");
     }
 
     private void RenderUi()
@@ -339,7 +336,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
                 {
                     Close();
                 }
-                
+
                 ImGui.EndMainMenuBar();
             }
 

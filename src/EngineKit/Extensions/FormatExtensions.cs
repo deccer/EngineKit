@@ -1,5 +1,6 @@
 ﻿using System;
 using EngineKit.Graphics;
+//using Ktx2Sharp;
 using EngineKit.Native.Ktx;
 
 namespace EngineKit.Extensions;
@@ -65,7 +66,7 @@ public static class FormatExtensions
     {
         return !(IsStencilFormat(format) || IsDepthFormat(format));
     }
-    
+
     public static bool IsDepthFormat(this Format format)
     {
         return format switch
@@ -79,7 +80,7 @@ public static class FormatExtensions
             _ => false
         };
     }
-    
+
     public static bool IsNormalized(this Format format)
     {
         switch (format)
@@ -285,7 +286,7 @@ public static class FormatExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
         };
     }
-    
+
     public static DataType ToDataType(this Format format)
     {
         return format switch

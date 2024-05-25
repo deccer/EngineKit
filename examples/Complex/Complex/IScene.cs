@@ -12,12 +12,12 @@ public interface IScene : IDisposable
                                     Model model,
                                     Matrix4x4 startWorldMatrix);
 
+    void AddEntityWithModelMeshRenderer(string name,
+        EntityId? parent,
+        ModelMesh modelMesh,
+        Matrix4x4 startWorldMatrix);
+
     EntityId GetRoot();
 
     void Update(float deltaTime);
-
-    void AddEntityWithModelMeshRenderer(string name,
-                                        EntityId? parent,
-                                        ModelMesh modelMesh,
-                                        Matrix4x4 startWorldMatrix);
 }

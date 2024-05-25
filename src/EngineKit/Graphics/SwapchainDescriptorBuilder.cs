@@ -44,8 +44,8 @@ internal sealed class SwapchainDescriptorBuilder : ISwapchainDescriptorBuilder
         _swapchainDescriptor.Viewport = new Viewport(
             0, 
             0, 
-            _applicationContext.FramebufferSize.X,
-            _applicationContext.FramebufferSize.Y);
+            _applicationContext.WindowFramebufferSize.X,
+            _applicationContext.WindowFramebufferSize.Y);
         return this;
     }
 
@@ -54,8 +54,8 @@ internal sealed class SwapchainDescriptorBuilder : ISwapchainDescriptorBuilder
         _swapchainDescriptor.Viewport = new Viewport(
             0, 
             0, 
-            _applicationContext.ScaledFramebufferSize.X,
-            _applicationContext.ScaledFramebufferSize.Y);
+            _applicationContext.WindowScaledFramebufferSize.X,
+            _applicationContext.WindowScaledFramebufferSize.Y);
         return this;
     }
     

@@ -48,7 +48,28 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
         var model = ModelRoot.Load(filePath, readSettings);
 
-        var materials = new List<Material>(128);
+        Material[]? materials = null;
+        if (model.LogicalMaterials.Count > 0)
+        {
+            materials = new Material[model.LogicalMaterials.Count];
+            //Parallel.For(0, model.LogicalMaterials.Count, index =>
+            for (var index = 0; index < model.LogicalMaterials.Count; index++)
+            {
+                var gltfMaterial = model.LogicalMaterials[index];
+                if (gltfMaterial == null)
+                {
+                    //return;
+                    continue;
+                }
+
+                var material = ProcessMaterial(gltfMaterial);
+                if (material != null)
+                {
+                    materials[index] = material;
+                }
+            };
+        }
+        /*
         foreach (var gltfMaterial in model.LogicalMaterials)
         {
             if (gltfMaterial == null)
@@ -62,6 +83,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
                 materials.Add(material);
             }
         }
+        */
 
         var meshPrimitives = new List<MeshPrimitive>(model.LogicalNodes.Count);
 
@@ -87,7 +109,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
             if (node.Mesh != null)
             {
-                ProcessNode(meshPrimitives, node, materials);
+                ProcessNode(meshPrimitives, node, materials ?? []);
             }
         }
 
@@ -247,7 +269,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
             var meshPrimitive = new MeshPrimitive(meshName);
             meshPrimitive.Transform = node.WorldMatrix;// .LocalTransform.Matrix;
-            meshPrimitive.MaterialName = primitive.Material?.Name ?? (primitive.Material == null ? Material.MaterialNotFoundName : materials.ElementAt(primitive.Material.LogicalIndex).Name) ?? Material.MaterialNotFoundName;
+            //meshPrimitive.MaterialName = primitive.Material?.Name ?? (primitive.Material == null ? Material.MaterialNotFoundName : materials.ElementAt(primitive.Material.LogicalIndex).Name) ?? Material.MaterialNotFoundName;
 
             var boundingBox = BoundingBox.CreateFromPoints(positions.ToArray());
             //boundingBox.Min = Vector3.Transform(boundingBox.Min, meshPrimitive.Transform);

@@ -20,6 +20,8 @@ public sealed class Camera : ICamera
     private float _yaw;
     private float _pitch;
 
+    private float _aspectRatio;
+
     private CameraMode _cameraMode;
 
     public float Zoom { get; set; } = 45.0f;
@@ -96,9 +98,12 @@ public sealed class Camera : ICamera
         _front = new Vector3(0, 0, -1);
         _cameraMode = cameraMode;
         _position = position;
+        _aspectRatio = 16.0f / 9.0f;
+
         FieldOfView = 60.0f;
         NearPlane = 0.1f;
         FarPlane = 1024f;
+
         UpdateCameraVectors();
     }
 
@@ -170,8 +175,9 @@ public sealed class Camera : ICamera
         _acceleration = Vector3.Zero;
     }
 
-    public void Resize()
+    public void Resize(int width, int height)
     {
+        _aspectRatio = width / (float)height;
         UpdateCameraVectors();
     }
 
@@ -209,23 +215,19 @@ public sealed class Camera : ICamera
         _right = Vector3.Normalize(Vector3.Cross(_front, _worldUp));
         _up = Vector3.Normalize(Vector3.Cross(_right, _front));
 
-        var aspectRatio = _applicationContext.IsEditorEnabled
-            ? _applicationContext.EditorFramebufferSize.X / (float)_applicationContext.EditorFramebufferSize.Y
-            : _applicationContext.ScaledFramebufferSize.X / (float)_applicationContext.ScaledFramebufferSize.Y;
-
         ViewMatrix = Matrix4x4.CreateLookAt(_position, _position + _front, _up);
         if (_cameraMode == CameraMode.Perspective)
         {
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(
                 MathHelper.ToRadians(FieldOfView),
-                aspectRatio,
+                _aspectRatio,
                 NearPlane,
                 FarPlane);
         }
         else if (_cameraMode == CameraMode.PerspectiveInfinity)
         {
             ProjectionMatrix = CreateInfiniteReverseZPerspectiveRh(MathHelper.ToRadians(FieldOfView),
-                aspectRatio,
+                _aspectRatio,
                 NearPlane);
         }
     }
@@ -245,8 +247,8 @@ public sealed class Camera : ICamera
 
         ViewMatrix = Matrix4x4.CreateLookAt(_position, _position + _front, _up);
         ProjectionMatrix = Matrix4x4.CreateOrthographic(
-            _applicationContext.ScaledFramebufferSize.X,
-            _applicationContext.ScaledFramebufferSize.Y,
+            _applicationContext.WindowScaledFramebufferSize.X,
+            _applicationContext.WindowScaledFramebufferSize.Y,
             NearPlane,
             FarPlane);
     }

@@ -2,7 +2,6 @@
 using Complex.Ecs;
 using Complex.Ecs.Systems;
 using Complex.Physics;
-using Complex.States;
 using Complex.Windows;
 using EngineKit;
 using EngineKit.Extensions;
@@ -39,8 +38,10 @@ internal static class Program
         services.Configure<WindowSettings>(configuration.GetSection(nameof(WindowSettings)));
         services.Configure<ContextSettings>(configuration.GetSection(nameof(ContextSettings)));
         services.AddEngine();
+
         services.AddSingleton<IApplication, ComplexApplication>();
-        services.AddSingleton<ICamera>(provider => new Camera(provider.GetRequiredService<IApplicationContext>(),
+        services.AddSingleton<ICamera>(provider => new Camera(
+            provider.GetRequiredService<IApplicationContext>(),
             provider.GetRequiredService<IInputProvider>(), new Vector3(0, 2, 10), Vector3.UnitY));
         services.AddSingleton<IPhysicsWorld, PhysicsWorld>();
         services.AddSingleton<IEntityWorld, EntityWorld>();
@@ -57,10 +58,8 @@ internal static class Program
 
         services.AddSingleton<IScene, Scene>();
 
-        services.AddSingleton<IProgramState, GameProgramState>();
-        services.AddSingleton<IProgramState, MenuProgramState>();
-        services.AddSingleton<IProgramState, EditorProgramState>();
-        services.AddSingleton<ILayeredProgramStates, LayeredProgramStates>();
+        services.AddSingleton<Game>();
+        services.AddSingleton<Editor>();
 
         return services.BuildServiceProvider();
     }
