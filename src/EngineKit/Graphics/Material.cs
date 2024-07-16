@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using EngineKit.Graphics.RHI;
 using EngineKit.Mathematics;
 using Serilog;
 using Vector3 = System.Numerics.Vector3;

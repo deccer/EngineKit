@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using EngineKit.Graphics.RHI;
 
 namespace EngineKit.Graphics;
 
@@ -16,7 +17,7 @@ internal sealed class MeshPool : IMeshPool
     {
         _pooledMeshes = new Dictionary<MeshPrimitive, PooledMesh>(1024);
 
-        VertexBuffer = graphicsContext.CreateUntypedBuffer(label + "Vertices", (nuint)(maxVertexCount * Unsafe.SizeOf<VertexPositionNormalUvTangent>()), BufferStorageFlags.DynamicStorage);
+        VertexBuffer = graphicsContext.CreateUntypedBuffer(label + "Vertices", (nuint)(maxVertexCount * Unsafe.SizeOf<GpuVertexPositionNormalUvTangent>()), BufferStorageFlags.DynamicStorage);
         IndexBuffer = graphicsContext.CreateUntypedBuffer(label + "Indices", (nuint)(maxIndexCount * Unsafe.SizeOf<uint>()), BufferStorageFlags.DynamicStorage);
     }
 
@@ -24,7 +25,7 @@ internal sealed class MeshPool : IMeshPool
 
     public IBuffer IndexBuffer { get; }
 
-    public uint VertexBufferStride => VertexPositionNormalUvTangent.Stride;
+    public uint VertexBufferStride => GpuVertexPositionNormalUvTangent.Stride;
 
     public void Dispose()
     {

@@ -1,4 +1,5 @@
 using System;
+using EngineKit.Graphics.RHI;
 
 namespace EngineKit.Graphics;
 

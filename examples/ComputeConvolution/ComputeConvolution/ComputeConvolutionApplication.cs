@@ -1,6 +1,7 @@
 using System;
 using EngineKit;
 using EngineKit.Graphics;
+using EngineKit.Graphics.RHI;
 using EngineKit.Input;
 using EngineKit.Native.Glfw;
 using ImGuiNET;
@@ -172,7 +173,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             .WithVertexAttributesFromDescriptor(new VertexInputDescriptorBuilder()
                 .AddAttribute(0, Format.R32G32B32Float, 0)
                 .AddAttribute(0, Format.R32G32Float, 12)
-                .Build(nameof(VertexPositionUv)))
+                .Build(nameof(GpuVertexPositionUv)))
             .WithTopology(PrimitiveTopology.Triangles)
             .WithFaceWinding(FaceWinding.Clockwise)
             .WithCullingEnabled(CullMode.Back)

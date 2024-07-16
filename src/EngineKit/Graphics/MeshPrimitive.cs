@@ -77,17 +77,17 @@ public sealed class MeshPrimitive
         HasIndices = false;
     }
 
-    public VertexPositionNormalUvTangent[] GetVertices()
+    public GpuVertexPositionNormalUvTangent[] GetVertices()
     {
         if (!RealTangents.Any())
         {
             CalculateTangents();
         }
 
-        var bufferData = new List<VertexPositionNormalUvTangent>(1_024_000);
+        var bufferData = new List<GpuVertexPositionNormalUvTangent>(1_024_000);
         for (var i = 0; i < Positions.Count; ++i)
         {
-            bufferData.Add(new VertexPositionNormalUvTangent(
+            bufferData.Add(new GpuVertexPositionNormalUvTangent(
                 Positions[i],
                 Normals[i],
                 Uvs[i],

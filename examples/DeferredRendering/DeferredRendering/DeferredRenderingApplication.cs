@@ -5,6 +5,8 @@ using System.Linq;
 using System.Numerics;
 using EngineKit;
 using EngineKit.Graphics;
+using EngineKit.Graphics.Assets;
+using EngineKit.Graphics.RHI;
 using EngineKit.Input;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
@@ -174,7 +176,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             _gBufferGraphicsPipeline!.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0, Offset.Zero, SizeInBytes.Whole);
             _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1, Offset.Zero, SizeInBytes.Whole);
             _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer!, 2, Offset.Zero, SizeInBytes.Whole);
-            _gBufferGraphicsPipeline.BindAsVertexBuffer(_gpuVertexBuffer!, 0, VertexPositionNormalUvTangent.Stride, Offset.Zero);
+            _gBufferGraphicsPipeline.BindAsVertexBuffer(_gpuVertexBuffer!, 0, GpuVertexPositionNormalUvTangent.Stride, Offset.Zero);
             _gBufferGraphicsPipeline.BindAsIndexBuffer(_gpuIndexBuffer!);
 
             for (var i = 0; i < _drawCommands.Count; i++)

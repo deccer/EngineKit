@@ -1,6 +1,7 @@
 using System.Numerics;
 using EngineKit;
 using EngineKit.Graphics;
+using EngineKit.Graphics.RHI;
 using EngineKit.Mathematics;
 using ImGuiNET;
 using Serilog;
@@ -108,7 +109,7 @@ internal class ForwardRenderer : IRenderer
         _cameraInformationBuffer = _graphicsContext.CreateTypedBuffer<GpuGlobals>("GpuGlobals",
                 1,
                 BufferStorageFlags.DynamicStorage);
-        _indirectBuffer = _graphicsContext.CreateTypedBuffer<DrawElementIndirectCommand>("GpuIndirectElements",
+        _indirectBuffer = _graphicsContext.CreateTypedBuffer<GpuDrawElementIndirectCommand>("GpuIndirectElements",
                 20_480u,
                 BufferStorageFlags.DynamicStorage);
         _instanceBuffer = _graphicsContext.CreateTypedBuffer<GpuInstance>("GpuInstances",
@@ -116,7 +117,7 @@ internal class ForwardRenderer : IRenderer
                 BufferStorageFlags.DynamicStorage);
 
         //TODO: refactor this out into some LineRenderer
-        _lineVertexBuffer = _graphicsContext.CreateTypedBuffer<VertexPositionColor>("Debug-Aabb-Lines",
+        _lineVertexBuffer = _graphicsContext.CreateTypedBuffer<GpuVertexPositionColor>("Debug-Aabb-Lines",
                 _maxAabbCount,
                 BufferStorageFlags.DynamicStorage);
 
@@ -130,7 +131,7 @@ internal class ForwardRenderer : IRenderer
                     .AddAttribute(0, Format.R32G32B32Float, 12)
                     .AddAttribute(0, Format.R32G32Float, 24)
                     .AddAttribute(0, Format.R32G32B32A32Float, 30)
-                    .Build(nameof(VertexPositionNormalUvTangent)))
+                    .Build(nameof(GpuVertexPositionNormalUvTangent)))
             .WithDepthTestEnabled(CompareFunction.Greater)
             .WithClipControlDepth(ClipControlDepth.ZeroToOne)
             .WithCullingEnabled(CullMode.Back)
@@ -154,7 +155,7 @@ internal class ForwardRenderer : IRenderer
                 new VertexInputDescriptorBuilder()
                     .AddAttribute(0, Format.R32G32B32Float, 0)
                     .AddAttribute(0, Format.R32G32B32Float, 12)
-                    .Build(nameof(VertexPositionColor)))
+                    .Build(nameof(GpuVertexPositionColor)))
             .WithTopology(PrimitiveTopology.Lines)
             .WithFaceWinding(FaceWinding.Clockwise)
             .WithClipControlDepth(ClipControlDepth.ZeroToOne)
@@ -192,7 +193,7 @@ internal class ForwardRenderer : IRenderer
         var meshId = _meshPool!.GetOrAdd(meshPrimitive);
         var materialId = _materialPool!.GetOrAdd(material);
 
-        _indirectBuffer!.UpdateElement(new DrawElementIndirectCommand
+        _indirectBuffer!.UpdateElement(new GpuDrawElementIndirectCommand
             {
                 BaseInstance = 0,
                 BaseVertex = meshId.VertexOffset,
@@ -243,7 +244,7 @@ internal class ForwardRenderer : IRenderer
         {
             //TODO(deccer) refactor out into some sort of LineRenderer
             _graphicsContext.BindGraphicsPipeline(_lineRendererGraphicsPipeline!);
-            _lineRendererGraphicsPipeline!.BindAsVertexBuffer(_lineVertexBuffer!, 0, VertexPositionColor.Stride, Offset.Zero);
+            _lineRendererGraphicsPipeline!.BindAsVertexBuffer(_lineVertexBuffer!, 0, GpuVertexPositionColor.Stride, Offset.Zero);
             _lineRendererGraphicsPipeline.BindAsUniformBuffer(_cameraInformationBuffer, 0, Offset.Zero, SizeInBytes.Whole);
             _lineRendererGraphicsPipeline.DrawArrays(24 * _aabbCounter, Offset.Zero);
         }
@@ -307,43 +308,43 @@ internal class ForwardRenderer : IRenderer
         var farTopLeft = bbCorners[6];
         var farBottomLeft = bbCorners[7];
 
-        VertexPositionColor[] vertices =
+        GpuVertexPositionColor[] vertices =
         [
-            new VertexPositionColor(nearBottomRight, nearColor),
-            new VertexPositionColor(nearTopRight, nearColor),
+            new GpuVertexPositionColor(nearBottomRight, nearColor),
+            new GpuVertexPositionColor(nearTopRight, nearColor),
 
-            new VertexPositionColor(nearTopRight, nearColor),
-            new VertexPositionColor(nearTopLeft, nearColor),
+            new GpuVertexPositionColor(nearTopRight, nearColor),
+            new GpuVertexPositionColor(nearTopLeft, nearColor),
 
-            new VertexPositionColor(nearTopLeft, nearColor),
-            new VertexPositionColor(nearBottomLeft, nearColor),
+            new GpuVertexPositionColor(nearTopLeft, nearColor),
+            new GpuVertexPositionColor(nearBottomLeft, nearColor),
 
-            new VertexPositionColor(nearBottomLeft, nearColor),
-            new VertexPositionColor(nearBottomRight, nearColor),
+            new GpuVertexPositionColor(nearBottomLeft, nearColor),
+            new GpuVertexPositionColor(nearBottomRight, nearColor),
 
-            new VertexPositionColor(nearBottomRight, nearColor),
-            new VertexPositionColor(farBottomRight, farColor),
+            new GpuVertexPositionColor(nearBottomRight, nearColor),
+            new GpuVertexPositionColor(farBottomRight, farColor),
 
-            new VertexPositionColor(nearTopRight, nearColor),
-            new VertexPositionColor(farTopRight, farColor),
+            new GpuVertexPositionColor(nearTopRight, nearColor),
+            new GpuVertexPositionColor(farTopRight, farColor),
 
-            new VertexPositionColor(nearTopLeft, nearColor),
-            new VertexPositionColor(farTopLeft, farColor),
+            new GpuVertexPositionColor(nearTopLeft, nearColor),
+            new GpuVertexPositionColor(farTopLeft, farColor),
 
-            new VertexPositionColor(nearBottomLeft, nearColor),
-            new VertexPositionColor(farBottomLeft, farColor),
+            new GpuVertexPositionColor(nearBottomLeft, nearColor),
+            new GpuVertexPositionColor(farBottomLeft, farColor),
 
-            new VertexPositionColor(farBottomRight, farColor),
-            new VertexPositionColor(farTopRight, farColor),
+            new GpuVertexPositionColor(farBottomRight, farColor),
+            new GpuVertexPositionColor(farTopRight, farColor),
 
-            new VertexPositionColor(farTopRight, farColor),
-            new VertexPositionColor(farTopLeft, farColor),
+            new GpuVertexPositionColor(farTopRight, farColor),
+            new GpuVertexPositionColor(farTopLeft, farColor),
 
-            new VertexPositionColor(farTopLeft, farColor),
-            new VertexPositionColor(farBottomLeft, farColor),
+            new GpuVertexPositionColor(farTopLeft, farColor),
+            new GpuVertexPositionColor(farBottomLeft, farColor),
 
-            new VertexPositionColor(farBottomLeft, farColor),
-            new VertexPositionColor(farBottomRight, farColor)
+            new GpuVertexPositionColor(farBottomLeft, farColor),
+            new GpuVertexPositionColor(farBottomRight, farColor)
         ];
 
         _lineVertexBuffer!.UpdateElements(vertices, _aabbCounter * 24);

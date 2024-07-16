@@ -1,5 +1,6 @@
 using System;
 using EngineKit.Extensions;
+using EngineKit.Graphics.RHI;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Native.OpenGL;
 

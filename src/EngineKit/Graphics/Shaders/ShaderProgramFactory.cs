@@ -1,3 +1,4 @@
+using EngineKit.Graphics.RHI;
 using Serilog;
 
 namespace EngineKit.Graphics.Shaders;
@@ -24,7 +25,7 @@ internal sealed class ShaderProgramFactory : IShaderProgramFactory
         var parsedVertexShaderSource = _shaderParser.ParseShader(vertexShaderSource);
         var parsedFragmentShaderSource = _shaderParser.ParseShader(fragmentShaderSource);
         return new ShaderProgram(
-            label, 
+            label,
             parsedVertexShaderSource,
             parsedFragmentShaderSource);
     }

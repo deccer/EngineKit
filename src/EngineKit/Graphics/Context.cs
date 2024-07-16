@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using EngineKit.Extensions;
+using EngineKit.Graphics.Assets;
+using EngineKit.Graphics.RHI;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Mathematics;
 using EngineKit.Native.Ktx;
@@ -184,7 +186,7 @@ internal sealed class GraphicsContext : IGraphicsContext
         MeshPrimitive[] meshPrimitives)
     {
         var vertexCount = meshPrimitives.Sum(mp => mp.Positions.Count);
-        var bufferData = new VertexPositionNormalUvTangent[vertexCount];
+        var bufferData = new GpuVertexPositionNormalUvTangent[vertexCount];
 
         var bufferDataIndex = 0;
         foreach (var meshPrimitive in meshPrimitives)
@@ -196,7 +198,7 @@ internal sealed class GraphicsContext : IGraphicsContext
 
             for (var i = 0; i < meshPrimitive.Positions.Count; ++i)
             {
-                bufferData[bufferDataIndex++] = new VertexPositionNormalUvTangent(
+                bufferData[bufferDataIndex++] = new GpuVertexPositionNormalUvTangent(
                     meshPrimitive.Positions[i],
                     meshPrimitive.Normals[i],
                     meshPrimitive.Uvs[i],
@@ -204,7 +206,7 @@ internal sealed class GraphicsContext : IGraphicsContext
             }
         }
 
-        return new TypedBuffer<VertexPositionNormalUvTangent>(label, in bufferData);
+        return new TypedBuffer<GpuVertexPositionNormalUvTangent>(label, in bufferData);
     }
 
     public IBuffer CreateIndexBuffer(Label label, MeshPrimitive[] meshPrimitives)

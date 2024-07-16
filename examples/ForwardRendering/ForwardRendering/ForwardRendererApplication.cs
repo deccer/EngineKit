@@ -5,6 +5,8 @@ using System.Linq;
 using System.Numerics;
 using EngineKit;
 using EngineKit.Graphics;
+using EngineKit.Graphics.Assets;
+using EngineKit.Graphics.RHI;
 using EngineKit.Input;
 using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
@@ -44,7 +46,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
     private readonly List<ModelMesh> _modelMeshes;
     private List<GpuModelMeshInstance> _gpuModelMeshInstances;
-    private readonly List<DrawElementIndirectCommand> _gpuIndirectElements;
+    private readonly List<GpuDrawElementIndirectCommand> _gpuIndirectElements;
     private IBuffer? _gpuIndirectElementDataBuffer;
 
     public ForwardRendererApplication(
@@ -84,7 +86,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _modelMeshes = new List<ModelMesh>();
         _modelMeshInstances = new List<ModelMeshInstance>();
         _gpuModelMeshInstances = new List<GpuModelMeshInstance>();
-        _gpuIndirectElements = new List<DrawElementIndirectCommand>();
+        _gpuIndirectElements = new List<GpuDrawElementIndirectCommand>();
     }
 
     protected override bool OnInitialize()
@@ -146,7 +148,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         });
 
         _gpuModelMeshInstanceBuffer = GraphicsContext.CreateTypedBuffer<GpuModelMeshInstance>("ModelMeshInstances", 3, BufferStorageFlags.DynamicStorage);
-        _gpuIndirectElementDataBuffer = GraphicsContext.CreateTypedBuffer<DrawElementIndirectCommand>("MeshIndirectDrawElement", 3, BufferStorageFlags.DynamicStorage);
+        _gpuIndirectElementDataBuffer = GraphicsContext.CreateTypedBuffer<GpuDrawElementIndirectCommand>("MeshIndirectDrawElement", 3, BufferStorageFlags.DynamicStorage);
 
         _gpuMaterials.Add(new GpuMaterial
         {
@@ -194,7 +196,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
         _gpuIndirectElements.Clear();
         foreach (var modelMeshInstance in _modelMeshInstances)
         {
-            var gpuIndirectElement = new DrawElementIndirectCommand
+            var gpuIndirectElement = new GpuDrawElementIndirectCommand
             {
                 IndexCount = (uint)modelMeshInstance.ModelMesh.IndexCount,
                 BaseInstance = 0,
@@ -212,7 +214,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
 
         GraphicsContext.BeginRenderPass(_swapchainDescriptor);
         GraphicsContext.BindGraphicsPipeline(_sceneGraphicsPipeline!);
-        _sceneGraphicsPipeline!.BindAsVertexBuffer(_skullVertexBuffer!, 0, VertexPositionNormalUvTangent.Stride, 0);
+        _sceneGraphicsPipeline!.BindAsVertexBuffer(_skullVertexBuffer!, 0, GpuVertexPositionNormalUvTangent.Stride, 0);
         _sceneGraphicsPipeline.BindAsIndexBuffer(_skullIndexBuffer!);
 
         _sceneGraphicsPipeline.BindAsUniformBuffer(_gpuConstantsBuffer, 0, Offset.Zero, SizeInBytes.Whole);
@@ -373,7 +375,7 @@ internal sealed class ForwardRendererApplication : GraphicsApplication
                 .AddAttribute(0, Format.R32G32B32Float, 12)
                 .AddAttribute(0, Format.R32G32Float, 24)
                 .AddAttribute(0, Format.R32G32B32A32Float, 32)
-                .Build(nameof(VertexPositionNormalUvTangent)))
+                .Build(nameof(GpuVertexPositionNormalUvTangent)))
             .WithTopology(PrimitiveTopology.Triangles)
             .WithFaceWinding(FaceWinding.CounterClockwise)
             .WithCullingEnabled(CullMode.Back)

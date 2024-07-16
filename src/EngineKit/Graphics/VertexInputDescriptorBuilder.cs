@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EngineKit.Extensions;
+using EngineKit.Graphics.RHI;
 using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;

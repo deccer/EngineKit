@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using EngineKit.Graphics;
+using EngineKit.Graphics.RHI;
 using EngineKit.Input;
 using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;

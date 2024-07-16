@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using EngineKit.Extensions;
+using EngineKit.Graphics.RHI;
 using ImGuiNET;
 
 namespace EngineKit.Graphics;
@@ -15,7 +17,7 @@ public readonly record struct VertexInputDescriptor(VertexInputBindingDescriptor
     private static readonly IDictionary<Type, bool> _fieldTypeToNormalizedMapping;
     private static readonly IDictionary<Type, int> _fieldTypeToComponentCountMapping;
     private static readonly IDictionary<Type, DataType> _fieldTypeToDataTypeMapping;
-    
+
     public readonly VertexInputBindingDescriptor[]? VertexBindingDescriptors = VertexBindingDescriptors;
 
     public readonly Label Label = Label;
@@ -48,13 +50,13 @@ public readonly record struct VertexInputDescriptor(VertexInputBindingDescriptor
         };
         _vertexTypeToVertexInputDescriptorMapping = new Dictionary<VertexType, VertexInputDescriptor>
         {
-            { VertexType.Position, BuildVertexInputDescriptorFor<VertexPosition>() },
-            { VertexType.PositionColor, BuildVertexInputDescriptorFor<VertexPositionColor>() },
-            { VertexType.PositionColorUv, BuildVertexInputDescriptorFor<VertexPositionColorUv>() },
-            { VertexType.PositionNormal, BuildVertexInputDescriptorFor<VertexPositionNormal>() },
-            { VertexType.PositionNormalUv, BuildVertexInputDescriptorFor<VertexPositionNormalUv>() },
-            { VertexType.PositionNormalUvTangent, BuildVertexInputDescriptorFor<VertexPositionNormalUvTangent>() },
-            { VertexType.Default, BuildVertexInputDescriptorFor<VertexPositionNormalUvTangent>() },
+            { VertexType.Position, BuildVertexInputDescriptorFor<GpuVertexPosition>() },
+            { VertexType.PositionColor, BuildVertexInputDescriptorFor<GpuVertexPositionColor>() },
+            { VertexType.PositionColorUv, BuildVertexInputDescriptorFor<GpuVertexPositionColorUv>() },
+            { VertexType.PositionNormal, BuildVertexInputDescriptorFor<GpuVertexPositionNormal>() },
+            { VertexType.PositionNormalUv, BuildVertexInputDescriptorFor<GpuVertexPositionNormalUv>() },
+            { VertexType.PositionNormalUvTangent, BuildVertexInputDescriptorFor<GpuVertexPositionNormalUvTangent>() },
+            { VertexType.Default, BuildVertexInputDescriptorFor<GpuVertexPositionNormalUvTangent>() },
             { VertexType.ImGui, BuildVertexInputDescriptorFor<ImDrawVert>() }
         };
     }
@@ -76,7 +78,7 @@ public readonly record struct VertexInputDescriptor(VertexInputBindingDescriptor
         {
             return hashCode;
         }
-        
+
         foreach (var vertexBindingDescriptor in VertexBindingDescriptors)
         {
             hashCode = HashCode.Combine(
@@ -140,7 +142,7 @@ public readonly record struct VertexInputDescriptor(VertexInputBindingDescriptor
         {
             return isNormalized;
         }
-        
+
         throw new ArgumentOutOfRangeException($"FieldType {fieldType.Name} has no normalized mapping");
     }
 
@@ -150,7 +152,7 @@ public readonly record struct VertexInputDescriptor(VertexInputBindingDescriptor
         {
             return dataType;
         }
-        
+
         throw new ArgumentOutOfRangeException($"FieldType {fieldType.Name} has no data type mapping");
     }
 

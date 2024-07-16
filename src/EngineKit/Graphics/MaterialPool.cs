@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using EngineKit.Graphics.RHI;
 using Serilog;
 
 namespace EngineKit.Graphics;

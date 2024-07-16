@@ -1,0 +1,30 @@
+using System.Numerics;
+using System.Runtime.InteropServices;
+
+namespace EngineKit.Graphics;
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public readonly struct GpuVertexPositionNormalUvTangent
+{
+    public static readonly unsafe uint Stride = (uint)sizeof(GpuVertexPositionNormalUvTangent);
+        
+    public GpuVertexPositionNormalUvTangent(
+        Vector3 position,
+        Vector3 normal,
+        Vector2 uv,
+        Vector4 tangent)
+    {
+        Position = position;
+        Normal = normal;
+        Uv = uv;
+        Tangent = tangent;
+    }
+
+    public readonly Vector3 Position;
+
+    public readonly Vector3 Normal;
+
+    public readonly Vector2 Uv;
+
+    public readonly Vector4 Tangent;
+}

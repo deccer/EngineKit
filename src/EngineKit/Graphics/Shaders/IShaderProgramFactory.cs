@@ -1,3 +1,5 @@
+using EngineKit.Graphics.RHI;
+
 namespace EngineKit.Graphics.Shaders;
 
 internal interface IShaderProgramFactory

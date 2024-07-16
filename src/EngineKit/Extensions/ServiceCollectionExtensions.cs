@@ -1,7 +1,7 @@
 using EngineKit.Graphics;
+using EngineKit.Graphics.Assets;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Input;
-using EngineKit.MeshLoaders;
 using EngineKit.UI;
 using Microsoft.Extensions.DependencyInjection;
 using SixLabors.ImageSharp;
