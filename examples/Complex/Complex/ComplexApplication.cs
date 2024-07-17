@@ -1,8 +1,9 @@
 using System.Threading.Tasks;
 using EngineKit;
+using EngineKit.Core;
+using EngineKit.Core.Messages;
 using EngineKit.Graphics;
 using EngineKit.Input;
-using EngineKit.Messages;
 using EngineKit.Native.OpenGL;
 using Microsoft.Extensions.Options;
 using Serilog;

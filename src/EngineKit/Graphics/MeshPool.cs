@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using EngineKit.Core;
 using EngineKit.Graphics.RHI;
 
 namespace EngineKit.Graphics;

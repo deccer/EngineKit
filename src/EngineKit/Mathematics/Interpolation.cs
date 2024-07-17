@@ -4,13 +4,13 @@ using System.Runtime.CompilerServices;
 
 namespace EngineKit;
 
-public static class InterpolationHelper
+public static class Interpolation
 {
     public static float Fade(float t)
     {
         return t * t * t * (t * (t * 6 - 15) + 10);
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Lerp(float a, float b, float t)
     {
@@ -39,7 +39,7 @@ public static class InterpolationHelper
     {
         return value < edge ? 0.0f : (float)1.0;
     }
-    
+
     public static Vector3 Step(float edge, Vector3 value)
     {
         return new Vector3(

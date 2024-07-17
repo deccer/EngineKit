@@ -1,5 +1,6 @@
 ﻿using System;
 using CSharpFunctionalExtensions;
+using EngineKit.Core;
 using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics.RHI;

@@ -2,7 +2,7 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace EngineKit;
+namespace EngineKit.Mathematics;
 
 public static class MathUtils
 {
@@ -79,7 +79,7 @@ public static class MathUtils
         var v = factor * (outMax - outMin) + outMin;
         if (outMin > outMax)
         {
-            Helper.Swap(ref outMin, ref outMax);
+            Swapper.Swap(ref outMin, ref outMax);
         }
         return v.Clamp(outMin, outMax);
     }

@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using EngineKit.Core;
 using EngineKit.Extensions;
 using EngineKit.Graphics.Assets;
 using EngineKit.Graphics.RHI;

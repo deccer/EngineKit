@@ -61,7 +61,7 @@ public class Application : IApplication
         _metrics = metrics;
         _inputProvider = inputProvider;
         _windowHandle = nint.Zero;
-        _frameTimeAverager = new FrameTimeAverager(50);
+        _frameTimeAverager = new FrameTimeAverager(60);
     }
 
     public void Dispose()
@@ -131,9 +131,8 @@ public class Application : IApplication
 
         OnUnload();
         Glfw.DestroyWindow(_windowHandle);
-
-        _logger.Debug("{Category}: Unloaded", "App");
         Glfw.Terminate();
+        _logger.Debug("{Category}: Unloaded", "App");
     }
 
     protected void CenterMouseCursor()
@@ -213,13 +212,13 @@ public class Application : IApplication
             ? nint.Zero
             : monitorHandle;
 
-        var glVersion = new Version(4, 5);
+        var glVersion = new Version(4, 6);
         if (!string.IsNullOrEmpty(_contextSettings.Value.TargetGLVersion))
         {
             if (!Version.TryParse(_contextSettings.Value.TargetGLVersion, out glVersion))
             {
-                _logger.Error("{Category}: Unable to detect context version. Assuming 4.5", "App");
-                glVersion = new Version(4, 5);
+                _logger.Error("{Category}: Unable to detect context version. Assuming 4.6", "App");
+                glVersion = new Version(4, 6);
             }
         }
 
@@ -314,18 +313,15 @@ public class Application : IApplication
         _logger.Information("{Category}: Version - {Version}", "GL", GL.GetString(GL.StringName.Version));
         _logger.Information("{Category}: Shading Language Version - {ShadingLanguageVersion}", "GL", GL.GetString(GL.StringName.ShadingLanguageVersion));
 
-        if (_capabilities.SupportsSwapControl)
-        {
-            Glfw.SwapInterval(_windowSettings.Value.IsVsyncEnabled ? 1 : -1);
-        }
-        else
-        {
-            Glfw.SwapInterval(_windowSettings.Value.IsVsyncEnabled ? 1 : 0);
-        }
+        Glfw.SwapInterval(_windowSettings.Value.IsVsyncEnabled
+            ? 1
+            : _capabilities.SupportsSwapControl
+                ? -1
+                : 0);
 
         _applicationContext.IsFrameRateLimited = _windowSettings.Value.IsVsyncEnabled;
 
-        BindCallbacks();
+        BindGlfwCallbacks();
 
         if (_contextSettings.Value.IsDebugContext && _debugProcCallback != null)
         {
@@ -355,7 +351,7 @@ public class Application : IApplication
 
     protected virtual void OnUnload()
     {
-        UnbindCallbacks();
+        UnbindGlfwCallbacks();
     }
 
     protected virtual void OnUpdate(float deltaTime, float elapsedSeconds)
@@ -411,19 +407,8 @@ public class Application : IApplication
             return;
         }
 
-        unsafe
-        {
-            using var image = Image.Load<Rgba32>(fileName);
-            if (image.DangerousTryGetSinglePixelMemory(out var memory))
-            {
-                Glfw.SetWindowIcon(_windowHandle, new Glfw.Image
-                {
-                    Width = image.Width,
-                    Height = image.Height,
-                    PixelPtr = (byte*)memory.Pin().Pointer
-                });
-            }
-        }
+        using var image = Image.Load<Rgba32>(fileName);
+        SetWindowIcon(image);
     }
 
     protected bool IsKeyPressed(Glfw.Key key)
@@ -455,7 +440,7 @@ public class Application : IApplication
         _applicationContext.IsWindowMaximized = false;
     }
 
-    private void BindCallbacks()
+    private void BindGlfwCallbacks()
     {
         _debugProcCallback = DebugCallback;
         _cursorEnterLeaveCallback = OnMouseEnterLeave;
@@ -477,7 +462,7 @@ public class Application : IApplication
         Glfw.SetCharCallback(_windowHandle, _windowCharCallback);
     }
 
-    private void UnbindCallbacks()
+    private void UnbindGlfwCallbacks()
     {
         _debugProcCallback = null;
         Glfw.SetCharCallback(_windowHandle, null);

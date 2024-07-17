@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace EngineKit;
+namespace EngineKit.Core;
 
 public sealed class MessageBus : IMessageBus
 {

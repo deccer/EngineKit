@@ -1,4 +1,5 @@
 ﻿using System;
+using EngineKit.Core;
 using EngineKit.Graphics.RHI;
 using EngineKit.Mathematics;
 
@@ -98,7 +99,8 @@ public interface IGraphicsContext : IDisposable
         bool flipVertical,
         bool flipHorizontal);
 
-    ITexture? CreateTextureFromMemory(ImageInformation image,
+    ITexture? CreateTextureFromMemory(
+        ImageInformation image,
         Format format,
         Label label,
         bool generateMipmaps,

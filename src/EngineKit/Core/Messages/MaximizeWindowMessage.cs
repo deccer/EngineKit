@@ -1,3 +1,3 @@
-namespace EngineKit.Messages;
+namespace EngineKit.Core.Messages;
 
 public struct MaximizeWindowMessage;

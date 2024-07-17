@@ -1,3 +1,5 @@
+using EngineKit.Core;
+
 namespace EngineKit.Graphics;
 
 internal record struct GraphicsPipelineDescriptor

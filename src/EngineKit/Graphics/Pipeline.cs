@@ -1,7 +1,7 @@
 using System;
+using EngineKit.Core;
 using EngineKit.Extensions;
 using EngineKit.Graphics.RHI;
-using EngineKit.Graphics.Shaders;
 using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
@@ -9,7 +9,7 @@ namespace EngineKit.Graphics;
 public abstract class Pipeline : IPipeline
 {
     protected ShaderProgram? ShaderProgram;
-    
+
     public Label Label { get; protected set; }
 
     public virtual void Bind()
@@ -59,7 +59,7 @@ public abstract class Pipeline : IPipeline
                 return;
             }
         }
-        
+
         GL.BindBufferRange(BufferTarget.UniformBuffer.ToGL(), bindingIndex, uniformBuffer.Id, offsetInBytes, (nint)sizeInBytes);
     }
 

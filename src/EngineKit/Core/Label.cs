@@ -1,4 +1,4 @@
-namespace EngineKit;
+namespace EngineKit.Core;
 
 public readonly struct Label
 {

@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace EngineKit;
+namespace EngineKit.Core;
 
 public interface IMessageBus
 {

@@ -1,7 +1,6 @@
 using System.Numerics;
 using EngineKit.Extensions;
 using EngineKit.Graphics.RHI;
-using EngineKit.Graphics.Shaders;
 using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
