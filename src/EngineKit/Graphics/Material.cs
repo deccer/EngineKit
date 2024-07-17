@@ -26,6 +26,7 @@ public record Material(string Name) : IDisposable
     private ImageInformation? _metalnessRoughnessImage;
     private ImageInformation? _occlusionImage;
     private ImageInformation? _emissiveImage;
+    private bool _isDirty;
 
     public SamplerInformation? BaseColorTextureSamplerInformation;
     public SamplerInformation? NormalTextureSamplerInformation;
@@ -34,7 +35,6 @@ public record Material(string Name) : IDisposable
     public SamplerInformation? OcclusionTextureSamplerInformation;
     public SamplerInformation? EmissiveTextureSamplerInformation;
 
-    private bool _isDirty;
     public string Name { get; set; } = Name;
 
     public bool TexturesLoaded { get; private set; }
@@ -46,7 +46,7 @@ public record Material(string Name) : IDisposable
         get => _occlusionStrength;
         set
         {
-            if (MathF.Abs(_occlusionStrength - value) > 0.0001f)
+            if (MathF.Abs(_occlusionStrength - value) < float.Epsilon)
             {
                 _occlusionStrength = value;
                 _isDirty = true;
@@ -59,7 +59,7 @@ public record Material(string Name) : IDisposable
         get => _glossinessFactor;
         set
         {
-            if (MathF.Abs(_glossinessFactor - value) > 0.0001f)
+            if (MathF.Abs(_glossinessFactor - value) < float.Epsilon)
             {
                 _glossinessFactor = value;
                 _isDirty = true;
@@ -72,7 +72,7 @@ public record Material(string Name) : IDisposable
         get => _metallicFactor;
         set
         {
-            if (MathF.Abs(_metallicFactor - value) > 0.0001f)
+            if (MathF.Abs(_metallicFactor - value) < float.Epsilon)
             {
                 _metallicFactor = value;
                 _isDirty = true;
@@ -85,7 +85,7 @@ public record Material(string Name) : IDisposable
         get => _roughnessFactor;
         set
         {
-            if (MathF.Abs(_roughnessFactor - value) > 0.0001f)
+            if (MathF.Abs(_roughnessFactor - value) < float.Epsilon)
             {
                 _roughnessFactor = value;
                 _isDirty = true;
