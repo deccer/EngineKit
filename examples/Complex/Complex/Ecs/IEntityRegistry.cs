@@ -4,7 +4,7 @@ using Complex.Ecs.Components;
 
 namespace Complex.Ecs;
 
-public interface IEntityWorld
+public interface IEntityRegistry
 {
     event Action<Component>? ComponentAdded;
 
@@ -31,7 +31,7 @@ public interface IEntityWorld
 
     T? GetComponent<T>(EntityId entityId) where T : Component;
 
-    IList<T> GetComponents<T>() where T : Component;
+    List<T> GetComponents<T>() where T : Component;
 
     Dictionary<Type, Component>.ValueCollection GetAllComponents(EntityId entityId);
 }

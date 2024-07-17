@@ -9,18 +9,18 @@ internal class PreRenderSystem : IPreRenderSystem
 {
     private readonly ICamera _camera;
 
-    private readonly IEntityWorld _entityWorld;
+    private readonly IEntityRegistry _entityRegistry;
 
     private readonly IMaterialLibrary _materialLibrary;
 
     private readonly IRenderer _renderer;
 
-    public PreRenderSystem(IEntityWorld entityWorld,
+    public PreRenderSystem(IEntityRegistry entityRegistry,
                            IRenderer renderer,
                            IMaterialLibrary materialLibrary,
                            ICamera camera)
     {
-        _entityWorld = entityWorld;
+        _entityRegistry = entityRegistry;
         _renderer = renderer;
         _materialLibrary = materialLibrary;
         _camera = camera;
@@ -28,14 +28,14 @@ internal class PreRenderSystem : IPreRenderSystem
 
     public void Update()
     {
-        var globalLightEntities = _entityWorld.GetEntitiesWithComponents<GlobalLightComponent>();
+        var globalLightEntities = _entityRegistry.GetEntitiesWithComponents<GlobalLightComponent>();
         var globalLightEntitiesSpan = CollectionsMarshal.AsSpan(globalLightEntities);
         for (var i = 0; i < globalLightEntities.Count; i++)
         {
             ref var globalLightEntity = ref globalLightEntitiesSpan[i];
         }
 
-        var meshEntities = _entityWorld.GetEntitiesWithComponents<ModelMeshComponent>();
+        var meshEntities = _entityRegistry.GetEntitiesWithComponents<ModelMeshComponent>();
         var meshEntitiesSpan = CollectionsMarshal.AsSpan(meshEntities);
 
         if (meshEntities.Count > 0) _renderer.Clear();
@@ -46,8 +46,8 @@ internal class PreRenderSystem : IPreRenderSystem
         {
             ref var meshEntity = ref meshEntitiesSpan[i];
 
-            var meshComponent = _entityWorld.GetComponent<ModelMeshComponent>(meshEntity.Id);
-            var materialComponent = _entityWorld.GetComponent<MaterialComponent>(meshEntity.Id);
+            var meshComponent = _entityRegistry.GetComponent<ModelMeshComponent>(meshEntity.Id);
+            var materialComponent = _entityRegistry.GetComponent<MaterialComponent>(meshEntity.Id);
             var material = materialComponent == null
                     ? _materialLibrary.GetMaterialByName("M_Default") //TODO(deccer): add a GetDefaultMaterial()
                     : materialComponent.Material;

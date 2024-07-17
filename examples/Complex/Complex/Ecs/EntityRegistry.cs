@@ -5,7 +5,7 @@ using Complex.Ecs.Components;
 
 namespace Complex.Ecs;
 
-public class EntityWorld : IEntityWorld
+public class EntityRegistry : IEntityRegistry
 {
     private readonly IDictionary<Type, List<Component>> _componentsByType;
 
@@ -13,7 +13,7 @@ public class EntityWorld : IEntityWorld
 
     private int _nextEntityId;
 
-    public EntityWorld()
+    public EntityRegistry()
     {
         _componentsByType = new Dictionary<Type, List<Component>>();
         _entities = new Dictionary<EntityId, Entity>();
@@ -151,7 +151,7 @@ public class EntityWorld : IEntityWorld
         return null;
     }
 
-    public IList<T> GetComponents<T>() where T : Component
+    public List<T> GetComponents<T>() where T : Component
     {
         var components = new List<T>();
 

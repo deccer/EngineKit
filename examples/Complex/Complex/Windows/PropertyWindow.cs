@@ -7,15 +7,15 @@ namespace Complex.Windows;
 
 public class PropertyWindow : Window
 {
-    private readonly IEntityWorld _world;
+    private readonly IEntityRegistry _registry;
 
     private Entity? _selectedEntity;
 
     private EntityId? _selectedEntityId;
 
-    public PropertyWindow(IEntityWorld world)
+    public PropertyWindow(IEntityRegistry registry)
     {
-        _world = world;
+        _registry = registry;
         Caption = $"{MaterialDesignIcons.Cards} Properties";
 
         _selectedEntityId = null;
@@ -32,7 +32,7 @@ public class PropertyWindow : Window
                 _selectedEntityId = value;
                 if (_selectedEntityId.HasValue)
                 {
-                    _selectedEntity = _world.GetEntity(_selectedEntityId.Value);
+                    _selectedEntity = _registry.GetEntity(_selectedEntityId.Value);
                 }
             }
         }
@@ -47,7 +47,7 @@ public class PropertyWindow : Window
 
         var transformShown = false;
 
-        var components = _world.GetAllComponents(_selectedEntityId.Value);
+        var components = _registry.GetAllComponents(_selectedEntityId.Value);
         foreach (var component in components)
         {
             var componentType = component.GetType();

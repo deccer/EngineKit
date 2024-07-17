@@ -16,15 +16,15 @@ public class SceneHierarchyWindow : Window
 
     private readonly IScene _scene;
 
-    private readonly IEntityWorld _world;
+    private readonly IEntityRegistry _registry;
 
     private EntityId? _selectedEntityId;
 
-    public SceneHierarchyWindow(IEntityWorld world,
+    public SceneHierarchyWindow(IEntityRegistry registry,
                                 IScene scene,
                                 PropertyWindow propertyWindow)
     {
-        _world = world;
+        _registry = registry;
         _scene = scene;
         _propertyWindow = propertyWindow;
 
@@ -32,7 +32,7 @@ public class SceneHierarchyWindow : Window
         OverwriteStyle = true;
 
         _rootEntityId = _scene.GetRoot();
-        _rootEntity = _world.GetEntity(_rootEntityId);
+        _rootEntity = _registry.GetEntity(_rootEntityId);
     }
 
     public EntityId? SelectedEntityId
@@ -90,7 +90,7 @@ public class SceneHierarchyWindow : Window
 
         ImGui.PushID(child.ToString());
 
-        var nameComponent = _world.GetComponent<NameComponent>(child.Id);
+        var nameComponent = _registry.GetComponent<NameComponent>(child.Id);
         var name = nameComponent?.Name ?? "UnnamedEntity";
 
         ImGui.PushID(name + child);

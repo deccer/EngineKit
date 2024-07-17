@@ -2,7 +2,7 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace EngineKit;
+namespace EngineKit.Mathematics;
 
 public static class Interpolation
 {

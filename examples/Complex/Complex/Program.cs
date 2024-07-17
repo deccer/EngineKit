@@ -44,7 +44,7 @@ internal static class Program
             provider.GetRequiredService<IApplicationContext>(),
             provider.GetRequiredService<IInputProvider>(), new Vector3(0, 2, 10), Vector3.UnitY));
         services.AddSingleton<IPhysicsWorld, PhysicsWorld>();
-        services.AddSingleton<IEntityWorld, EntityWorld>();
+        services.AddSingleton<IEntityRegistry, EntityRegistry>();
         services.AddSingleton<IRenderer, ForwardRenderer>();
         services.AddSingleton<IUpdateCameraSystem, UpdateCameraSystem>();
         services.AddSingleton<IPreRenderSystem, PreRenderSystem>();

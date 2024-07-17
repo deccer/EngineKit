@@ -1,10 +1,11 @@
 using System;
 using System.Numerics;
+using Complex.Ecs;
 using Complex.Ecs.Components;
 using Complex.Ecs.Systems;
 using EngineKit.Graphics;
 
-namespace Complex.Ecs;
+namespace Complex;
 
 internal class Scene : IScene
 {
@@ -16,21 +17,21 @@ internal class Scene : IScene
 
     private readonly ISystemsUpdater _systemsUpdater;
 
-    private readonly IEntityWorld _world;
+    private readonly IEntityRegistry _registry;
 
     private bool _isDisposed;
 
-    public Scene(IEntityWorld world,
+    public Scene(IEntityRegistry registry,
                  IModelLibrary modelLibrary,
                  IMaterialLibrary materialLibrary,
                  ISystemsUpdater systemsUpdater)
     {
-        _world = world;
+        _registry = registry;
         _modelLibrary = modelLibrary;
         _materialLibrary = materialLibrary;
         _systemsUpdater = systemsUpdater;
-        _rootEntity = _world.CreateEntity("Root");
-        _world.AddComponent(_rootEntity, new NameComponent("Root"));
+        _rootEntity = _registry.CreateEntity("Root");
+        _registry.AddComponent(_rootEntity, new NameComponent("Root"));
     }
 
     public void Update(float deltaTime)
@@ -57,14 +58,14 @@ internal class Scene : IScene
                                                Matrix4x4 startWorldMatrix)
     {
         var parentEntity = parent ?? _rootEntity;
-        var modelEntityId = _world.CreateEntity(name, parentEntity);
-        var modelEntity = _world.GetEntity(modelEntityId);
+        var modelEntityId = _registry.CreateEntity(name, parentEntity);
+        var modelEntity = _registry.GetEntity(modelEntityId);
 
         modelEntity!.LocalMatrix = modelMesh.MeshPrimitive.Transform;
 
-        _world.AddComponent(modelEntityId, new NameComponent(name));
-        _world.AddComponent(modelEntityId, new ModelMeshComponent(modelMesh.MeshPrimitive));
-        _world.AddComponent(modelEntityId, new MaterialComponent(_materialLibrary.GetMaterialByName(modelMesh.MeshPrimitive.MaterialName)));
+        _registry.AddComponent(modelEntityId, new NameComponent(name));
+        _registry.AddComponent(modelEntityId, new ModelMeshComponent(modelMesh.MeshPrimitive));
+        _registry.AddComponent(modelEntityId, new MaterialComponent(_materialLibrary.GetMaterialByName(modelMesh.MeshPrimitive.MaterialName)));
     }
 
     public void AddEntityWithModelRenderer(string name,
@@ -73,24 +74,24 @@ internal class Scene : IScene
                                            Matrix4x4 startWorldMatrix)
     {
         var parentEntity = parent ?? _rootEntity;
-        var modelEntityId = _world.CreateEntity(name, parentEntity);
-        var modelEntity = _world.GetEntity(modelEntityId);
+        var modelEntityId = _registry.CreateEntity(name, parentEntity);
+        var modelEntity = _registry.GetEntity(modelEntityId);
         modelEntity!.LocalMatrix = startWorldMatrix;
 
-        _world.AddComponent(modelEntityId, new NameComponent(name));
+        _registry.AddComponent(modelEntityId, new NameComponent(name));
 
         foreach (var modelMesh in model.ModelMeshes)
         {
             var modelMeshName = string.IsNullOrEmpty(modelMesh.Name)
                 ? $"Mesh-{Guid.NewGuid().ToString()}"
                 : modelMesh.Name;
-            var modelMeshEntityId = _world.CreateEntity(modelMeshName, modelEntityId);
-            var modelMeshEntity = _world.GetEntity(modelMeshEntityId);
+            var modelMeshEntityId = _registry.CreateEntity(modelMeshName, modelEntityId);
+            var modelMeshEntity = _registry.GetEntity(modelMeshEntityId);
             modelMeshEntity!.LocalMatrix = modelMesh.MeshPrimitive.Transform;
 
-            _world.AddComponent(modelMeshEntityId, new NameComponent(modelMeshName));
-            _world.AddComponent(modelMeshEntityId, new ModelMeshComponent(modelMesh.MeshPrimitive));
-            _world.AddComponent(modelMeshEntityId, new MaterialComponent(_materialLibrary.GetMaterialByName(modelMesh.MeshPrimitive.MaterialName)));
+            _registry.AddComponent(modelMeshEntityId, new NameComponent(modelMeshName));
+            _registry.AddComponent(modelMeshEntityId, new ModelMeshComponent(modelMesh.MeshPrimitive));
+            _registry.AddComponent(modelMeshEntityId, new MaterialComponent(_materialLibrary.GetMaterialByName(modelMesh.MeshPrimitive.MaterialName)));
         }
     }
 }

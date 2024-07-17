@@ -6,12 +6,12 @@ internal class UpdateCameraSystem : IUpdateCameraSystem
 {
     private readonly ICamera _camera;
 
-    private readonly IEntityWorld _entityWorld;
+    private readonly IEntityRegistry _entityRegistry;
 
-    public UpdateCameraSystem(IEntityWorld entityWorld,
+    public UpdateCameraSystem(IEntityRegistry entityRegistry,
                               ICamera camera)
     {
-        _entityWorld = entityWorld;
+        _entityRegistry = entityRegistry;
         _camera = camera;
     }
 
