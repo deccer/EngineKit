@@ -254,7 +254,7 @@ internal sealed class GraphicsContext : IGraphicsContext
             Label = string.IsNullOrEmpty(label) ? $"Texture-{width}x{height}-{format}" : $"Texture-{width}x{height}-{format}-{label}",
             ArrayLayers = 0,
             MipLevels = 1,
-            ImageType = ImageType.Texture2D,
+            TextureType = TextureType.Texture2D,
             TextureSampleCount = TextureSampleCount.OneSample
         };
         return CreateTexture(textureCreateDescriptor);
@@ -367,7 +367,7 @@ internal sealed class GraphicsContext : IGraphicsContext
                 var format = Format.R16G16B16A16Float;
                 var skyboxTextureCreateDescriptor = new TextureCreateDescriptor
                 {
-                    ImageType = ImageType.TextureCube,
+                    TextureType = TextureType.TextureCube,
                     Format = format,
                     Label = string.IsNullOrEmpty(label)
                         ? $"Texture-{image.Width}x{image.Height}-{format}"
@@ -848,7 +848,7 @@ internal sealed class GraphicsContext : IGraphicsContext
     {
         var textureCreateDescriptor = new TextureCreateDescriptor
         {
-            ImageType = ImageType.Texture2D,
+            TextureType = TextureType.Texture2D,
             Format = ktxTexture->VulkanFormat.ToFormat(),
             Label = label,
             Size = new Int3((int)ktxTexture->BaseWidth, (int)ktxTexture->BaseHeight, (int)ktxTexture->BaseDepth),
@@ -887,7 +887,7 @@ internal sealed class GraphicsContext : IGraphicsContext
         var calculatedMipLevels = (uint)(1 + MathF.Floor(MathF.Log2(MathF.Min(image.Width, image.Height))));
         var textureCreateDescriptor = new TextureCreateDescriptor
         {
-            ImageType = ImageType.Texture2D,
+            TextureType = TextureType.Texture2D,
             Format = format,
             Label = label,
             Size = new Int3(image.Width, image.Height, 1),

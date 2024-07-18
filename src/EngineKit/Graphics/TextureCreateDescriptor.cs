@@ -5,7 +5,7 @@ namespace EngineKit.Graphics;
 
 public record struct TextureCreateDescriptor
 {
-    public ImageType ImageType;
+    public TextureType TextureType;
 
     public Format Format;
 

@@ -1,6 +1,6 @@
 using System;
 
-namespace EngineKit.Graphics;
+namespace EngineKit.Graphics.RHI;
 
 [Flags]
 public enum StorageAllocationFlags

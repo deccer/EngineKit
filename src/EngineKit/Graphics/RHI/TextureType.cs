@@ -1,6 +1,6 @@
-namespace EngineKit.Graphics;
+namespace EngineKit.Graphics.RHI;
 
-public enum ImageType
+public enum TextureType
 {
     Texture1D,
     Texture1DArray,

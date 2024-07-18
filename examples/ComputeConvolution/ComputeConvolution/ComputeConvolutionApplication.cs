@@ -201,7 +201,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
 
         var skyboxTextureCreateDescriptor = new TextureCreateDescriptor
         {
-            ImageType = ImageType.TextureCube,
+            TextureType = TextureType.TextureCube,
             Format = Format.R16G16B16A16Float,
             Label = "ConvolvedSkybox",
             Size = new Int3(_skyboxTexture!.TextureCreateDescriptor.Size.X, _skyboxTexture.TextureCreateDescriptor.Size.Y, 1),
@@ -281,7 +281,7 @@ internal sealed class ComputeConvolutionApplication : GraphicsApplication
             {
                 var skyboxTextureCreateDescriptor = new TextureCreateDescriptor
                 {
-                    ImageType = ImageType.TextureCube,
+                    TextureType = TextureType.TextureCube,
                     Format = Format.R8G8B8A8UNorm,
                     Label = $"Skybox_{skyboxName}",
                     Size = new Int3(image.Width, image.Height, 1),

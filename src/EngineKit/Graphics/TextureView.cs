@@ -20,7 +20,7 @@ public class TextureView : IHasTextureId, IDisposable
         Depth = texture.TextureCreateDescriptor.Size.Z;
         GL.TextureView(
             _id,
-            textureViewDescriptor.ImageType.ToGL(),
+            textureViewDescriptor.TextureType.ToGL(),
             texture.Id,
             textureViewDescriptor.Format.ToGL(),
             textureViewDescriptor.MinLevel,

@@ -3,5 +3,6 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
 </Project>

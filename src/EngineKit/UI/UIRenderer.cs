@@ -310,7 +310,7 @@ internal sealed class UIRenderer : IUIRenderer
         {
             Size = new Int3(width, height, 1),
             Format = Format.R8G8B8A8UNorm,
-            ImageType = ImageType.Texture2D,
+            TextureType = TextureType.Texture2D,
             Label = "ImGuiFontAtlas",
             ArrayLayers = 0,
             MipLevels = 1,
