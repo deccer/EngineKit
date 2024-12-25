@@ -4,6 +4,9 @@ using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
+using EngineKit.Core;
+using EngineKit.Core.Messages;
 using EngineKit.Input;
 using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
@@ -44,14 +47,14 @@ public class Application : IApplication
     private readonly FrameTimeAverager _frameTimeAverager;
     private long _previousFrameTicks;
 
-    protected Application(
-        ILogger logger,
-        IOptions<WindowSettings> windowSettings,
-        IOptions<ContextSettings> contextSettings,
-        IApplicationContext applicationContext,
-        ICapabilities capabilities,
-        IMetrics metrics,
-        IInputProvider inputProvider)
+    protected Application(ILogger logger,
+                          IOptions<WindowSettings> windowSettings,
+                          IOptions<ContextSettings> contextSettings,
+                          IApplicationContext applicationContext,
+                          IMessageBus messageBus,
+                          ICapabilities capabilities,
+                          IMetrics metrics,
+                          IInputProvider inputProvider)
     {
         _logger = logger.ForContext<Application>();
         _windowSettings = windowSettings;
@@ -62,6 +65,10 @@ public class Application : IApplication
         _inputProvider = inputProvider;
         _windowHandle = nint.Zero;
         _frameTimeAverager = new FrameTimeAverager(60);
+
+        messageBus.Subscribe<CloseWindowMessage>(OnMessageCloseWindow);
+        messageBus.Subscribe<RestoreWindowMessage>(OnMessageRestoreWindow);
+        messageBus.Subscribe<MaximizeWindowMessage>(OnMessageMaximizeWindow);
     }
 
     public void Dispose()
@@ -71,44 +78,47 @@ public class Application : IApplication
 
     public void Run()
     {
-        if (!OnInitialize())
+        if(!OnInitialize())
         {
             return;
         }
 
-        if (!Ktx.Init())
+        if(!Ktx.Init())
         {
             _logger.Debug("{Category}: Unable to initialize Ktx2", "App");
+
             return;
         }
 
         _logger.Debug("{Category}: Initialized", "App");
 
-        if (!OnLoad())
+        if(!OnLoad())
         {
             return;
         }
 
         _logger.Debug("{Category}: Loaded", "App");
 
-        if (Glfw.IsRawMouseMotionSupported())
+        if(Glfw.IsRawMouseMotionSupported())
         {
             Glfw.SetInputMode(_windowHandle, Glfw.InputMode.RawMouseMotion, Glfw.True);
         }
 
         var stopwatch = Stopwatch.StartNew();
-        while (!Glfw.ShouldWindowClose(_windowHandle))
+
+        while(!Glfw.ShouldWindowClose(_windowHandle))
         {
             var desiredFrameTime = 1000.0 / _applicationContext.DesiredFramerate;
             var currentFrameTicks = stopwatch.ElapsedTicks;
             var deltaMilliseconds = (currentFrameTicks - _previousFrameTicks) * (1000.0 / Stopwatch.Frequency);
 
-            while (_applicationContext.IsFrameRateLimited && deltaMilliseconds < desiredFrameTime)
+            while(_applicationContext.IsFrameRateLimited && deltaMilliseconds < desiredFrameTime)
             {
                 Thread.Sleep(0);
                 currentFrameTicks = stopwatch.ElapsedTicks;
-                deltaMilliseconds = (currentFrameTicks - _previousFrameTicks) * (1000.0 / Stopwatch.Frequency);
+                deltaMilliseconds = (currentFrameTicks - _previousFrameTicks) * (1000.0f / Stopwatch.Frequency);
             }
+
             _previousFrameTicks = currentFrameTicks;
             var deltaSeconds = (float)deltaMilliseconds / 1000.0f;
             _frameTimeAverager.AddTime(deltaMilliseconds);
@@ -158,16 +168,16 @@ public class Application : IApplication
     }
 
     protected virtual void OnFixedUpdate()
-    {
-    }
+    { }
 
     protected virtual bool OnInitialize()
     {
         PrintSystemInformation();
 
-        if (!Glfw.Init())
+        if(!Glfw.Init())
         {
             _logger.Error("{Category}: Unable to initialize", "Glfw");
+
             return false;
         }
 
@@ -194,28 +204,30 @@ public class Application : IApplication
         var screenHeight = videoMode.Height;
         _applicationContext.DesiredFramerate = videoMode.RefreshRate;
 
-        Glfw.GetMonitorPos(
-            monitorHandle,
-            out var monitorLeft,
-            out var monitorTop);
+        Glfw.GetMonitorPos(monitorHandle,
+                           out var monitorLeft,
+                           out var monitorTop);
 
         _applicationContext.ScreenSize = new Int2(screenWidth, screenHeight);
-        _applicationContext.WindowSize = windowResizable
-            ? new Int2(_windowSettings.Value.ResolutionWidth,  _windowSettings.Value.ResolutionHeight)
-            : new Int2((int)(screenWidth * 0.9f), (int)(screenHeight * 0.9f));
 
-        if (!windowResizable)
+        _applicationContext.WindowSize = windowResizable
+                                             ? new Int2(_windowSettings.Value.ResolutionWidth, _windowSettings.Value.ResolutionHeight)
+                                             : new Int2((int)(screenWidth * 0.9f), (int)(screenHeight * 0.9f));
+
+        if(!windowResizable)
         {
             _applicationContext.WindowSize = new Int2(screenWidth, screenHeight);
         }
+
         monitorHandle = windowResizable || windowSettings.WindowMode == WindowMode.WindowedFullscreen
-            ? nint.Zero
-            : monitorHandle;
+                            ? nint.Zero
+                            : monitorHandle;
 
         var glVersion = new Version(4, 6);
-        if (!string.IsNullOrEmpty(_contextSettings.Value.TargetGLVersion))
+
+        if(!string.IsNullOrEmpty(_contextSettings.Value.TargetGLVersion))
         {
-            if (!Version.TryParse(_contextSettings.Value.TargetGLVersion, out glVersion))
+            if(!Version.TryParse(_contextSettings.Value.TargetGLVersion, out glVersion))
             {
                 _logger.Error("{Category}: Unable to detect context version. Assuming 4.6", "App");
                 glVersion = new Version(4, 6);
@@ -230,39 +242,41 @@ public class Application : IApplication
 
         // show MESA overrides - useful for windows on intel iGPU
         var environmentVariables = Environment.GetEnvironmentVariables();
-        if (environmentVariables.Contains("LIBGL_DEBUG"))
+
+        if(environmentVariables.Contains("LIBGL_DEBUG"))
         {
             var libGlDebug = environmentVariables["LIBGL_DEBUG"];
             _logger.Information("{Category}: LIBGL_DEBUG={LibGlDebug}", "Environment", libGlDebug);
         }
 
-        if (environmentVariables.Contains("MESA_GL_VERSION_OVERRIDE"))
+        if(environmentVariables.Contains("MESA_GL_VERSION_OVERRIDE"))
         {
             var mesaGlVersionOverride = environmentVariables["MESA_GL_VERSION_OVERRIDE"];
             _logger.Information("{Category}: MESA_GL_VERSION_OVERRIDE={MesaGlVersionOverride}", "Environment", mesaGlVersionOverride);
         }
 
-        if (environmentVariables.Contains("MESA_GLSL_VERSION_OVERRIDE"))
+        if(environmentVariables.Contains("MESA_GLSL_VERSION_OVERRIDE"))
         {
             var mesaGlslVersionOverride = environmentVariables["MESA_GLSL_VERSION_OVERRIDE"];
             _logger.Information("{Category}: MESA_GLSL_VERSION_OVERRIDE={MesaGlVersionOverride}", "Environment", mesaGlslVersionOverride);
         }
 
-        _windowHandle = Glfw.CreateWindow(
-            _applicationContext.WindowSize.X,
-            _applicationContext.WindowSize.Y,
-            _windowSettings.Value.Title,
-            monitorHandle,
-            nint.Zero);
-        if (_windowHandle == nint.Zero)
+        _windowHandle = Glfw.CreateWindow(_applicationContext.WindowSize.X,
+                                          _applicationContext.WindowSize.Y,
+                                          _windowSettings.Value.Title,
+                                          monitorHandle,
+                                          nint.Zero);
+
+        if(_windowHandle == nint.Zero)
         {
             _logger.Error("{Category}: Unable to create window", "Glfw");
+
             return false;
         }
 
         Glfw.SwapBuffers(_windowHandle);
 
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if(!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             /* From GLFW: Due to the asynchronous nature of X11, it may take
              *  a moment for a window to reach its requested state.  This means you may not
@@ -276,34 +290,32 @@ public class Application : IApplication
             Glfw.WaitEventsTimeout(0.25);
         }
 
-        if (windowResizable)
+        if(windowResizable)
         {
-            Glfw.SetWindowPos(
-                _windowHandle,
-                screenWidth / 2 - _applicationContext.WindowSize.X / 2 + monitorLeft,
-                screenHeight / 2 - _applicationContext.WindowSize.Y / 2 + monitorTop);
+            Glfw.SetWindowPos(_windowHandle,
+                              screenWidth / 2 - _applicationContext.WindowSize.X / 2 + monitorLeft,
+                              screenHeight / 2 - _applicationContext.WindowSize.Y / 2 + monitorTop);
         }
         else
         {
             Glfw.SetWindowPos(_windowHandle, monitorLeft, monitorTop);
         }
 
+        Glfw.GetFramebufferSize(_windowHandle,
+                                out var framebufferWidth,
+                                out var framebufferHeight);
 
-        Glfw.GetFramebufferSize(
-            _windowHandle,
-            out var framebufferWidth,
-            out var framebufferHeight);
         _applicationContext.ResizeWindowFramebuffer(framebufferWidth, framebufferHeight);
         _applicationContext.IsWindowMaximized = false;
 
-        if (Glfw.IsRawMouseMotionSupported())
+        if(Glfw.IsRawMouseMotionSupported())
         {
             Glfw.SetInputMode(_windowHandle, Glfw.InputMode.RawMouseMotion, Glfw.True);
         }
 
         Glfw.MakeContextCurrent(_windowHandle);
 
-        if (!_capabilities.Load())
+        if(!_capabilities.Load())
         {
             return false;
         }
@@ -314,16 +326,16 @@ public class Application : IApplication
         _logger.Information("{Category}: Shading Language Version - {ShadingLanguageVersion}", "GL", GL.GetString(GL.StringName.ShadingLanguageVersion));
 
         Glfw.SwapInterval(_windowSettings.Value.IsVsyncEnabled
-            ? 1
-            : _capabilities.SupportsSwapControl
-                ? -1
-                : 0);
+                              ? 1
+                              : _capabilities.SupportsSwapControl
+                                  ? -1
+                                  : 0);
 
         _applicationContext.IsFrameRateLimited = _windowSettings.Value.IsVsyncEnabled;
 
         BindGlfwCallbacks();
 
-        if (_contextSettings.Value.IsDebugContext && _debugProcCallback != null)
+        if(_contextSettings.Value.IsDebugContext && _debugProcCallback != null)
         {
             _logger.Debug("{Category}: Debug callback enabled", "GL");
             GL.DebugMessageCallback(_debugProcCallback, nint.Zero);
@@ -345,18 +357,18 @@ public class Application : IApplication
         return true;
     }
 
-    protected virtual void OnRender(float deltaTime, float elapsedSeconds)
-    {
-    }
+    protected virtual void OnRender(float deltaTime,
+                                    float elapsedSeconds)
+    { }
 
     protected virtual void OnUnload()
     {
         UnbindGlfwCallbacks();
     }
 
-    protected virtual void OnUpdate(float deltaTime, float elapsedSeconds)
-    {
-    }
+    protected virtual void OnUpdate(float deltaTime,
+                                    float elapsedSeconds)
+    { }
 
     protected virtual void OnHandleDebugger(out bool breakOnError)
     {
@@ -364,46 +376,38 @@ public class Application : IApplication
     }
 
     protected virtual void OnWindowResized()
-    {
-    }
+    { }
 
     protected virtual void OnCharacterInput(char codePoint)
-    {
-    }
+    { }
 
     protected virtual void OnMouseEnter()
-    {
-    }
+    { }
 
     protected virtual void OnMouseLeave()
-    {
-    }
+    { }
 
-    protected virtual void OnMouseScrolled(double scrollX, double scrollY)
-    {
-    }
+    protected virtual void OnMouseScrolled(double scrollX,
+                                           double scrollY)
+    { }
 
     protected void SetWindowIcon(Image<Rgba32> image)
     {
         unsafe
         {
-            if (image.DangerousTryGetSinglePixelMemory(out var memory))
+            if(image.DangerousTryGetSinglePixelMemory(out var memory))
             {
-                Glfw.SetWindowIcon(_windowHandle, new Glfw.Image
-                {
-                    Width = image.Width,
-                    Height = image.Height,
-                    PixelPtr = (byte*)memory.Pin().Pointer
-                });
+                Glfw.SetWindowIcon(_windowHandle, new Glfw.Image { Width = image.Width, Height = image.Height, PixelPtr = (byte*)memory.Pin().Pointer });
             }
         }
     }
 
     protected void SetWindowIcon(string fileName)
     {
-        if (!File.Exists(fileName))
+        if(!File.Exists(fileName))
         {
             _logger.Error("{Category}: Window icon file {FilePath} not found", "App", fileName);
+
             return;
         }
 
@@ -476,25 +480,23 @@ public class Application : IApplication
         Glfw.SetCharCallback(_windowHandle, null);
     }
 
-    private void OnKey(
-        nint windowHandle,
-        Glfw.Key key,
-        Glfw.Scancode scancode,
-        Glfw.KeyAction action,
-        Glfw.KeyModifiers modifiers)
+    private void OnKey(nint windowHandle,
+                       Glfw.Key key,
+                       Glfw.Scancode scancode,
+                       Glfw.KeyAction action,
+                       Glfw.KeyModifiers modifiers)
     {
-        if (key != Glfw.Key.Unknown)
+        if(key != Glfw.Key.Unknown)
         {
             _inputProvider.KeyboardState.SetKeyState(key, action is Glfw.KeyAction.Pressed or Glfw.KeyAction.Repeat);
         }
     }
 
-    private void OnMouseMove(
-        nint windowHandle,
-        double currentCursorX,
-        double currentCursorY)
+    private void OnMouseMove(nint windowHandle,
+                             double currentCursorX,
+                             double currentCursorY)
     {
-        if (_isFirstFrame)
+        if(_isFirstFrame)
         {
             _inputProvider.MouseState.PreviousX = (float)currentCursorX;
             _inputProvider.MouseState.PreviousY = (float)currentCursorY;
@@ -511,11 +513,10 @@ public class Application : IApplication
         //_logger.Verbose("{Category}: MouseMove: {MouseState}", "Glfw", _inputProvider.MouseState);
     }
 
-    private void OnMouseEnterLeave(
-        nint windowHandle,
-        Glfw.CursorEnterMode cursorEnterMode)
+    private void OnMouseEnterLeave(nint windowHandle,
+                                   Glfw.CursorEnterMode cursorEnterMode)
     {
-        if (cursorEnterMode == Glfw.CursorEnterMode.Entered)
+        if(cursorEnterMode == Glfw.CursorEnterMode.Entered)
         {
             OnMouseEnter();
         }
@@ -525,47 +526,48 @@ public class Application : IApplication
         }
     }
 
-    private void OnMouseButton(
-        nint windowHandle,
-        Glfw.MouseButton mouseButton,
-        Glfw.KeyAction action,
-        Glfw.KeyModifiers modifiers)
+    private void OnMouseButton(nint windowHandle,
+                               Glfw.MouseButton mouseButton,
+                               Glfw.KeyAction action,
+                               Glfw.KeyModifiers modifiers)
     {
         _inputProvider.MouseState[mouseButton] = action is Glfw.KeyAction.Pressed or Glfw.KeyAction.Repeat;
+
         _logger.Verbose("{Category}: Button: {MouseButton} Action: {Action} Modifiers: {Modifiers}",
-            "Glfw",
-            mouseButton,
-            action,
-            modifiers);
+                        "Glfw",
+                        mouseButton,
+                        action,
+                        modifiers);
     }
 
-    private void OnMouseScroll(
-        nint windowHandle,
-        double scrollX,
-        double scrollY)
+    private void OnMouseScroll(nint windowHandle,
+                               double scrollX,
+                               double scrollY)
     {
         _inputProvider.MouseState.Scroll += new Vector2((float)scrollX, (float)scrollY);
         OnMouseScrolled(scrollX, scrollY);
     }
 
-    private void OnWindowSize(
-        nint windowHandle,
-        int width,
-        int height)
+    private void OnWindowSize(nint windowHandle,
+                              int width,
+                              int height)
     {
         _applicationContext.WindowSize = new Int2(width, height);
         OnWindowResized();
     }
 
-    private void OnWindowFramebufferSizeChanged(nint windowHandle, int width, int height)
+    private void OnWindowFramebufferSizeChanged(nint windowHandle,
+                                                int width,
+                                                int height)
     {
-        if (width * height != 0)
+        if(width * height != 0)
         {
             _applicationContext.ResizeWindowFramebuffer(width, height);
         }
     }
 
-    private void OnInputCharacter(nint windowHandle, uint codePoint)
+    private void OnInputCharacter(nint windowHandle,
+                                  uint codePoint)
     {
         OnCharacterInput((char)codePoint);
     }
@@ -580,52 +582,78 @@ public class Application : IApplication
         _logger.Debug("{Category}: Process Architecture - {@ProcessArchitecture}", "RT", RuntimeInformation.ProcessArchitecture);
     }
 
-    private void DebugCallback(
-        GL.DebugSource source,
-        GL.DebugType type,
-        uint id,
-        GL.DebugSeverity severity,
-        int length,
-        nint messagePtr,
-        nint userParam)
+    private void DebugCallback(GL.DebugSource source,
+                               GL.DebugType type,
+                               uint id,
+                               GL.DebugSeverity severity,
+                               int length,
+                               nint messagePtr,
+                               nint userParam)
     {
-        if (type is GL.DebugType.Portability or GL.DebugType.Other or GL.DebugType.PushGroup or GL.DebugType.PopGroup)
+        if(type is GL.DebugType.Portability or GL.DebugType.Other or GL.DebugType.PushGroup or GL.DebugType.PopGroup)
         {
             return;
         }
 
         var message = Marshal.PtrToStringAnsi(messagePtr, length);
 
-        switch (severity)
+        switch(severity)
         {
             case GL.DebugSeverity.Notification or GL.DebugSeverity.DontCare:
                 _logger.Debug("{Category}: {@Type} | {@MessageString}", "GL", type, message);
+
                 break;
             case GL.DebugSeverity.High:
                 _logger.Error("{Category}: {@Type} | {@MessageString}", "GL", type, message);
+
                 break;
             case GL.DebugSeverity.Medium:
                 _logger.Warning("{Category}: {@Type} | {@MessageString}", "GL", type, message);
+
                 break;
             case GL.DebugSeverity.Low:
                 _logger.Information("{Category}: {@Type} | {@MessageString}", "GL", type, message);
+
                 break;
         }
 
-        if (type == GL.DebugType.Error)
+        if(type == GL.DebugType.Error)
         {
             _logger.Error("{@MessageString}", message);
 
             OnHandleDebugger(out var breakOnError);
-            if (breakOnError)
+
+            if(breakOnError)
             {
                 Debugger.Break();
             }
         }
     }
 
-    private void ErrorCallback(Glfw.ErrorCode errorCode, string errorDescription)
+    private void ErrorCallback(Glfw.ErrorCode errorCode,
+                               string errorDescription)
     {
         _logger.Error("{Category}: {ErrorCode} - {ErrorDescription}", "Glfw", errorCode, errorDescription);
+    }
+
+    private Task OnMessageCloseWindow(CloseWindowMessage message)
+    {
+        Close();
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnMessageRestoreWindow(RestoreWindowMessage message)
+    {
+        RestoreWindow();
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnMessageMaximizeWindow(MaximizeWindowMessage message)
+    {
+        MaximizeWindow();
+
+        return Task.CompletedTask;
     }
 }

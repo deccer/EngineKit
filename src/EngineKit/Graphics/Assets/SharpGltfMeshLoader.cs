@@ -96,12 +96,9 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             var localModelMatrix = node.WorldMatrix;
             var globalModelMatrix = localModelMatrix * globalParentTransform;
 
-            if (node.VisualChildren.Any())
+            foreach (var childNode in node.VisualChildren)
             {
-                foreach (var childNode in node.VisualChildren)
-                {
-                    nodeStack.Push((childNode, globalModelMatrix));
-                }
+                nodeStack.Push((childNode, globalModelMatrix));
             }
 
             if (node.Mesh != null)
@@ -305,7 +302,7 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
             for (var i = 0; i < positions.Length; i++)
             {
                 ref var position = ref positions[i];
-                ref var normal = ref normals[normals.Length == 1 ? 0 : i];
+                var normal = Vector3.UnitY; //ref normals[normals.Length == 1 ? 0 : i];
 
                 var realTangentXyz = new Vector3(realTangents[i].X, realTangents[i].Y, realTangents[i].Z);
                 var realTangent = new Vector4(realTangentXyz, realTangents[i].W);

@@ -1,4 +1,5 @@
 using System.Numerics;
+using Complex.Engine;
 using EngineKit;
 using EngineKit.Core;
 using EngineKit.UI;
@@ -10,11 +11,11 @@ public class SceneViewWindow : Window
 {
     private readonly IApplicationContext _applicationContext;
 
-    private readonly IRenderer _renderer;
+    private readonly IRenderer2 _renderer;
 
     private Vector2 _oldAvailableSize;
 
-    public SceneViewWindow(IRenderer renderer,
+    public SceneViewWindow(IRenderer2 renderer,
                            IApplicationContext applicationContext,
                            IMessageBus messageBus)
     {

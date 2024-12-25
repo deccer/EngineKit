@@ -275,7 +275,7 @@ internal sealed class UIRenderer : IUIRenderer
     {
         _frameBegun = true;
         ImGui.NewFrame();
-        ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode);
+        ImGui.DockSpaceOverViewport(0, null, ImGuiDockNodeFlags.PassthruCentralNode);
     }
 
     public void EndLayout()
@@ -616,9 +616,9 @@ internal sealed class UIRenderer : IUIRenderer
         style.Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.40f, 0.44f, 0.47f, 1.00f);
         style.Colors[(int)ImGuiCol.Tab] = new Vector4(0.00f, 0.00f, 0.00f, 0.52f);
         style.Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.14f, 0.14f, 0.14f, 1.00f);
-        style.Colors[(int)ImGuiCol.TabActive] = new Vector4(0.20f, 0.20f, 0.20f, 0.36f);
-        style.Colors[(int)ImGuiCol.TabUnfocused] = new Vector4(0.00f, 0.00f, 0.00f, 0.52f);
-        style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new Vector4(0.14f, 0.14f, 0.14f, 1.00f);
+        style.Colors[(int)ImGuiCol.TabSelected] = new Vector4(0.20f, 0.20f, 0.20f, 0.36f);
+        style.Colors[(int)ImGuiCol.TabDimmedSelected] = new Vector4(0.00f, 0.00f, 0.00f, 0.52f);
+        style.Colors[(int)ImGuiCol.TabDimmed] = new Vector4(0.14f, 0.14f, 0.14f, 1.00f);
         style.Colors[(int)ImGuiCol.DockingPreview] = new Vector4(0.33f, 0.67f, 0.86f, 1.00f);
         style.Colors[(int)ImGuiCol.DockingEmptyBg] = new Vector4(1.00f, 0.00f, 0.00f, 1.00f);
         style.Colors[(int)ImGuiCol.PlotLines] = new Vector4(1.00f, 0.00f, 0.00f, 1.00f);
@@ -675,9 +675,9 @@ internal sealed class UIRenderer : IUIRenderer
         style.Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.35f, 0.33f, 0.41f, 0.74f);
         style.Colors[(int)ImGuiCol.Tab] = new Vector4(0.24f, 0.22f, 0.33f, 1.00f);
         style.Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.38f, 0.34f, 0.53f, 1.00f);
-        style.Colors[(int)ImGuiCol.TabActive] = new Vector4(0.24f, 0.22f, 0.33f, 1.00f);
-        style.Colors[(int)ImGuiCol.TabUnfocused] = new Vector4(0.27f, 0.26f, 0.32f, 0.40f);
-        style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new Vector4(0.42f, 0.39f, 0.57f, 0.40f);
+        style.Colors[(int)ImGuiCol.TabSelected] = new Vector4(0.24f, 0.22f, 0.33f, 1.00f);
+        style.Colors[(int)ImGuiCol.TabDimmed] = new Vector4(0.27f, 0.26f, 0.32f, 0.40f);
+        style.Colors[(int)ImGuiCol.TabDimmedSelected] = new Vector4(0.42f, 0.39f, 0.57f, 0.40f);
         //style.Colors[(int)ImGuiCol.TabUnfocusedBorder]     = new Vector4(0.11f, 0.09f, 0.17f, 1.00f);
         style.Colors[(int)ImGuiCol.DockingPreview] = new Vector4(0.58f, 0.54f, 0.80f, 0.78f);
         style.Colors[(int)ImGuiCol.DockingEmptyBg] = new Vector4(0.12f, 0.11f, 0.14f, 1.00f);

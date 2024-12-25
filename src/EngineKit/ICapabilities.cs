@@ -8,6 +8,8 @@ public interface ICapabilities
 
     bool SupportsMeshShader { get; }
 
+    bool SupportsNvx { get; }
+
     bool IsIntelRenderer { get; }
 
     bool IsNvidiaRenderer { get; }
@@ -29,8 +31,6 @@ public interface ICapabilities
     int TotalAvailableVideoMemoryInMebiBytes { get; }
 
     int GetCurrentAvailableGpuMemoryInMebiBytes();
-
-    bool SupportsNvx { get; }
 
     bool Load();
 }

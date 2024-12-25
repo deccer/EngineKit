@@ -1,12 +1,10 @@
-using System.Numerics;
 using EngineKit;
+using EngineKit.Core;
 using EngineKit.Graphics;
 using EngineKit.Input;
 using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
-using EngineKit.UI;
-using ImGuiNET;
 using Microsoft.Extensions.Options;
 using Serilog;
 
@@ -27,20 +25,24 @@ internal sealed class HelloWindowApplication : GraphicsApplication
     public HelloWindowApplication(ILogger logger,
                                   IOptions<WindowSettings> windowSettings,
                                   IOptions<ContextSettings> contextSettings,
+                                  IMessageBus messageBus,
                                   IApplicationContext applicationContext,
                                   ICapabilities capabilities,
                                   IMetrics metrics,
                                   IInputProvider inputProvider,
                                   IGraphicsContext graphicsContext,
+                                  IRenderer renderer,
                                   IUIRenderer uiRenderer)
             : base(logger,
                    windowSettings,
                    contextSettings,
+                   messageBus,
                    applicationContext,
                    capabilities,
                    metrics,
                    inputProvider,
                    graphicsContext,
+                   renderer,
                    uiRenderer)
     {
         _logger = logger;
@@ -77,76 +79,6 @@ internal sealed class HelloWindowApplication : GraphicsApplication
         return true;
     }
 
-    protected override void OnRender(float deltaTime,
-                                   float elapsedSeconds)
-    {
-        GL.Clear(GL.FramebufferBit.ColorBufferBit | GL.FramebufferBit.DepthBufferBit);
-
-        UIRenderer.BeginLayout();
-        if (ImGui.BeginMainMenuBar())
-        {
-            if (ImGui.BeginMenuBar())
-            {
-                if (ImGui.BeginMenu("File"))
-                {
-                    if (ImGui.MenuItem("Quit"))
-                    {
-                        Close();
-                    }
-                    ImGui.EndMenu();
-                }
-
-                var isNvidia = _capabilities.SupportsNvx;
-                if (isNvidia)
-                {
-                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 416, 0));
-                    ImGui.TextUnformatted($"video memory: {_capabilities.GetCurrentAvailableGpuMemoryInMebiBytes()} MiB");
-                    ImGui.SameLine();
-                }
-                else
-                {
-                    ImGui.SetCursorPos(new Vector2(ImGui.GetWindowViewport().Size.X - 256, 0));
-                }
-
-                ImGui.TextUnformatted($"avg frame time: {_metrics.AverageFrameTime:F2} ms");
-                ImGui.SameLine();
-                ImGui.Button(MaterialDesignIcons.WindowMinimize);
-                ImGui.SameLine();
-                if (ImGui.Button(_applicationContext.IsWindowMaximized
-                            ? MaterialDesignIcons.WindowRestore
-                            : MaterialDesignIcons.WindowMaximize))
-                {
-                    if (_applicationContext.IsWindowMaximized)
-                    {
-                        RestoreWindow();
-                    }
-                    else
-                    {
-                        MaximizeWindow();
-                    }
-                }
-
-                ImGui.SameLine();
-                if (ImGui.Button(MaterialDesignIcons.WindowClose))
-                {
-                    Close();
-                }
-
-                ImGui.EndMenuBar();
-            }
-
-            ImGui.EndMainMenuBar();
-        }
-
-        UIRenderer.ShowDemoWindow();
-        UIRenderer.EndLayout();
-
-        if (_applicationContext.IsLaunchedByNSightGraphicsOnLinux)
-        {
-            GL.Finish();
-        }
-    }
-
     protected override void OnUnload()
     {
         base.OnUnload();
@@ -156,6 +88,9 @@ internal sealed class HelloWindowApplication : GraphicsApplication
                                    float elapsedSeconds)
     {
         base.OnUpdate(deltaTime, elapsedSeconds);
-        if (IsKeyPressed(Glfw.Key.KeyEscape)) Close();
+        if (IsKeyPressed(Glfw.Key.KeyEscape))
+        {
+            Close();
+        }
     }
 }

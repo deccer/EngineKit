@@ -1,4 +1,5 @@
 using System.Numerics;
+using Complex.Engine;
 using Complex.Windows;
 using EngineKit;
 using EngineKit.Core;
@@ -31,7 +32,7 @@ internal sealed class Editor
 
     private readonly PropertyWindow _propertyWindow;
 
-    private readonly IRenderer _renderer;
+    private readonly IRenderer2 _renderer;
 
     private readonly SceneHierarchyWindow _sceneHierarchyWindow;
 
@@ -47,7 +48,7 @@ internal sealed class Editor
         ICapabilities capabilities,
         IMetrics metrics,
         IGraphicsContext graphicsContext,
-        IRenderer renderer,
+        IRenderer2 renderer,
         IUIRenderer uiRenderer,
         IMessageBus messageBus,
         AssetWindow assetWindow,

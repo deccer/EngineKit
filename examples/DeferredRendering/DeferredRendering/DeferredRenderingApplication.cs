@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using EngineKit;
+using EngineKit.Core;
 using EngineKit.Graphics;
 using EngineKit.Graphics.Assets;
 using EngineKit.Graphics.RHI;
@@ -66,11 +67,13 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         ILogger logger,
         IOptions<WindowSettings> windowSettings,
         IOptions<ContextSettings> contextSettings,
+        IMessageBus messageBus,
         IApplicationContext applicationContext,
         ICapabilities capabilities,
         IMetrics metrics,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
+        IRenderer renderer,
         IUIRenderer uiRenderer,
         ICamera camera,
         IMeshLoader meshLoader,
@@ -79,11 +82,13 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             logger,
             windowSettings,
             contextSettings,
+            messageBus,
             applicationContext,
             capabilities,
             metrics,
             inputProvider,
             graphicsContext,
+            renderer,
             uiRenderer)
     {
         _logger = logger;

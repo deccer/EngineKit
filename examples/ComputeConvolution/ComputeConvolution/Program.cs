@@ -31,7 +31,7 @@ internal static class Program
         services.AddSingleton(Log.Logger);
         services.Configure<WindowSettings>(configuration.GetSection(nameof(WindowSettings)));
         services.Configure<ContextSettings>(configuration.GetSection(nameof(ContextSettings)));
-        services.AddEngine();
+        services.AddEngineKit();
         services.AddSingleton<IApplication, ComputeConvolutionApplication>();
         return services.BuildServiceProvider();
     }

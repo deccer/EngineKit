@@ -101,8 +101,8 @@ public sealed class Camera : ICamera
         _aspectRatio = 16.0f / 9.0f;
 
         FieldOfView = 60.0f;
-        NearPlane = 0.1f;
-        FarPlane = 1024f;
+        NearPlane = 1f;
+        FarPlane = 32768f;
 
         UpdateCameraVectors();
     }

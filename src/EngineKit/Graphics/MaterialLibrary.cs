@@ -6,7 +6,7 @@ using Serilog;
 
 namespace EngineKit.Graphics;
 
-internal sealed class MaterialLibrary : IMaterialLibrary
+public sealed class MaterialLibrary : IMaterialLibrary
 {
     private readonly ISamplerLibrary _samplerLibrary;
     private readonly ILogger _logger;

@@ -3,19 +3,11 @@ using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
 
-public record struct TextureCreateDescriptor
-{
-    public TextureType TextureType;
-
-    public Format Format;
-
-    public Int3 Size;
-
-    public uint MipLevels;
-
-    public uint ArrayLayers;
-
-    public TextureSampleCount TextureSampleCount;
-
-    public string? Label;
-}
+public record struct TextureCreateDescriptor(
+    TextureType TextureType,
+    Format Format,
+    Int3 Size,
+    uint MipLevels,
+    uint ArrayLayers,
+    TextureSampleCount TextureSampleCount,
+    string? Label);

@@ -31,17 +31,20 @@ internal sealed class ComplexApplication : GraphicsApplication
                               IInputProvider inputProvider,
                               IGraphicsContext graphicsContext,
                               IUIRenderer uiRenderer,
+                              IRenderer renderer,
                               IMessageBus messageBus,
                               Game game,
                               Editor editor)
             : base(logger,
                    windowSettings,
                    contextSettings,
+                   messageBus,
                    applicationContext,
                    capabilities,
                    metrics,
                    inputProvider,
                    graphicsContext,
+                   renderer,
                    uiRenderer)
     {
         _logger = logger;
