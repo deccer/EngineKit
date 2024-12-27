@@ -1,5 +1,5 @@
 ﻿using System;
-using EngineKit.Graphics;
+using EngineKit.Graphics.RHI;
 using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Extensions;
@@ -108,18 +108,18 @@ public static class ToGLExtensions
         };
     }
 
-    public static GL.TextureTarget ToGL(this ImageType imageType)
+    public static GL.TextureTarget ToGL(this TextureType textureType)
     {
-        return imageType switch
+        return textureType switch
         {
-            ImageType.Texture1D => GL.TextureTarget.Texture1d,
-            ImageType.Texture1DArray => GL.TextureTarget.Texture1dArray,
-            ImageType.Texture2D => GL.TextureTarget.Texture2d,
-            ImageType.Texture2DArray => GL.TextureTarget.Texture2dArray,
-            ImageType.TextureCube => GL.TextureTarget.TextureCubeMap,
-            ImageType.Texture2DMultisample => GL.TextureTarget.Texture2dMultisample,
-            ImageType.Texture2DArrayMultisample => GL.TextureTarget.Texture2dMultisampleArray,
-            _ => throw new ArgumentOutOfRangeException(nameof(imageType), imageType, null)
+            TextureType.Texture1D => GL.TextureTarget.Texture1d,
+            TextureType.Texture1DArray => GL.TextureTarget.Texture1dArray,
+            TextureType.Texture2D => GL.TextureTarget.Texture2d,
+            TextureType.Texture2DArray => GL.TextureTarget.Texture2dArray,
+            TextureType.TextureCube => GL.TextureTarget.TextureCubeMap,
+            TextureType.Texture2DMultisample => GL.TextureTarget.Texture2dMultisample,
+            TextureType.Texture2DArrayMultisample => GL.TextureTarget.Texture2dMultisampleArray,
+            _ => throw new ArgumentOutOfRangeException(nameof(textureType), textureType, null)
         };
     }
 

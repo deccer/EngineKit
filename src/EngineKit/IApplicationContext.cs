@@ -14,13 +14,13 @@ public interface IApplicationContext
 
     Int2 WindowFramebufferSize { get; }
 
-    Int2 WindowScaledFramebufferSize { get; }
+    Int2 ScaledWindowFramebufferSize { get; }
 
     bool HasWindowFramebufferSizeChanged { get; set; }
 
     Int2 SceneViewSize { get; }
 
-    Int2 SceneViewScaledSize { get; }
+    Int2 ScaledSceneViewSize { get; }
 
     bool HasSceneViewSizeChanged { get; set; }
 

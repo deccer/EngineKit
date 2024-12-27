@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_items", "_items", "{7641AC
 		.github\workflows\cd.yml = .github\workflows\cd.yml
 		Directory.Build.props = Directory.Build.props
 		EngineKit.sln.DotSettings = EngineKit.sln.DotSettings
+		.editorconfig = .editorconfig
+		Directory.Packages.props = Directory.Packages.props
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EngineKit", "src\EngineKit\EngineKit.csproj", "{8E305337-228C-4930-B355-91F1E82C64C8}"
@@ -49,6 +51,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Complex.Assets", "examples\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Complex", "examples\Complex\Complex\Complex.csproj", "{2BDAC710-9074-441E-8AF3-4D50B2C37EE7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Complex.Engine", "examples\Complex\Complex.Engine\Complex.Engine.csproj", "{08D90EF4-115E-4969-8149-DEB681FEEF5D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Complex.Game", "examples\Complex\Complex.Game\Complex.Game.csproj", "{C4B24C11-BE84-4AFD-9335-129CF467808B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Complex.Game.Assets", "examples\Complex\Complex.Game.Assets\Complex.Game.Assets.csproj", "{DD5FA21A-C190-4F31-9F05-F081862F3465}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,6 +80,9 @@ Global
 		{7E9EF27C-3748-4782-959F-3AEBF26416F2} = {1E1BD9CA-189A-45FD-8A36-A57C836C6BB6}
 		{3D623AB0-0EB7-4DD9-9C27-04819106A57F} = {7E9EF27C-3748-4782-959F-3AEBF26416F2}
 		{2BDAC710-9074-441E-8AF3-4D50B2C37EE7} = {7E9EF27C-3748-4782-959F-3AEBF26416F2}
+		{08D90EF4-115E-4969-8149-DEB681FEEF5D} = {7E9EF27C-3748-4782-959F-3AEBF26416F2}
+		{C4B24C11-BE84-4AFD-9335-129CF467808B} = {7E9EF27C-3748-4782-959F-3AEBF26416F2}
+		{DD5FA21A-C190-4F31-9F05-F081862F3465} = {7E9EF27C-3748-4782-959F-3AEBF26416F2}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{8E305337-228C-4930-B355-91F1E82C64C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -118,5 +129,17 @@ Global
 		{2BDAC710-9074-441E-8AF3-4D50B2C37EE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2BDAC710-9074-441E-8AF3-4D50B2C37EE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2BDAC710-9074-441E-8AF3-4D50B2C37EE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08D90EF4-115E-4969-8149-DEB681FEEF5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08D90EF4-115E-4969-8149-DEB681FEEF5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08D90EF4-115E-4969-8149-DEB681FEEF5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08D90EF4-115E-4969-8149-DEB681FEEF5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4B24C11-BE84-4AFD-9335-129CF467808B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4B24C11-BE84-4AFD-9335-129CF467808B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4B24C11-BE84-4AFD-9335-129CF467808B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4B24C11-BE84-4AFD-9335-129CF467808B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD5FA21A-C190-4F31-9F05-F081862F3465}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD5FA21A-C190-4F31-9F05-F081862F3465}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD5FA21A-C190-4F31-9F05-F081862F3465}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD5FA21A-C190-4F31-9F05-F081862F3465}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

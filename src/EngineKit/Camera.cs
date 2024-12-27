@@ -12,7 +12,7 @@ public sealed class Camera : ICamera
     private readonly IInputProvider _inputProvider;
     private readonly Vector3 _worldUp;
 
-    private Vector3 _position = Vector3.Zero;
+    private Vector3 _position;
     private Vector3 _front;
     private Vector3 _up;
     private Vector3 _right;
@@ -101,8 +101,8 @@ public sealed class Camera : ICamera
         _aspectRatio = 16.0f / 9.0f;
 
         FieldOfView = 60.0f;
-        NearPlane = 0.1f;
-        FarPlane = 1024f;
+        NearPlane = 1f;
+        FarPlane = 32768f;
 
         UpdateCameraVectors();
     }
@@ -224,7 +224,7 @@ public sealed class Camera : ICamera
                 NearPlane,
                 FarPlane);
         }
-        else if (_cameraMode == CameraMode.PerspectiveInfinity)
+        else if (_cameraMode == CameraMode.InfinitePerspective)
         {
             ProjectionMatrix = CreateInfiniteReverseZPerspectiveRh(MathHelper.ToRadians(FieldOfView),
                 _aspectRatio,
@@ -247,8 +247,8 @@ public sealed class Camera : ICamera
 
         ViewMatrix = Matrix4x4.CreateLookAt(_position, _position + _front, _up);
         ProjectionMatrix = Matrix4x4.CreateOrthographic(
-            _applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y,
+            _applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y,
             NearPlane,
             FarPlane);
     }

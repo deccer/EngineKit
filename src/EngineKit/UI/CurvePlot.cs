@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using EngineKit.Mathematics;
+using ImGuiNET;
 
 namespace EngineKit.UI;
 
@@ -28,7 +29,7 @@ public class CurvePlot
         _graphValues[_sampleOffset] = value;
         if (Damping)
         {
-            _dampedValue = InterpolationHelper.Lerp(_dampedValue, value, 0.01f);
+            _dampedValue = Interpolation.Lerp(_dampedValue, value, 0.01f);
             value = _dampedValue;
         }
 

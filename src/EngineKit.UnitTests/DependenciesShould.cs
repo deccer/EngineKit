@@ -24,7 +24,7 @@ public class DependenciesShould
             .CreateLogger();
         services.AddSingleton(configuration);
         services.AddSingleton(Log.Logger);
-        services.AddEngine();
+        services.AddEngineKit();
         var serviceProvider = services.BuildServiceProvider();
 
         // Act

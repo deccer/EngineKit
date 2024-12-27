@@ -1,7 +1,8 @@
+using EngineKit.Core;
 using EngineKit.Graphics;
+using EngineKit.Graphics.Assets;
 using EngineKit.Graphics.Shaders;
 using EngineKit.Input;
-using EngineKit.MeshLoaders;
 using EngineKit.UI;
 using Microsoft.Extensions.DependencyInjection;
 using SixLabors.ImageSharp;
@@ -10,7 +11,7 @@ namespace EngineKit.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddEngine(this IServiceCollection services)
+    public static void AddEngineKit(this IServiceCollection services)
     {
         Configuration.Default.StreamProcessingBufferSize = 16384;
         Configuration.Default.PreferContiguousImageBuffers = true;
@@ -29,6 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IGraphicsContext, GraphicsContext>();
         services.AddSingleton<IInputProvider, InputProvider>();
         services.AddSingleton<IMeshLoader, SharpGltfMeshLoader>();
+        services.AddSingleton<IRenderer, NullRenderer>();
         services.AddSingleton<IUIRenderer, UIRenderer>();
 
         services.AddSingleton<IModelLibrary, ModelLibrary>();

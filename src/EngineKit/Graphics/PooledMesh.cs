@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace EngineKit.Graphics;
 
-public readonly struct PooledMesh
+public readonly record struct PooledMesh
 {
     public PooledMesh(uint indexCount, uint indexOffset, int vertexCount, uint vertexOffset, Vector3 aabbMax, Vector3 aabbMin, string? materialName)
     {

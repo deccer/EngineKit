@@ -1,3 +1,6 @@
+using EngineKit.Core;
+using EngineKit.Graphics.RHI;
+
 namespace EngineKit.Graphics;
 
 public class SamplerBuilder

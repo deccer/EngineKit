@@ -2,19 +2,20 @@ namespace EngineKit;
 
 internal class FrameTimeAverager
 {
-    private const double _decayRate = .3;
-    private readonly double _timeLimit = 666;
+    private readonly double _decayRate;
+    private readonly double _timeLimit;
 
     private double _accumulatedTime = 0;
     private int _frameCount = 0;
 
     public double CurrentAverageFrameTime { get; private set; }
-    
-    public double CurrentAverageFramesPerSecond { get { return 1000 / CurrentAverageFrameTime; } }
+
+    public double CurrentAverageFramesPerSecond => 1000.0 / CurrentAverageFrameTime;
 
     public FrameTimeAverager(double maxTimeMilliseconds)
     {
         _timeLimit = maxTimeMilliseconds;
+        _decayRate = 0.3;
     }
 
     public void Reset()

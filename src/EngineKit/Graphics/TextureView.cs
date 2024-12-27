@@ -1,5 +1,6 @@
 using System;
 using EngineKit.Extensions;
+using EngineKit.Graphics.RHI;
 using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
@@ -19,7 +20,7 @@ public class TextureView : IHasTextureId, IDisposable
         Depth = texture.TextureCreateDescriptor.Size.Z;
         GL.TextureView(
             _id,
-            textureViewDescriptor.ImageType.ToGL(),
+            textureViewDescriptor.TextureType.ToGL(),
             texture.Id,
             textureViewDescriptor.Format.ToGL(),
             textureViewDescriptor.MinLevel,

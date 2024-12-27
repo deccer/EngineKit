@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using EngineKit.Graphics.RHI;
 
 namespace EngineKit.Graphics;
 
-internal sealed class SamplerLibrary : ISamplerLibrary
+public sealed class SamplerLibrary : ISamplerLibrary
 {
     private readonly IGraphicsContext _graphicsContext;
     private IDictionary<SamplerInformation, ISampler> _samplers;

@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using EngineKit;
 using EngineKit.Extensions;
+using EngineKit.Graphics;
 using EngineKit.Input;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,11 +34,12 @@ internal static class Program
         services.AddSingleton(Log.Logger);
         services.Configure<WindowSettings>(configuration.GetSection(nameof(WindowSettings)));
         services.Configure<ContextSettings>(configuration.GetSection(nameof(ContextSettings)));
-        services.AddEngine();
+        services.AddEngineKit();
         services.AddSingleton<ICamera>(provider => new Camera(
             provider.GetRequiredService<IApplicationContext>(),
             provider.GetRequiredService<IInputProvider>(), new Vector3(0, 0, 10), Vector3.UnitY));
         services.AddSingleton<IApplication, ForwardRendererApplication>();
+        services.AddSingleton<IRenderer, ForwardRenderer>();
         return services.BuildServiceProvider();
     }
 }

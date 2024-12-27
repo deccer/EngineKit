@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using EngineKit.Extensions;
+using EngineKit.Graphics.RHI;
 using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
@@ -45,23 +46,23 @@ public class Texture : ITexture
     internal Texture(TextureCreateDescriptor textureCreateDescriptor)
     {
         _textureCreateDescriptor = textureCreateDescriptor;
-        _id = GL.CreateTexture(_textureCreateDescriptor.ImageType.ToGL());
+        _id = GL.CreateTexture(_textureCreateDescriptor.TextureType.ToGL());
 
         if (!string.IsNullOrEmpty(textureCreateDescriptor.Label))
         {
             GL.ObjectLabel(GL.ObjectIdentifier.Texture, _id, textureCreateDescriptor.Label);
         }
 
-        switch (textureCreateDescriptor.ImageType)
+        switch (textureCreateDescriptor.TextureType)
         {
-            case ImageType.Texture1D:
+            case TextureType.Texture1D:
                 GL.TextureStorage1D(
                     _id,
                     textureCreateDescriptor.MipLevels,
                     textureCreateDescriptor.Format.ToGL(),
                     textureCreateDescriptor.Size.X);
                 break;
-            case ImageType.Texture2D:
+            case TextureType.Texture2D:
                 GL.TextureStorage2D(
                     _id,
                     textureCreateDescriptor.MipLevels,
@@ -69,7 +70,7 @@ public class Texture : ITexture
                     textureCreateDescriptor.Size.X,
                     textureCreateDescriptor.Size.Y);
                 break;
-            case ImageType.TextureCube:
+            case TextureType.TextureCube:
                 GL.TextureStorage2D(
                     _id,
                     textureCreateDescriptor.MipLevels,
@@ -77,7 +78,7 @@ public class Texture : ITexture
                     textureCreateDescriptor.Size.X,
                     textureCreateDescriptor.Size.Y);
                 break;
-            case ImageType.Texture3D:
+            case TextureType.Texture3D:
                 GL.TextureStorage3D(
                     _id,
                     textureCreateDescriptor.MipLevels,
@@ -86,7 +87,7 @@ public class Texture : ITexture
                     textureCreateDescriptor.Size.Y,
                     textureCreateDescriptor.Size.Z);
                 break;
-            case ImageType.Texture2DArray:
+            case TextureType.Texture2DArray:
                 GL.TextureStorage3D(
                     _id,
                     textureCreateDescriptor.MipLevels,
@@ -97,7 +98,7 @@ public class Texture : ITexture
                 break;
             default:
                 throw new NotImplementedException(
-                    $"ImageType {textureCreateDescriptor.ImageType} is not implemented yet");
+                    $"ImageType {textureCreateDescriptor.TextureType} is not implemented yet");
         }
     }
 
@@ -107,7 +108,7 @@ public class Texture : ITexture
         {
             Format = _textureCreateDescriptor.Format,
             Label = _textureCreateDescriptor.Label + "-View",
-            ImageType = _textureCreateDescriptor.ImageType,
+            TextureType = _textureCreateDescriptor.TextureType,
             MinLayer = 0,
             NumLayers = _textureCreateDescriptor.ArrayLayers + 1,
             MinLevel = 0,
@@ -122,7 +123,7 @@ public class Texture : ITexture
         {
             Format = _textureCreateDescriptor.Format,
             Label = _textureCreateDescriptor.Label + "-View",
-            ImageType = _textureCreateDescriptor.ImageType,
+            TextureType = _textureCreateDescriptor.TextureType,
             MinLayer = 0,
             NumLayers = _textureCreateDescriptor.ArrayLayers + 1,
             MinLevel = 0,

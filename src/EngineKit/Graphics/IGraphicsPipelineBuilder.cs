@@ -1,4 +1,6 @@
 using CSharpFunctionalExtensions;
+using EngineKit.Core;
+using EngineKit.Graphics.RHI;
 
 namespace EngineKit.Graphics;
 

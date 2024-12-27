@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using EngineKit.Graphics;
+using EngineKit.Graphics.RHI;
 using EngineKit.Input;
 using EngineKit.Mathematics;
 using EngineKit.Native.Glfw;
@@ -65,6 +66,7 @@ internal sealed class UIRenderer : IUIRenderer
     private static readonly unsafe uint ImDrawVertStride = (uint)sizeof(ImDrawVert);
 
     private readonly ILogger _logger;
+    private readonly IApplicationContext _applicationContext;
     private readonly IGraphicsContext _graphicsContext;
     private readonly IInputProvider _inputProvider;
 
@@ -97,10 +99,12 @@ internal sealed class UIRenderer : IUIRenderer
 
     public UIRenderer(
         ILogger logger,
+        IApplicationContext applicationContext,
         IGraphicsContext graphicsContext,
         IInputProvider inputProvider)
     {
         _logger = logger.ForContext<UIRenderer>();
+        _applicationContext = applicationContext;
         _graphicsContext = graphicsContext;
         _inputProvider = inputProvider;
         _keyValues = Array.Empty<Glfw.Key>();
@@ -129,10 +133,10 @@ internal sealed class UIRenderer : IUIRenderer
         return true;
     }
 
-    public bool Load(int width, int height)
+    public bool Load()
     {
-        _framebufferWidth = width;
-        _framebufferHeight = height;
+        _framebufferWidth = _applicationContext.WindowFramebufferSize.X;
+        _framebufferHeight = _applicationContext.WindowFramebufferSize.Y;
 
         _keyValues = Enum.GetValuesAsUnderlyingType<Glfw.Key>();
 
@@ -274,7 +278,7 @@ internal sealed class UIRenderer : IUIRenderer
     {
         _frameBegun = true;
         ImGui.NewFrame();
-        ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode);
+        ImGui.DockSpaceOverViewport(0, null, ImGuiDockNodeFlags.PassthruCentralNode);
     }
 
     public void EndLayout()
@@ -284,6 +288,7 @@ internal sealed class UIRenderer : IUIRenderer
             _frameBegun = false;
             ImGui.Render();
             GL.Disable(GL.EnableType.FramebufferSrgb);
+            GL.Viewport(new Int4(0, 0, _applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y));
             RenderDrawData(ImGui.GetDrawData());
             GL.Enable(GL.EnableType.FramebufferSrgb);
         }
@@ -309,7 +314,7 @@ internal sealed class UIRenderer : IUIRenderer
         {
             Size = new Int3(width, height, 1),
             Format = Format.R8G8B8A8UNorm,
-            ImageType = ImageType.Texture2D,
+            TextureType = TextureType.Texture2D,
             Label = "ImGuiFontAtlas",
             ArrayLayers = 0,
             MipLevels = 1,
@@ -577,7 +582,7 @@ internal sealed class UIRenderer : IUIRenderer
         DestroyDeviceObjects();
     }
 
-    private void SetStyleBlack(ImGuiStylePtr style)
+    private static void SetStyleBlack(ImGuiStylePtr style)
     {
         ImGui.StyleColorsDark();
         style.Colors[(int)ImGuiCol.Text] = new Vector4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -615,9 +620,9 @@ internal sealed class UIRenderer : IUIRenderer
         style.Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.40f, 0.44f, 0.47f, 1.00f);
         style.Colors[(int)ImGuiCol.Tab] = new Vector4(0.00f, 0.00f, 0.00f, 0.52f);
         style.Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.14f, 0.14f, 0.14f, 1.00f);
-        style.Colors[(int)ImGuiCol.TabActive] = new Vector4(0.20f, 0.20f, 0.20f, 0.36f);
-        style.Colors[(int)ImGuiCol.TabUnfocused] = new Vector4(0.00f, 0.00f, 0.00f, 0.52f);
-        style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new Vector4(0.14f, 0.14f, 0.14f, 1.00f);
+        style.Colors[(int)ImGuiCol.TabSelected] = new Vector4(0.20f, 0.20f, 0.20f, 0.36f);
+        style.Colors[(int)ImGuiCol.TabDimmedSelected] = new Vector4(0.00f, 0.00f, 0.00f, 0.52f);
+        style.Colors[(int)ImGuiCol.TabDimmed] = new Vector4(0.14f, 0.14f, 0.14f, 1.00f);
         style.Colors[(int)ImGuiCol.DockingPreview] = new Vector4(0.33f, 0.67f, 0.86f, 1.00f);
         style.Colors[(int)ImGuiCol.DockingEmptyBg] = new Vector4(1.00f, 0.00f, 0.00f, 1.00f);
         style.Colors[(int)ImGuiCol.PlotLines] = new Vector4(1.00f, 0.00f, 0.00f, 1.00f);
@@ -637,7 +642,7 @@ internal sealed class UIRenderer : IUIRenderer
         style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
     }
 
-    private void SetStylePurple(ImGuiStylePtr style)
+    private static void SetStylePurple(ImGuiStylePtr style)
     {
         style.Colors[(int)ImGuiCol.Text] = new Vector4(1.00f, 1.00f, 1.00f, 1.00f);
         style.Colors[(int)ImGuiCol.TextDisabled] = new Vector4(0.50f, 0.50f, 0.50f, 1.00f);
@@ -674,9 +679,9 @@ internal sealed class UIRenderer : IUIRenderer
         style.Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.35f, 0.33f, 0.41f, 0.74f);
         style.Colors[(int)ImGuiCol.Tab] = new Vector4(0.24f, 0.22f, 0.33f, 1.00f);
         style.Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.38f, 0.34f, 0.53f, 1.00f);
-        style.Colors[(int)ImGuiCol.TabActive] = new Vector4(0.24f, 0.22f, 0.33f, 1.00f);
-        style.Colors[(int)ImGuiCol.TabUnfocused] = new Vector4(0.27f, 0.26f, 0.32f, 0.40f);
-        style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new Vector4(0.42f, 0.39f, 0.57f, 0.40f);
+        style.Colors[(int)ImGuiCol.TabSelected] = new Vector4(0.24f, 0.22f, 0.33f, 1.00f);
+        style.Colors[(int)ImGuiCol.TabDimmed] = new Vector4(0.27f, 0.26f, 0.32f, 0.40f);
+        style.Colors[(int)ImGuiCol.TabDimmedSelected] = new Vector4(0.42f, 0.39f, 0.57f, 0.40f);
         //style.Colors[(int)ImGuiCol.TabUnfocusedBorder]     = new Vector4(0.11f, 0.09f, 0.17f, 1.00f);
         style.Colors[(int)ImGuiCol.DockingPreview] = new Vector4(0.58f, 0.54f, 0.80f, 0.78f);
         style.Colors[(int)ImGuiCol.DockingEmptyBg] = new Vector4(0.12f, 0.11f, 0.14f, 1.00f);
@@ -702,7 +707,7 @@ internal sealed class UIRenderer : IUIRenderer
         style.AntiAliasedLinesUseTex = false;
     }
 
-    private void SetStyleDarker(ImGuiStylePtr style)
+    private static void SetStyleDarker(ImGuiStylePtr style)
     {
         style.WindowPadding = new Vector2(12, 12);
         style.WindowRounding = 5.0f;

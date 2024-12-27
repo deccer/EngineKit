@@ -1,3 +1,4 @@
+using EngineKit.Core;
 using EngineKit.Mathematics;
 
 namespace EngineKit.Graphics;
@@ -54,8 +55,8 @@ internal sealed class SwapchainDescriptorBuilder : ISwapchainDescriptorBuilder
         _swapchainDescriptor.Viewport = new Viewport(
             0, 
             0, 
-            _applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y);
+            _applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y);
         return this;
     }
     

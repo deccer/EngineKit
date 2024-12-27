@@ -1,6 +1,6 @@
 using System.Numerics;
 using EngineKit.Extensions;
-using EngineKit.Graphics.Shaders;
+using EngineKit.Graphics.RHI;
 using EngineKit.Native.OpenGL;
 
 namespace EngineKit.Graphics;
@@ -60,7 +60,7 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
             _currentIndexBuffer = indexBuffer;
         }
     }
-    
+
     public void DrawArraysInstanced(
         int vertexCount,
         int vertexOffset,
@@ -146,7 +146,7 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
         GL.DrawElementsIndirect(
             _graphicsPipelineDescriptor.InputAssembly.PrimitiveTopology.ToGL(),
             GL.IndexElementType.UnsignedInt,
-            indirectElementIndex * sizeof(DrawElementIndirectCommand));
+            indirectElementIndex * sizeof(GpuDrawElementIndirectCommand));
     }
 
     public unsafe void MultiDrawElementsIndirect(
@@ -159,7 +159,7 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
             GL.IndexElementType.UnsignedInt,
             nint.Zero,
             drawCount,
-            (uint)sizeof(DrawElementIndirectCommand));
+            (uint)sizeof(GpuDrawElementIndirectCommand));
     }
 
     public unsafe void MultiDrawElementsIndirectCount(
@@ -174,29 +174,29 @@ public sealed class GraphicsPipeline : Pipeline, IGraphicsPipeline
             GL.IndexElementType.UnsignedInt,
             nint.Zero,
             maxDrawCount,
-            (uint)sizeof(DrawElementIndirectCommand));
+            (uint)sizeof(GpuDrawElementIndirectCommand));
     }
-    
+
     public void VertexUniform(int location, float value)
     {
         GL.ProgramUniform(ShaderProgram!.VertexShader!.Id, location, value);
     }
-    
+
     public void VertexUniform(int location, int value)
     {
         GL.ProgramUniform(ShaderProgram!.VertexShader!.Id, location, value);
     }
-    
+
     public void VertexUniform(int location, Vector3 value)
     {
         GL.ProgramUniform(ShaderProgram!.VertexShader!.Id, location, value);
     }
-    
+
     public void FragmentUniform(int location, float value)
     {
         GL.ProgramUniform(ShaderProgram!.FragmentShader!.Id, location, value);
     }
-    
+
     public void FragmentUniform(int location, int value)
     {
         GL.ProgramUniform(ShaderProgram!.FragmentShader!.Id, location, value);

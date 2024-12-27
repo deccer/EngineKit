@@ -1,8 +1,9 @@
 using System.Threading.Tasks;
 using EngineKit;
+using EngineKit.Core;
+using EngineKit.Core.Messages;
 using EngineKit.Graphics;
 using EngineKit.Input;
-using EngineKit.Messages;
 using EngineKit.Native.OpenGL;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -30,17 +31,20 @@ internal sealed class ComplexApplication : GraphicsApplication
                               IInputProvider inputProvider,
                               IGraphicsContext graphicsContext,
                               IUIRenderer uiRenderer,
+                              IRenderer renderer,
                               IMessageBus messageBus,
                               Game game,
                               Editor editor)
             : base(logger,
                    windowSettings,
                    contextSettings,
+                   messageBus,
                    applicationContext,
                    capabilities,
                    metrics,
                    inputProvider,
                    graphicsContext,
+                   renderer,
                    uiRenderer)
     {
         _logger = logger;
@@ -95,10 +99,6 @@ internal sealed class ComplexApplication : GraphicsApplication
     {
         _game.Render(deltaTime, elapsedSeconds);
         _editor.Render(deltaTime, elapsedSeconds);
-        if (_applicationContext.IsLaunchedByNSightGraphicsOnLinux)
-        {
-            GL.Finish();
-        }
     }
 
     protected override void OnUnload()

@@ -1,8 +1,10 @@
 using System.Numerics;
+using Complex.Engine;
 using Complex.Windows;
 using EngineKit;
+using EngineKit.Core;
+using EngineKit.Core.Messages;
 using EngineKit.Graphics;
-using EngineKit.Messages;
 using EngineKit.UI;
 using ImGuiNET;
 using Microsoft.Extensions.Options;
@@ -30,7 +32,7 @@ internal sealed class Editor
 
     private readonly PropertyWindow _propertyWindow;
 
-    private readonly IRenderer _renderer;
+    private readonly IRenderer2 _renderer;
 
     private readonly SceneHierarchyWindow _sceneHierarchyWindow;
 
@@ -46,7 +48,7 @@ internal sealed class Editor
         ICapabilities capabilities,
         IMetrics metrics,
         IGraphicsContext graphicsContext,
-        IRenderer renderer,
+        IRenderer2 renderer,
         IUIRenderer uiRenderer,
         IMessageBus messageBus,
         AssetWindow assetWindow,
@@ -85,9 +87,9 @@ internal sealed class Editor
     public void Render(float deltaTime,
                        float elapsedSeconds)
     {
-        if (_applicationContext.HasSceneViewSizeChanged)
+        //if (_applicationContext.HasWindowFramebufferSizeChanged)
         {
-            _swapchainDescriptor = CreateSwapchainDescriptor(_applicationContext.WindowScaledFramebufferSize.X, _applicationContext.WindowScaledFramebufferSize.Y);
+            _swapchainDescriptor = CreateSwapchainDescriptor(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y);
         }
 
         _graphicsContext.BeginRenderPass(_swapchainDescriptor);

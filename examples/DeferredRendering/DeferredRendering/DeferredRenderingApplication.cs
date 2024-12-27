@@ -4,7 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using EngineKit;
+using EngineKit.Core;
 using EngineKit.Graphics;
+using EngineKit.Graphics.Assets;
+using EngineKit.Graphics.RHI;
 using EngineKit.Input;
 using EngineKit.Native.Glfw;
 using EngineKit.Native.OpenGL;
@@ -64,11 +67,13 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
         ILogger logger,
         IOptions<WindowSettings> windowSettings,
         IOptions<ContextSettings> contextSettings,
+        IMessageBus messageBus,
         IApplicationContext applicationContext,
         ICapabilities capabilities,
         IMetrics metrics,
         IInputProvider inputProvider,
         IGraphicsContext graphicsContext,
+        IRenderer renderer,
         IUIRenderer uiRenderer,
         ICamera camera,
         IMeshLoader meshLoader,
@@ -77,11 +82,13 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             logger,
             windowSettings,
             contextSettings,
+            messageBus,
             applicationContext,
             capabilities,
             metrics,
             inputProvider,
             graphicsContext,
+            renderer,
             uiRenderer)
     {
         _logger = logger;
@@ -174,7 +181,7 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
             _gBufferGraphicsPipeline!.BindAsUniformBuffer(_gpuCameraConstantsBuffer, 0, Offset.Zero, SizeInBytes.Whole);
             _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuModelMeshInstanceBuffer, 1, Offset.Zero, SizeInBytes.Whole);
             _gBufferGraphicsPipeline.BindAsShaderStorageBuffer(_gpuMaterialBuffer!, 2, Offset.Zero, SizeInBytes.Whole);
-            _gBufferGraphicsPipeline.BindAsVertexBuffer(_gpuVertexBuffer!, 0, VertexPositionNormalUvTangent.Stride, Offset.Zero);
+            _gBufferGraphicsPipeline.BindAsVertexBuffer(_gpuVertexBuffer!, 0, GpuVertexPositionNormalUvTangent.Stride, Offset.Zero);
             _gBufferGraphicsPipeline.BindAsIndexBuffer(_gpuIndexBuffer!);
 
             for (var i = 0; i < _drawCommands.Count; i++)
@@ -198,8 +205,8 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
         GraphicsContext.BeginRenderPass(_swapchainDescriptor);
         GraphicsContext.BlitFramebufferToSwapchain(
-            _applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y,
+            _applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y,
             _applicationContext.WindowFramebufferSize.X,
             _applicationContext.WindowFramebufferSize.Y);
 
@@ -433,25 +440,25 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     private void CreateResolutionDependentResources()
     {
-        _gBufferBaseColorTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "BaseColor");
-        _gBufferNormalTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y, Format.R16G16B16Float, "Normals");
-        _gBufferDepthTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y, Format.D32UNorm, "Depth");
+        _gBufferBaseColorTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y, Format.R8G8B8A8UNorm, "BaseColor");
+        _gBufferNormalTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y, Format.R16G16B16Float, "Normals");
+        _gBufferDepthTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y, Format.D32UNorm, "Depth");
 
         _gBufferFramebufferDescriptor = GraphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_gBufferBaseColorTexture, true, Colors.DarkSlateBlue)
             .WithColorAttachment(_gBufferNormalTexture, true, Vector4.Zero)
             .WithDepthAttachment(_gBufferDepthTexture, true)
-            .WithViewport(_applicationContext.WindowScaledFramebufferSize.X, _applicationContext.WindowScaledFramebufferSize.Y)
+            .WithViewport(_applicationContext.ScaledWindowFramebufferSize.X, _applicationContext.ScaledWindowFramebufferSize.Y)
             .Build("GBuffer");
 
-        _finalTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "Final");
+        _finalTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y, Format.R8G8B8A8UNorm, "Final");
         _finalFramebufferDescriptor = GraphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_finalTexture, true, new Vector4(0.2f, 0.2f, 0.2f, 1.0f))
-            .WithViewport(_applicationContext.WindowScaledFramebufferSize.X, _applicationContext.WindowScaledFramebufferSize.Y)
+            .WithViewport(_applicationContext.ScaledWindowFramebufferSize.X, _applicationContext.ScaledWindowFramebufferSize.Y)
             .Build("Final");
     }
 

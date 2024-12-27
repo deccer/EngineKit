@@ -1,5 +1,5 @@
 ﻿using System;
-using EngineKit.Graphics;
+using EngineKit.Graphics.RHI;
 //using Ktx2Sharp;
 using EngineKit.Native.Ktx;
 

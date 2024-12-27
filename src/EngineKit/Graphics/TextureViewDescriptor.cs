@@ -1,8 +1,10 @@
+using EngineKit.Graphics.RHI;
+
 namespace EngineKit.Graphics;
 
 public record struct TextureViewDescriptor
 {
-    public ImageType ImageType;
+    public TextureType TextureType;
     
     public Format Format;
 

@@ -33,7 +33,7 @@ internal static class Program
         services.AddSingleton(Log.Logger);
         services.Configure<WindowSettings>(configuration.GetSection(nameof(WindowSettings)));
         services.Configure<ContextSettings>(configuration.GetSection(nameof(ContextSettings)));
-        services.AddEngine();
+        services.AddEngineKit();
         services.AddSingleton<ICamera>(provider => new Camera(
             provider.GetRequiredService<IApplicationContext>(),
             provider.GetRequiredService<IInputProvider>(), new Vector3(0, 0, 10), Vector3.UnitY));

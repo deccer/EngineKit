@@ -2,9 +2,9 @@
 
 public record struct ClearValue
 {
-    public static ClearValue Zero = new ClearValue(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0);
-    public static ClearValue White = new ClearValue(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0);
-    public static ClearValue DarkGray = new ClearValue(0.1f, 0.1f, 0.1f, 1.0f, 1.0f, 0);
+    public static readonly ClearValue Zero = new ClearValue(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0);
+    public static readonly ClearValue White = new ClearValue(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0);
+    public static readonly ClearValue DarkGray = new ClearValue(0.1f, 0.1f, 0.1f, 1.0f, 1.0f, 0);
 
     public ClearValue(float x, float y, float z, float w, float depth = 1.0f, int stencil = 0)
     {

@@ -34,18 +34,18 @@ public class VertexBufferShould : IClassFixture<GlfwOpenGLDummyWindow>
     public void BeAbleToUpdateDynamicBuffer()
     {
         // Arrange
-        var vertexBuffer = new TypedBuffer<VertexPositionNormalUvTangent>("Label", 100);
+        var vertexBuffer = new TypedBuffer<GpuVertexPositionNormalUvTangent>("Label", 100);
 
         // Act
-        var vertexElements = new VertexPositionNormalUvTangent[]
+        var vertexElements = new GpuVertexPositionNormalUvTangent[]
         {
-            new VertexPositionNormalUvTangent(),
-            new VertexPositionNormalUvTangent()
+            new GpuVertexPositionNormalUvTangent(),
+            new GpuVertexPositionNormalUvTangent()
         };
         vertexBuffer.UpdateElements(in vertexElements,  0);
 
         // Assert
-        vertexBuffer.SizeInBytes.Should().Be(100 * (uint)Marshal.SizeOf<VertexPositionNormalUvTangent>());
+        vertexBuffer.SizeInBytes.Should().Be(100 * (uint)Marshal.SizeOf<GpuVertexPositionNormalUvTangent>());
         _glfwOpenGLDummyWindow.ErrorMessages.Should().HaveCount(0);
     }
 }

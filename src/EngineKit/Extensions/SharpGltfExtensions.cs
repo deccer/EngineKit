@@ -1,7 +1,7 @@
 using System;
-using EngineKit.Graphics;
+using EngineKit.Graphics.RHI;
 using SharpGLTF.Schema2;
-using TextureInterpolationFilter = EngineKit.Graphics.TextureInterpolationFilter;
+using TextureInterpolationFilter = EngineKit.Graphics.RHI.TextureInterpolationFilter;
 
 namespace EngineKit.Extensions;
 

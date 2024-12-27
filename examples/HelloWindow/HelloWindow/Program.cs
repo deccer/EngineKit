@@ -1,5 +1,6 @@
 ﻿using EngineKit;
 using EngineKit.Extensions;
+using EngineKit.Graphics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -31,7 +32,8 @@ internal static class Program
         services.AddSingleton(Log.Logger);
         services.Configure<WindowSettings>(configuration.GetSection(nameof(WindowSettings)));
         services.Configure<ContextSettings>(configuration.GetSection(nameof(ContextSettings)));
-        services.AddEngine();
+        services.AddEngineKit();
+        services.AddSingleton<IRenderer, HelloWindowRenderer>();
         services.AddSingleton<IApplication, HelloWindowApplication>();
         return services.BuildServiceProvider();
     }
