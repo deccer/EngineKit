@@ -12,7 +12,7 @@ public sealed class Camera : ICamera
     private readonly IInputProvider _inputProvider;
     private readonly Vector3 _worldUp;
 
-    private Vector3 _position = Vector3.Zero;
+    private Vector3 _position;
     private Vector3 _front;
     private Vector3 _up;
     private Vector3 _right;
