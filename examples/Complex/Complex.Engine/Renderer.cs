@@ -221,6 +221,16 @@ public class Renderer : IRenderer2
 
     public void Render(ICamera camera)
     {
+        if(ResizeIfNecessary())
+        {
+            var scaledViewSize = _isEditor
+                                     ? _applicationContext.ScaledSceneViewSize
+                                     : _applicationContext.ScaledWindowFramebufferSize; 
+            _camera.Resize(scaledViewSize.X, scaledViewSize.Y);
+            //_forwardRenderPass.ResizeViewport(scaledViewSize.X, scaledViewSize.Y);
+            
+        }
+        
         _gpuGlobals.ProjectionMatrix = camera.ProjectionMatrix;
         _gpuGlobals.ViewMatrix = camera.ViewMatrix;
         _cameraInformationBuffer!.UpdateElement(_gpuGlobals, 0);
@@ -350,65 +360,47 @@ public class Renderer : IRenderer2
         _aabbCounter++;
     }
 
-    public void ResizeIfNecessary()
+    public bool ResizeIfNecessary()
     {
-        if (!_applicationContext.HasWindowFramebufferSizeChanged && !_applicationContext.HasSceneViewSizeChanged)
+        if(_applicationContext.HasWindowFramebufferSizeChanged || _applicationContext.HasSceneViewSizeChanged)
         {
-            return;
+            var scaledFramebufferSize = _isEditor
+                ? _applicationContext.ScaledSceneViewSize
+                : _applicationContext.ScaledWindowFramebufferSize;
+
+            if((scaledFramebufferSize.X * scaledFramebufferSize.Y) > 0)
+            {
+
+                DestroyFramebufferDependentResources();
+                CreateFramebufferDependentResources(scaledFramebufferSize);
+
+                _applicationContext.HasSceneViewSizeChanged = false;
+                _applicationContext.HasWindowFramebufferSizeChanged = false;
+
+                return true;
+            }
         }
 
-        ResizeFramebufferDependentResources();
-
-        if (!_isEditor)
-        {
-            _camera.Resize(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y);
-            _forwardRenderPass.ResizeViewport(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y);
-        }
-        else
-        {
-            _camera.Resize(_applicationContext.SceneViewSize.X, _applicationContext.SceneViewSize.Y);
-            _forwardRenderPass.ResizeViewport(_applicationContext.SceneViewSize.X, _applicationContext.SceneViewSize.Y);
-        }
-
+        return false;
     }
 
-    private void ResizeFramebufferDependentResources()
+    private void CreateFramebufferDependentResources(Int2 scaledFramebufferSize)
     {
-        if (_applicationContext.HasWindowFramebufferSizeChanged || _applicationContext.HasSceneViewSizeChanged)
-        {
-            DestroyFramebufferDependentResources();
-            CreateFramebufferDependentResources();
-
-            _applicationContext.HasSceneViewSizeChanged = false;
-            _applicationContext.HasWindowFramebufferSizeChanged = false;
-        }
-    }
-
-    private void CreateFramebufferDependentResources()
-    {
-        _forwardRenderPassColorAttachment = _graphicsContext.CreateTexture2D(_isEditor
-                ? _applicationContext.SceneViewScaledSize
-                : _applicationContext.WindowScaledFramebufferSize,
+        _forwardRenderPassColorAttachment = _graphicsContext.CreateTexture2D(scaledFramebufferSize,
             Format.R8G8B8A8Srgb,
             "ForwardColorAttachment");
-        _forwardRenderPassDepthAttachment = _graphicsContext.CreateTexture2D(_isEditor
-            ? _applicationContext.SceneViewScaledSize
-            : _applicationContext.WindowScaledFramebufferSize,
+        _forwardRenderPassDepthAttachment = _graphicsContext.CreateTexture2D(scaledFramebufferSize,
             Format.D32Float,
             "ForwardDepthAttachment");
-
-        var viewport = _isEditor
-            ? _applicationContext.SceneViewScaledSize
-            : _applicationContext.WindowFramebufferSize;
 
         _forwardRenderPass = _graphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_forwardRenderPassColorAttachment,
                 true,
-                Colors.DarkSlateBlue) //MathHelper.GammaToLinear(Colors.DarkSlateBlue))
+                MathHelper.GammaToLinear(Colors.DarkSlateBlue))
             .WithDepthAttachment(_forwardRenderPassDepthAttachment,
                 true,
                 0)
-            .WithViewport(viewport.X, viewport.Y)
+            //.WithViewport(framebufferSize.X, framebufferSize.Y)
             .Build("ForwardRenderPass");
     }
 

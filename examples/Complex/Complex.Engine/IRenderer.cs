@@ -22,6 +22,4 @@ public interface IRenderer2 : IDisposable
     void RenderUI();
 
     FramebufferDescriptor GetMainFramebufferDescriptor();
-
-    void ResizeIfNecessary();
 }
