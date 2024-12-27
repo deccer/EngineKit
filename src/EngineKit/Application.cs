@@ -308,6 +308,7 @@ public class Application : IApplication
                                 out var framebufferHeight);
 
         _applicationContext.ResizeWindowFramebuffer(framebufferWidth, framebufferHeight);
+        _applicationContext.ResizeSceneView(framebufferWidth, framebufferHeight);
         _applicationContext.IsWindowMaximized = false;
 
         if(Glfw.IsRawMouseMotionSupported())
