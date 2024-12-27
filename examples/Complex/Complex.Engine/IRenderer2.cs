@@ -17,7 +17,7 @@ public interface IRenderer2 : IDisposable
 
     void Render(ICamera camera);
 
-    public bool Load();
+    bool Load();
 
     void RenderUI();
 

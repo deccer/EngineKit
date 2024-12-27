@@ -23,12 +23,9 @@ public class Entity
 
     public EntityId Id;
 
-    public string Name;
-
     public Entity(string name,
                   Entity? parent)
     {
-        Name = name;
         Components = new Dictionary<Type, Component>();
         Parent = parent;
         Children = new List<Entity>();

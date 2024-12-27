@@ -59,16 +59,17 @@ internal class Game
         _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_WR", "Data/Default/SM_Deccer_Cubes_With_Rotation.glb");
 */
 
-/*
+
         _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_Complex", "Data/Default/SM_Deccer_Cubes_Textured_Complex.gltf");
-        _modelLibrary.AddModelFromFile("Nasa1", "Data/Props/Asteroids/nasa1.glb");
-        _modelLibrary.AddModelFromFile("Nasa2", "Data/Props/Asteroids/nasa2.glb");
-        _modelLibrary.AddModelFromFile("Nasa3", "Data/Props/Asteroids/nasa3.glb");
-        _modelLibrary.AddModelFromFile("Nasa4", "Data/Props/Asteroids/nasa4.glb");
-        _modelLibrary.AddModelFromFile("SF", "Data/Props/Test5.gltf");
-        */
+        /*
+                _modelLibrary.AddModelFromFile("Nasa1", "Data/Props/Asteroids/nasa1.glb");
+                _modelLibrary.AddModelFromFile("Nasa2", "Data/Props/Asteroids/nasa2.glb");
+                _modelLibrary.AddModelFromFile("Nasa3", "Data/Props/Asteroids/nasa3.glb");
+                _modelLibrary.AddModelFromFile("Nasa4", "Data/Props/Asteroids/nasa4.glb");
+                _modelLibrary.AddModelFromFile("SF", "Data/Props/Test5.gltf");
+                */
         //_modelLibrary.AddModelFromFile("SM_Deccer_Cubes_Complex", "/home/deccer/Code/Caldera/SM_Airfield_Ground_mi.glb");
-        _modelLibrary.AddModelFromFile("SM_Deccer_Cubes_Complex", "Data/Props/SimpleInstancing.glb");
+        //_modelLibrary.AddModelFromFile("SM_Deccer_Cubes_Complex", "Data/Props/SimpleInstancing.glb");
         //_modelLibrary.AddModelFromFile("FromSpace", "Data/Props/Asteroids/rock_from_space.glb");
         //_modelLibrary.AddModelFromFile("E1M1", "Data/Scenes/E1M1/E1M1.gltf");
         //_modelLibrary.AddModelFromFile("SmallCity", "Data/Scenes/small_city/small_city.gltf");
@@ -87,21 +88,21 @@ internal class Game
         return true;
     }
 
-    public void Render(float deltaTime,
+    public void Render(
+        float deltaTime,
         float elapsedSeconds)
     {
         _renderer.Render(_camera);
     }
 
-    public void Update(float deltaTime,
+    public void Update(
+        float deltaTime,
         float elapsedSeconds)
     {
         if (_inputProvider.KeyboardState.IsKeyPressed(Glfw.Key.KeyEscape))
         {
             _messageBus.PublishWait(new CloseWindowMessage());
         }
-
-        _renderer.ResizeIfNecessary();
 
         _scene.Update(deltaTime);
 

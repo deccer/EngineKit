@@ -70,7 +70,7 @@ public class PropertyWindow : Window
             {
                 if (!transformShown)
                 {
-                    ImGui.PushID(_selectedEntity.Name);
+                    ImGui.PushID(_selectedEntity.Id.GetHashCode());
 
                     if (ImGui.CollapsingHeader($"{MaterialDesignIcons.Compass} Transform"))
                     {

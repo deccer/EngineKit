@@ -99,10 +99,6 @@ internal sealed class ComplexApplication : GraphicsApplication
     {
         _game.Render(deltaTime, elapsedSeconds);
         _editor.Render(deltaTime, elapsedSeconds);
-        if (_applicationContext.IsLaunchedByNSightGraphicsOnLinux)
-        {
-            GL.Finish();
-        }
     }
 
     protected override void OnUnload()

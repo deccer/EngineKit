@@ -41,7 +41,7 @@ public class SceneHierarchyWindow : Window
         get => _selectedEntityId;
         set
         {
-            if (!_selectedEntityId.Equals(value))
+            if(!_selectedEntityId.Equals(value))
             {
                 _selectedEntityId = value;
                 _propertyWindow.SelectedEntityId = value;
@@ -51,23 +51,14 @@ public class SceneHierarchyWindow : Window
 
     protected override void DrawInternal()
     {
-        if (_rootEntity == null) return;
-
-        var isOpen = ImGui.TreeNodeEx(_rootEntity.Name, ImGuiTreeNodeFlags.SpanFullWidth);
-
-        if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
+        if(_rootEntity == null)
         {
-            SelectedEntityId = _rootEntityId;
+            return;
         }
 
-        if (isOpen)
+        foreach(var child in _rootEntity.Children)
         {
-            foreach (var child in _rootEntity.Children)
-            {
-                DrawChild(child);
-            }
-
-            ImGui.TreePop();
+            DrawChild(child);
         }
     }
 
@@ -84,7 +75,8 @@ public class SceneHierarchyWindow : Window
     private void DrawChild(Entity child)
     {
         var nodeFlags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.SpanFullWidth;
-        if (SelectedEntityId.Equals(child.Id))
+
+        if(SelectedEntityId.Equals(child.Id))
         {
             nodeFlags |= ImGuiTreeNodeFlags.Selected;
         }
@@ -96,14 +88,15 @@ public class SceneHierarchyWindow : Window
 
         ImGui.PushID(name + child);
         var isOpen = ImGui.TreeNodeEx(name, nodeFlags);
-        if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
+
+        if(ImGui.IsItemClicked(ImGuiMouseButton.Left))
         {
             SelectedEntityId = child.Id;
         }
 
-        if (isOpen)
+        if(isOpen)
         {
-            foreach (var grandChild in child.Children)
+            foreach(var grandChild in child.Children)
             {
                 DrawChild(grandChild);
             }

@@ -62,7 +62,7 @@ public class Renderer : IRenderer2
 
     public bool ShowAaBb;
 
-    private bool _isEditor;
+    private bool _isEditor = true;
 
     public Renderer(ILogger logger,
                     IGraphicsContext graphicsContext,
@@ -171,7 +171,7 @@ public class Renderer : IRenderer2
 
         _lineRendererGraphicsPipeline = lineRendererGraphicsPipelineResult.Value;
 
-        CreateFramebufferDependentResources();
+        CreateFramebufferDependentResources(_applicationContext.ScaledWindowFramebufferSize);
 
         _isLoaded = true;
 
@@ -261,8 +261,8 @@ public class Renderer : IRenderer2
         if (!_isEditor)
         {
             _graphicsContext.BlitFramebufferToSwapchain(
-                _applicationContext.WindowScaledFramebufferSize.X,
-                _applicationContext.WindowScaledFramebufferSize.Y,
+                _applicationContext.ScaledWindowFramebufferSize.X,
+                _applicationContext.ScaledWindowFramebufferSize.Y,
                 _applicationContext.WindowFramebufferSize.X,
                 _applicationContext.WindowFramebufferSize.Y);
         }

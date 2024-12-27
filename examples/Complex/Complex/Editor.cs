@@ -87,9 +87,9 @@ internal sealed class Editor
     public void Render(float deltaTime,
                        float elapsedSeconds)
     {
-        if (_applicationContext.HasSceneViewSizeChanged)
+        //if (_applicationContext.HasWindowFramebufferSizeChanged)
         {
-            _swapchainDescriptor = CreateSwapchainDescriptor(_applicationContext.WindowScaledFramebufferSize.X, _applicationContext.WindowScaledFramebufferSize.Y);
+            _swapchainDescriptor = CreateSwapchainDescriptor(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y);
         }
 
         _graphicsContext.BeginRenderPass(_swapchainDescriptor);

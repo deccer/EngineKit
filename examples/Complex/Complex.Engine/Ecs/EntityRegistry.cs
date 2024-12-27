@@ -63,11 +63,13 @@ public class EntityRegistry : IEntityRegistry
         component.Entity = entity;
         entity.Components.Add(componentType, component);
 
-        if (!_componentsByType.ContainsKey(componentType))
+        if (!_componentsByType.TryGetValue(componentType, out var components))
         {
-            _componentsByType[componentType] = new List<Component>();
+            components = new List<Component>();
+            _componentsByType[componentType] = components;
         }
-        _componentsByType[componentType].Add(component);
+
+        components.Add(component);
 
         var componentAdded = ComponentAdded;
         componentAdded?.Invoke(component);
@@ -102,7 +104,10 @@ public class EntityRegistry : IEntityRegistry
 
         foreach (var component in components)
         {
-            if (component.Entity != null && !entities.Contains(component.Entity)) entities.Add(component.Entity);
+            if(component.Entity != null && !entities.Contains(component.Entity))
+            {
+                entities.Add(component.Entity);
+            }
         }
 
         return entities;
@@ -115,13 +120,11 @@ public class EntityRegistry : IEntityRegistry
         if (!_componentsByType.TryGetValue(typeof(TComponent1), out var components1))
         {
             return Enumerable.Empty<Entity>().ToList();
-            ;
         }
 
         if (!_componentsByType.TryGetValue(typeof(TComponent2), out var components2))
         {
             return Enumerable.Empty<Entity>().ToList();
-            ;
         }
 
         var entities = new List<Entity>(256);
