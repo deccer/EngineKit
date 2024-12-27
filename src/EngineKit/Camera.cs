@@ -247,8 +247,8 @@ public sealed class Camera : ICamera
 
         ViewMatrix = Matrix4x4.CreateLookAt(_position, _position + _front, _up);
         ProjectionMatrix = Matrix4x4.CreateOrthographic(
-            _applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y,
+            _applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y,
             NearPlane,
             FarPlane);
     }

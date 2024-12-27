@@ -205,8 +205,8 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
         GraphicsContext.BeginRenderPass(_swapchainDescriptor);
         GraphicsContext.BlitFramebufferToSwapchain(
-            _applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y,
+            _applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y,
             _applicationContext.WindowFramebufferSize.X,
             _applicationContext.WindowFramebufferSize.Y);
 
@@ -440,25 +440,25 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     private void CreateResolutionDependentResources()
     {
-        _gBufferBaseColorTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "BaseColor");
-        _gBufferNormalTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y, Format.R16G16B16Float, "Normals");
-        _gBufferDepthTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y, Format.D32UNorm, "Depth");
+        _gBufferBaseColorTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y, Format.R8G8B8A8UNorm, "BaseColor");
+        _gBufferNormalTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y, Format.R16G16B16Float, "Normals");
+        _gBufferDepthTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y, Format.D32UNorm, "Depth");
 
         _gBufferFramebufferDescriptor = GraphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_gBufferBaseColorTexture, true, Colors.DarkSlateBlue)
             .WithColorAttachment(_gBufferNormalTexture, true, Vector4.Zero)
             .WithDepthAttachment(_gBufferDepthTexture, true)
-            .WithViewport(_applicationContext.WindowScaledFramebufferSize.X, _applicationContext.WindowScaledFramebufferSize.Y)
+            .WithViewport(_applicationContext.ScaledWindowFramebufferSize.X, _applicationContext.ScaledWindowFramebufferSize.Y)
             .Build("GBuffer");
 
-        _finalTexture = GraphicsContext.CreateTexture2D(_applicationContext.WindowScaledFramebufferSize.X,
-            _applicationContext.WindowScaledFramebufferSize.Y, Format.R8G8B8A8UNorm, "Final");
+        _finalTexture = GraphicsContext.CreateTexture2D(_applicationContext.ScaledWindowFramebufferSize.X,
+            _applicationContext.ScaledWindowFramebufferSize.Y, Format.R8G8B8A8UNorm, "Final");
         _finalFramebufferDescriptor = GraphicsContext.GetFramebufferDescriptorBuilder()
             .WithColorAttachment(_finalTexture, true, new Vector4(0.2f, 0.2f, 0.2f, 1.0f))
-            .WithViewport(_applicationContext.WindowScaledFramebufferSize.X, _applicationContext.WindowScaledFramebufferSize.Y)
+            .WithViewport(_applicationContext.ScaledWindowFramebufferSize.X, _applicationContext.ScaledWindowFramebufferSize.Y)
             .Build("Final");
     }
 

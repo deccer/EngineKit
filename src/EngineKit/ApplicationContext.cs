@@ -37,13 +37,13 @@ public class ApplicationContext : IApplicationContext
 
     public Int2 WindowFramebufferSize { get; private set; }
 
-    public Int2 WindowScaledFramebufferSize { get; private set; }
+    public Int2 ScaledWindowFramebufferSize { get; private set; }
 
     public bool HasWindowFramebufferSizeChanged { get; set; }
 
     public Int2 SceneViewSize { get; private set; }
 
-    public Int2 SceneViewScaledSize { get; private set; }
+    public Int2 ScaledSceneViewSize { get; private set; }
 
     public bool HasSceneViewSizeChanged { get; set; }
 
@@ -56,7 +56,7 @@ public class ApplicationContext : IApplicationContext
     public void ResizeWindowFramebuffer(int width, int height)
     {
         WindowFramebufferSize = new Int2(width, height);
-        WindowScaledFramebufferSize = new Int2(new Double2(
+        ScaledWindowFramebufferSize = new Int2(new Double2(
             width * _windowSettings.ResolutionScale,
             height * _windowSettings.ResolutionScale));
         HasWindowFramebufferSizeChanged = true;
@@ -65,7 +65,7 @@ public class ApplicationContext : IApplicationContext
     public void ResizeSceneView(int width, int height)
     {
         SceneViewSize = new Int2(width, height);
-        SceneViewScaledSize = new Int2(new Double2(
+        ScaledSceneViewSize = new Int2(new Double2(
             width * _windowSettings.ResolutionScale,
             height * _windowSettings.ResolutionScale));
         HasSceneViewSizeChanged = true;
