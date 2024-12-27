@@ -224,7 +224,7 @@ public sealed class Camera : ICamera
                 NearPlane,
                 FarPlane);
         }
-        else if (_cameraMode == CameraMode.PerspectiveInfinity)
+        else if (_cameraMode == CameraMode.InfinitePerspective)
         {
             ProjectionMatrix = CreateInfiniteReverseZPerspectiveRh(MathHelper.ToRadians(FieldOfView),
                 _aspectRatio,
