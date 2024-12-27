@@ -38,6 +38,12 @@ internal sealed class SharpGltfMeshLoader : IMeshLoader
 
     public IReadOnlyCollection<MeshPrimitive> LoadMeshPrimitivesFromFile(string filePath)
     {
+        if(!File.Exists(filePath))
+        {
+            _logger.Error($"File {filePath} does not exist");
+            return Array.Empty<MeshPrimitive>();
+        }
+        
         var readSettings = new ReadSettings
         {
             Validation = ValidationMode.Skip,
