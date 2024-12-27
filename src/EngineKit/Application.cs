@@ -192,6 +192,8 @@ public class Application : IApplication
         Glfw.WindowHint(Glfw.WindowInitHint.IsMaximized, !windowResizable);
         Glfw.WindowHint(Glfw.WindowInitHint.IsFloating, !windowResizable);
         Glfw.WindowHint(Glfw.WindowInitHint.IsFocused, true);
+
+        Glfw.WindowHint(Glfw.FramebufferInitHint.SrgbCapable, true);
         /*
         Glfw.WindowHint(Glfw.FramebufferInitHint.RedBits, 10);
         Glfw.WindowHint(Glfw.FramebufferInitHint.GreenBits, 10);
