@@ -335,7 +335,7 @@ internal class ForwardRenderer : IRenderer
     {
         var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         var meshDates = _meshLoader
-            .LoadMeshPrimitivesFromFile("Data/Props/SM_Skull_Optimized_point2.gltf")
+            .LoadMeshPrimitivesFromFile("Data/Props/Skull/SM_Skull_Optimized_point2.gltf")
             .ToArray();
 
         var indexOffset = 0;
