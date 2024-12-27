@@ -54,7 +54,7 @@ public abstract class GraphicsApplication : Application
             return false;
         }
 
-        if (!UIRenderer.Load(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y))
+        if (!UIRenderer.Load())
         {
             return false;
         }

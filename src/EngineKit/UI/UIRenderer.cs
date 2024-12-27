@@ -66,6 +66,7 @@ internal sealed class UIRenderer : IUIRenderer
     private static readonly unsafe uint ImDrawVertStride = (uint)sizeof(ImDrawVert);
 
     private readonly ILogger _logger;
+    private readonly IApplicationContext _applicationContext;
     private readonly IGraphicsContext _graphicsContext;
     private readonly IInputProvider _inputProvider;
 
@@ -98,10 +99,12 @@ internal sealed class UIRenderer : IUIRenderer
 
     public UIRenderer(
         ILogger logger,
+        IApplicationContext applicationContext,
         IGraphicsContext graphicsContext,
         IInputProvider inputProvider)
     {
         _logger = logger.ForContext<UIRenderer>();
+        _applicationContext = applicationContext;
         _graphicsContext = graphicsContext;
         _inputProvider = inputProvider;
         _keyValues = Array.Empty<Glfw.Key>();
@@ -130,10 +133,10 @@ internal sealed class UIRenderer : IUIRenderer
         return true;
     }
 
-    public bool Load(int width, int height)
+    public bool Load()
     {
-        _framebufferWidth = width;
-        _framebufferHeight = height;
+        _framebufferWidth = _applicationContext.WindowFramebufferSize.X;
+        _framebufferHeight = _applicationContext.WindowFramebufferSize.Y;
 
         _keyValues = Enum.GetValuesAsUnderlyingType<Glfw.Key>();
 
@@ -285,6 +288,7 @@ internal sealed class UIRenderer : IUIRenderer
             _frameBegun = false;
             ImGui.Render();
             GL.Disable(GL.EnableType.FramebufferSrgb);
+            GL.Viewport(new Int4(0, 0, _applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y));
             RenderDrawData(ImGui.GetDrawData());
             GL.Enable(GL.EnableType.FramebufferSrgb);
         }
@@ -578,7 +582,7 @@ internal sealed class UIRenderer : IUIRenderer
         DestroyDeviceObjects();
     }
 
-    private void SetStyleBlack(ImGuiStylePtr style)
+    private static void SetStyleBlack(ImGuiStylePtr style)
     {
         ImGui.StyleColorsDark();
         style.Colors[(int)ImGuiCol.Text] = new Vector4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -638,7 +642,7 @@ internal sealed class UIRenderer : IUIRenderer
         style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
     }
 
-    private void SetStylePurple(ImGuiStylePtr style)
+    private static void SetStylePurple(ImGuiStylePtr style)
     {
         style.Colors[(int)ImGuiCol.Text] = new Vector4(1.00f, 1.00f, 1.00f, 1.00f);
         style.Colors[(int)ImGuiCol.TextDisabled] = new Vector4(0.50f, 0.50f, 0.50f, 1.00f);
@@ -703,7 +707,7 @@ internal sealed class UIRenderer : IUIRenderer
         style.AntiAliasedLinesUseTex = false;
     }
 
-    private void SetStyleDarker(ImGuiStylePtr style)
+    private static void SetStyleDarker(ImGuiStylePtr style)
     {
         style.WindowPadding = new Vector2(12, 12);
         style.WindowRounding = 5.0f;
