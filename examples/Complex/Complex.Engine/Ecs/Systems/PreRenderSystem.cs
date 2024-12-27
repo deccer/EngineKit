@@ -35,27 +35,27 @@ public class PreRenderSystem : IPreRenderSystem
             ref var globalLightEntity = ref globalLightEntitiesSpan[i];
         }
 
-        var meshEntities = _entityRegistry.GetEntitiesWithComponents<ModelMeshComponent>();
-        var meshEntitiesSpan = CollectionsMarshal.AsSpan(meshEntities);
+        var entitiesWithMesh = _entityRegistry.GetEntitiesWithComponents<ModelMeshComponent>();
+        var entitiesWithMeshSpan = CollectionsMarshal.AsSpan(entitiesWithMesh);
 
-        if(meshEntities.Count > 0)
+        if(entitiesWithMesh.Count > 0)
         {
             _renderer.Clear();
         }
 
         var cameraFrustum = _camera.GetViewFrustum();
 
-        for (var i = 0; i < meshEntities.Count; i++)
+        for (var i = 0; i < entitiesWithMesh.Count; i++)
         {
-            ref var meshEntity = ref meshEntitiesSpan[i];
+            ref var entityWithMesh = ref entitiesWithMeshSpan[i];
 
-            var meshComponent = _entityRegistry.GetComponent<ModelMeshComponent>(meshEntity.Id);
-            var materialComponent = _entityRegistry.GetComponent<MaterialComponent>(meshEntity.Id);
+            var meshComponent = _entityRegistry.GetComponent<ModelMeshComponent>(entityWithMesh.Id);
+            var materialComponent = _entityRegistry.GetComponent<MaterialComponent>(entityWithMesh.Id);
             var material = materialComponent == null
                     ? _materialLibrary.GetMaterialByName("M_Default") //TODO(deccer): add a GetDefaultMaterial()
                     : materialComponent.Material;
 
-            var meshGlobalMatrix = meshEntity.GetGlobalMatrix();
+            var meshGlobalMatrix = entityWithMesh.GetGlobalMatrix();
             var transformedMeshAabb = meshComponent!.MeshPrimitive.BoundingBox.Transform(meshGlobalMatrix);
 
             if (cameraFrustum.Intersects(transformedMeshAabb))
