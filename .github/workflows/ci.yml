@@ -28,7 +28,7 @@ jobs:
 
       - name: Build and install GLFW
         run: |
-          sudo apt install xorg-dev cmake libwayland-dev
+          sudo apt install xorg-dev cmake libwayland-dev libxkbcommon-dev
           git clone --recursive https://github.com/glfw/glfw.git
           cd glfw
           mkdir build
