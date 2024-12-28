@@ -58,10 +58,4 @@
         </None>
         <!--None Remove="Native\Ktx\**" /-->
     </ItemGroup>
-
-    <ItemGroup>
-        <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
-            <HintPath>..\..\..\..\..\.nuget\packages\microsoft.extensions.configuration.abstractions\8.0.0\lib\net8.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
-        </Reference>
-    </ItemGroup>
 </Project>
