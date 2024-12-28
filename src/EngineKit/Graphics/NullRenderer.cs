@@ -23,7 +23,7 @@ internal sealed class NullRenderer : IRenderer
     {
     }
 
-    public void WindowFramebufferResized()
+    public void ResizeIfNecessary()
     {
     }
 }

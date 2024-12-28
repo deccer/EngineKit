@@ -106,7 +106,7 @@ internal sealed class HelloWindowRenderer : IRenderer
         _uiRenderer.ShowDemoWindow();
     }
 
-    public void WindowFramebufferResized()
+    public void ResizeIfNecessary()
     {
     }
 }

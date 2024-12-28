@@ -83,6 +83,14 @@ public abstract class GraphicsApplication : Application
 
     protected override void OnRender(float deltaTime, float elapsedSeconds)
     {
+        if(_applicationContext.HasWindowFramebufferSizeChanged || _applicationContext.HasSceneViewSizeChanged)
+        {
+            Renderer.ResizeIfNecessary();
+            UIRenderer.ResizeWindow(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y);
+
+            _applicationContext.HasWindowFramebufferSizeChanged = false;
+            _applicationContext.HasSceneViewSizeChanged = false;
+        }
         Renderer.Render(deltaTime, elapsedSeconds);
 
         UIRenderer.BeginLayout();
@@ -92,11 +100,6 @@ public abstract class GraphicsApplication : Application
 
     protected override void OnUpdate(float deltaTime, float elapsedSeconds)
     {
-        if (_applicationContext.HasWindowFramebufferSizeChanged)
-        {
-            UIRenderer.ResizeWindow(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y);
-        }
-
         UIRenderer.Update(deltaTime);
     }
 
@@ -108,11 +111,5 @@ public abstract class GraphicsApplication : Application
     protected override void OnCharacterInput(char codePoint)
     {
         UIRenderer.CharacterInput(codePoint);
-    }
-
-    protected override void OnWindowResized()
-    {
-        base.OnWindowResized();
-        Renderer.WindowFramebufferResized();
     }
 }

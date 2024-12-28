@@ -456,7 +456,7 @@ public class Application : IApplication
         _mouseButtonCallback = OnMouseButton;
         _mouseScrollCallback = OnMouseScroll;
         _framebufferSizeCallback = OnWindowFramebufferSizeChanged;
-        _windowSizeCallback = OnWindowSize;
+        _windowSizeCallback = OnWindowSizeChanged;
         _windowCharCallback = OnInputCharacter;
 
         Glfw.SetKeyCallback(_windowHandle, _keyCallback);
@@ -551,17 +551,19 @@ public class Application : IApplication
         OnMouseScrolled(scrollX, scrollY);
     }
 
-    private void OnWindowSize(nint windowHandle,
-                              int width,
-                              int height)
+    private void OnWindowSizeChanged(
+        nint windowHandle,
+        int width,
+        int height)
     {
         _applicationContext.WindowSize = new Int2(width, height);
         OnWindowResized();
     }
 
-    private void OnWindowFramebufferSizeChanged(nint windowHandle,
-                                                int width,
-                                                int height)
+    private void OnWindowFramebufferSizeChanged(
+        nint windowHandle,
+        int width,
+        int height)
     {
         if(width * height != 0)
         {
@@ -569,8 +571,9 @@ public class Application : IApplication
         }
     }
 
-    private void OnInputCharacter(nint windowHandle,
-                                  uint codePoint)
+    private void OnInputCharacter(
+        nint windowHandle,
+        uint codePoint)
     {
         OnCharacterInput((char)codePoint);
     }
@@ -585,13 +588,14 @@ public class Application : IApplication
         _logger.Debug("{Category}: Process Architecture - {@ProcessArchitecture}", "RT", RuntimeInformation.ProcessArchitecture);
     }
 
-    private void DebugCallback(GL.DebugSource source,
-                               GL.DebugType type,
-                               uint id,
-                               GL.DebugSeverity severity,
-                               int length,
-                               nint messagePtr,
-                               nint userParam)
+    private void DebugCallback(
+        GL.DebugSource source,
+        GL.DebugType type,
+        uint id,
+        GL.DebugSeverity severity,
+        int length,
+        nint messagePtr,
+        nint userParam)
     {
         if(type is GL.DebugType.Portability or GL.DebugType.Other or GL.DebugType.PushGroup or GL.DebugType.PopGroup)
         {
@@ -633,8 +637,9 @@ public class Application : IApplication
         }
     }
 
-    private void ErrorCallback(Glfw.ErrorCode errorCode,
-                               string errorDescription)
+    private void ErrorCallback(
+        Glfw.ErrorCode errorCode,
+        string errorDescription)
     {
         _logger.Error("{Category}: {ErrorCode} - {ErrorDescription}", "Glfw", errorCode, errorDescription);
     }

@@ -150,6 +150,12 @@ internal sealed class DeferredRenderingApplication : GraphicsApplication
 
     protected override void OnRender(float deltaTime, float elapsedSeconds)
     {
+        if(_applicationContext.HasWindowFramebufferSizeChanged || _applicationContext.HasSceneViewSizeChanged)
+        {
+            UIRenderer.ResizeWindow(_applicationContext.WindowFramebufferSize.X, _applicationContext.WindowFramebufferSize.Y);
+            _camera.Resize(_applicationContext.ScaledWindowFramebufferSize.X, _applicationContext.ScaledWindowFramebufferSize.Y);
+        }
+
         _gpuCameraConstants.ViewProjection = _camera.ViewMatrix * _camera.ProjectionMatrix;
         _gpuCameraConstantsBuffer!.UpdateElement(_gpuCameraConstants, Offset.Zero);
         _gpuModelMeshInstanceBuffer!.UpdateElements(_gpuModelMeshInstances.ToArray(), 0);

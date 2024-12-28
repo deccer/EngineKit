@@ -9,6 +9,6 @@ public interface IRenderer : IDisposable
     void Render(float deltaTime, float elapsedTime);
 
     void RenderUi(float deltaTime, float elapsedTime);
-
-    void WindowFramebufferResized();
+    
+    void ResizeIfNecessary();
 }

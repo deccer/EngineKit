@@ -159,11 +159,11 @@ internal class ForwardRenderer : IRenderer
         return true;
     }
 
-    public void Render(float deltaTime,
+    public void Render(
+        float deltaTime,
         float elapsedTime)
     {
-        _gpuModelMeshInstances = _modelMeshInstances.Select((mm,
-            index) =>
+        _gpuModelMeshInstances = _modelMeshInstances.Select((mm, index) =>
         {
             var rotationMatrix = index switch
             {
@@ -214,7 +214,8 @@ internal class ForwardRenderer : IRenderer
         _graphicsContext.EndRenderPass();
     }
 
-    public void RenderUi(float deltaTime,
+    public void RenderUi(
+        float deltaTime,
         float elapsedTime)
     {
         if (ImGui.BeginMainMenuBar())
@@ -283,13 +284,13 @@ internal class ForwardRenderer : IRenderer
         _uiRenderer.ShowDemoWindow();
     }
 
-    public void WindowFramebufferResized()
+    public void ResizeIfNecessary()
     {
         _swapchainDescriptor = _graphicsContext.GetSwapchainDescriptorBuilder()
-            .ClearColor(MathHelper.GammaToLinear(Colors.DarkSlateBlue))
-            .ClearDepth(1.0f)
-            .WithFramebufferSizeAsViewport()
-            .Build("Swapchain");
+                                               .ClearColor(MathHelper.GammaToLinear(Colors.DarkSlateBlue))
+                                               .ClearDepth(1.0f)
+                                               .WithFramebufferSizeAsViewport()
+                                               .Build("Swapchain");
     }
 
     private bool LoadRenderDescriptors()
